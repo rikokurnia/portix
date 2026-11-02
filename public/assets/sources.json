@@ -1,0 +1,38 @@
+{
+  "morpho": {
+    "id": "morpho",
+    "url": "https://coin-images.coingecko.com/coins/images/29837/small/Morpho-token-icon.png?1726771230"
+  },
+  "aave": {
+    "id": "aave",
+    "url": "https://coin-images.coingecko.com/coins/images/12645/small/aave-token-round.png?1720472354"
+  },
+  "compound": {
+    "id": "compound-governance-token",
+    "url": "https://coin-images.coingecko.com/coins/images/10775/small/COMP.png?1696510737"
+  },
+  "uniswap": {
+    "id": "uniswap",
+    "url": "https://coin-images.coingecko.com/coins/images/12504/small/uniswap-logo.png?1720676669"
+  },
+  "AAPL": {
+    "domain": "apple.com",
+    "url": "https://www.google.com/s2/favicons?domain=apple.com&sz=128"
+  },
+  "GOOGL": {
+    "domain": "google.com",
+    "url": "https://www.google.com/s2/favicons?domain=google.com&sz=128"
+  },
+  "NFLX": {
+    "domain": "netflix.com",
+    "url": "https://www.google.com/s2/favicons?domain=netflix.com&sz=128"
+  },
+  "MSFT": {
+    "domain": "microsoft.com",
+    "url": "https://www.google.com/s2/favicons?domain=microsoft.com&sz=128"
+  },
+  "META": {
+    "domain": "meta.com",
+    "url": "https://www.google.com/s2/favicons?domain=meta.com&sz=128"
+  }
+}

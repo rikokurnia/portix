@@ -1,0 +1,32 @@
+# Dependencies and generated output
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+.vercel/
+.DS_Store
+
+# Local credentials, signing material, and environment files
+.env*
+!.env.example
+!.env.*.example
+.npmrc
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+keystore/
+keystores/
+secrets/
+
+# Smart contracts are intentionally excluded from this frontend release.
+/contracts/
+
+# Local agent and browser metadata
+.gstack/
+.agents/
+.claude/

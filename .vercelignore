@@ -1,0 +1,9 @@
+contracts/
+node_modules/
+.next/
+.env*
+*.tsbuildinfo
+.git/
+.gstack/
+.agents/
+.claude/

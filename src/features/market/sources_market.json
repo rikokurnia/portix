@@ -1,0 +1,62 @@
+{
+  "AAPL": {
+    "ticker": "AAPL",
+    "name": "Apple",
+    "domain": "apple.com",
+    "provider": "Simple Icons / Apple Brand Mark",
+    "url": "https://cdn.simpleicons.org/apple/white",
+    "license": "Trademark / Fair Use",
+    "format": "SVG / PNG 256x256 transparent",
+    "localPath": "/assets/AAPL.png",
+    "svgPath": "/assets/logos/AAPL.svg",
+    "description": "Authentic monochrome white Apple silhouette brand mark for dark mode"
+  },
+  "GOOGL": {
+    "ticker": "GOOGL",
+    "name": "Alphabet (Google)",
+    "domain": "google.com",
+    "provider": "Wikimedia Commons / Google Brand Identity",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg",
+    "license": "Public Domain / Trademark (Google LLC)",
+    "format": "SVG / PNG 256x256 transparent",
+    "localPath": "/assets/GOOGL.png",
+    "svgPath": "/assets/logos/GOOGL.svg",
+    "description": "Authentic 4-color Google G mark on transparent background"
+  },
+  "NFLX": {
+    "ticker": "NFLX",
+    "name": "Netflix",
+    "domain": "netflix.com",
+    "provider": "Simple Icons / Netflix Brand Assets",
+    "url": "https://cdn.simpleicons.org/netflix/E50914",
+    "license": "Trademark / Fair Use (Netflix Inc.)",
+    "format": "SVG / PNG 256x256 transparent",
+    "localPath": "/assets/NFLX.png",
+    "svgPath": "/assets/logos/NFLX.svg",
+    "description": "Authentic Netflix red ribbon N mark on transparent background"
+  },
+  "MSFT": {
+    "ticker": "MSFT",
+    "name": "Microsoft",
+    "domain": "microsoft.com",
+    "provider": "Wikimedia Commons / Microsoft Brand Identity (2012)",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg",
+    "license": "Public Domain / Trademark (Microsoft Corp.)",
+    "format": "SVG / PNG 256x256 transparent",
+    "localPath": "/assets/MSFT.png",
+    "svgPath": "/assets/logos/MSFT.svg",
+    "description": "Authentic Microsoft 4-square brand mark on transparent background"
+  },
+  "META": {
+    "ticker": "META",
+    "name": "Meta",
+    "domain": "meta.com",
+    "provider": "Simple Icons / Meta Platforms Identity",
+    "url": "https://cdn.simpleicons.org/meta/0081FB",
+    "license": "Trademark / Fair Use (Meta Platforms, Inc.)",
+    "format": "SVG / PNG 256x256 transparent",
+    "localPath": "/assets/META.png",
+    "svgPath": "/assets/logos/META.svg",
+    "description": "Authentic Meta blue infinity ribbon mark on transparent background"
+  }
+}
