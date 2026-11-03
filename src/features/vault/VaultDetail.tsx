@@ -204,10 +204,6 @@ export function VaultDetail({ vaultId }: { vaultId: VaultId }) {
                   </span>
                   <span>Auto-refresh 60s</span>
                 </div>
-                <p className="vault-source-note">
-                  Protocol benchmarks from DefiLlama; these are not PORTIX
-                  realized returns.
-                </p>
               </>
             ) : (
               <VaultAbout vaultId={vaultId} histories={market.histories} />

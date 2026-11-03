@@ -31,10 +31,6 @@ export function Vault() {
           </button>
         </p>
       )}
-      <p className="vault-source-note">
-        Protocol benchmark rates · refresh every 60 seconds. Source observations
-        may update less frequently.
-      </p>
       <Portfolio
         onManage={(vaultId, stockId, mode) =>
           router.push(
