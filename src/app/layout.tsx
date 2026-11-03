@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Background } from "@/components/shared/Background";
-import { Navbar } from "@/components/shared/Navbar";
+import { AppChrome } from "@/components/shared/AppChrome";
 import { WalletProvider } from "@/features/wallet/WalletProvider";
 export const metadata: Metadata = {
   icons: { icon: "/assets/logo.png" },
@@ -17,9 +16,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Background />
         <WalletProvider appId={process.env.APP_ID_PRIVY?.trim() ?? ""}>
-          <Navbar />
+          <AppChrome />
           {children}
         </WalletProvider>
       </body>
