@@ -2,7 +2,8 @@
 import { useEffect, useRef } from "react";
 import {
   createChart,
-  LineSeries,
+  AreaSeries,
+  LineType,
   ColorType,
   LineStyle,
   type Time,
@@ -56,14 +57,16 @@ export function Chart({
       localization: { priceFormatter: (p: number) => `${p.toFixed(1)}%` },
     });
     const lines = series.map((s) => {
-      const line = chart.addSeries(LineSeries, {
-        color: s.color,
+      const line = chart.addSeries(AreaSeries, {
+        lineColor: s.color,
+        topColor: `${s.color}40`,
+        bottomColor: `${s.color}00`,
+        lineType: LineType.Curved,
         lineWidth: 2,
         priceScaleId: "left",
         lastValueVisible: false,
         priceLineVisible: false,
-        pointMarkersVisible: true,
-        pointMarkersRadius: 3,
+        pointMarkersVisible: false,
       });
       line.setData(s.values.map((v) => ({ ...v, time: v.time as Time })));
       return line;
@@ -119,7 +122,7 @@ export function Chart({
     };
   }, [series, height]);
   return (
-    <div className="chart-wrap" aria-label="Seven-day APY chart">
+    <div className="chart-wrap" aria-label="Seven-day APY area chart">
       <div ref={host} />
       <div ref={labels} className="chart-endpoints" aria-hidden="true">
         {series.map((s) => (

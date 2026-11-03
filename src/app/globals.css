@@ -212,6 +212,7 @@ a {
   margin-bottom: 8px;
 }
 .strategy-identity p {
+  min-height: 4.5em;
   color: #d9cbed;
   font-size: 16px;
   line-height: 1.5;

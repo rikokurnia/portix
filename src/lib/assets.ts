@@ -24,13 +24,13 @@ export const vaults = {
     apy: 4.8,
     sharePrice: 100,
     description:
-      "Put your stocks to work through diversified stablecoin lending.",
+      "Earn automated yield by deploying tokenized stocks into diversified lending pools.",
   },
   pxBoost: {
     apy: 8.1,
     sharePrice: 125,
     description:
-      "Deploy borrowed liquidity into AMM pools to earn trading fees.",
+      "Leverage borrowed liquidity in AMM pools to maximize trading fee yields.",
   },
 } as const;
 export const money = (n: number) =>
