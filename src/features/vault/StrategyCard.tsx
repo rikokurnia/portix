@@ -1,24 +1,27 @@
 "use client";
-import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
 import { Panel } from "@/components/shared/Panel";
 import { BrandIcon } from "@/components/shared/BrandIcon";
 import { Button } from "@/components/shared/Button";
 import { vaults, type VaultId } from "@/lib/assets";
-import { primeSeries, boostSeries } from "./data";
-const Chart = dynamic(
-  () => import("@/components/shared/Chart").then((m) => m.Chart),
-  { ssr: false, loading: () => <div style={{ height: 218 }} /> },
-);
+import {
+  protocols,
+  vaultProtocols,
+  summarizeVault,
+  formatBenchmarkTVL,
+} from "@/lib/vault-market-data";
+import { useVaultMarketData } from "./useVaultMarketData";
 export function StrategyCard({
   vaultId,
   onDeposit,
+  market,
 }: {
   vaultId: VaultId;
   onDeposit: () => void;
+  market: ReturnType<typeof useVaultMarketData>;
 }) {
   const prime = vaultId === "pxPrime",
-    series = prime ? primeSeries : boostSeries;
+    summary = summarizeVault(vaultId, market.histories);
   return (
     <Panel className={`strategy-card ${prime ? "prime" : "boost"}`}>
       <div className="strategy-identity">
@@ -30,10 +33,15 @@ export function StrategyCard({
       </div>
       <div className="protocol-risk">
         <div className="protocols">
-          {series.map((s) => (
-            <div key={s.name}>
-              <img src={s.logo} alt={`${s.name} logo`} width="42" height="42" />
-              <span>{s.name}</span>
+          {vaultProtocols[vaultId].map((id) => (
+            <div key={id}>
+              <img
+                src={protocols[id].logo}
+                alt={`${protocols[id].name} logo`}
+                width="42"
+                height="42"
+              />
+              <span>{protocols[id].name}</span>
             </div>
           ))}
         </div>
@@ -50,22 +58,29 @@ export function StrategyCard({
           <span>{prime ? "Lower" : "Moderate"}</span>
         </div>
       </div>
-      <div className="strategy-metrics">
+      <div className="overview-vault-metrics">
         <div>
-          <span>Avg {prime ? "Supply" : "Fee"} APY</span>
-          <strong>{vaults[vaultId].apy.toFixed(1)}%</strong>
+          <span>{prime ? "Blended supply APY" : "Uniswap fee APY"}</span>
+          <strong className="vault-apy">
+            {summary ? `${summary.apy.toFixed(2)}%` : "—"}
+          </strong>
         </div>
         <div>
-          <span>Total TVL</span>
-          <b>{prime ? "$1.45M" : "$820K"}</b>
+          <span>Benchmark TVL</span>
+          <b>{summary ? formatBenchmarkTVL(summary.tvl) : "—"}</b>
         </div>
         <div>
-          <span>24h Volume</span>
-          <b>{prime ? "$120K" : "$340K"}</b>
+          <span>Initial LTV</span>
+          <b>40%</b>
         </div>
-        <span className="period">7D</span>
       </div>
-      <Chart series={series} />
+      {!summary && (
+        <p className="vault-source-note">
+          {market.status === "error"
+            ? "Benchmark feed unavailable."
+            : "Fetching protocol benchmarks…"}
+        </p>
+      )}
       <Button className="full-width deposit-button" onClick={onDeposit}>
         Deposit <ArrowRight size={21} />
       </Button>

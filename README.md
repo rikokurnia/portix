@@ -1,6 +1,6 @@
 # portix
 
-PORTIX is a frontend for tokenized-stock trading and carry-yield vaults. It includes Market, pxPrime and pxBoost vaults, deposit/withdraw review flows, interactive TradingView Lightweight Charts, and one shared portfolio with wallet holdings and activity.
+PORTIX is a frontend for tokenized-stock trading and carry-yield vaults. It includes Market, pxPrime and pxBoost vaults, direct deposit/withdraw forms, interactive TradingView Lightweight Charts, and one shared portfolio with wallet holdings and activity.
 
 ## Run locally
 
@@ -39,7 +39,7 @@ Import **rikokurnia/portix**, select branch **main**, and use:
 
 ## Data and account behavior
 
-All prices, yields, candles, balances, and activity are local fixtures. Account state survives client route navigation and resets on reload. Market quotes and account actions share a 0.1% trade-fee calculation. Vault shares are calculated from collateral USD value: $100 per pxPrime share and $125 per pxBoost share. Withdrawals return proportional collateral and earned pUSDC.
+Stock prices, Market candles, account balances, and portfolio activity are local fixtures. Vault protocol APY/TVL and history are fetched from public DefiLlama endpoints, with visible source timestamps and a 60-second refresh schedule. These benchmark rates are not PORTIX realized returns. Account state survives client route navigation and resets on reload. Market quotes and account actions share a 0.1% trade-fee calculation. Vault shares are calculated from collateral USD value: $100 per pxPrime share and $125 per pxBoost share. Withdrawals return proportional collateral and earned pUSDC.
 
 No API key, RPC URL, wallet SDK, backend, database, private key, or signing operation is required. Brand assets are cached locally and charts run in the browser. Never add private keys or credentials to `NEXT_PUBLIC_*` variables or frontend code.
 
@@ -52,3 +52,7 @@ The local `contracts/` directory is intentionally excluded from this frontend re
 - [Market asset sources](./ASSET_SOURCES_MARKET.md)
 - [Integration and release validation](./VALIDATION.md)
 - [Market implementation notes](./VALIDATION_MARKET.md)
+
+## Vault detail pages
+
+Deposit opens `/vault/pxPrime` or `/vault/pxBoost`, with Chart/About tabs on the left and a direct account form on the right. The interactive carry animation explains the planned multichain route. PORTIX/bridge contracts remain undeployed; About lists destination protocol contracts separately. See [Vault data sources and behavior](./VAULT_EXPERIENCE.md).

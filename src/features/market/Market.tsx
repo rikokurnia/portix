@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { DepositModal } from '@/features/vault/DepositModal';
+import { useRouter } from 'next/navigation';
 import { MarketStockList } from './MarketStockList';
 import { BuyModal } from './BuyModal';
 import { SellModal } from './SellModal';
@@ -29,7 +29,7 @@ export function Market() {
   const [selectedStockId, setSelectedStockId] = useState<MarketStockId>('AAPL');
   const [isBuyOpen, setIsBuyOpen] = useState(false);
   const [isSellOpen, setIsSellOpen] = useState(false);
-  const [isEarnOpen, setIsEarnOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <main className="market-page">
@@ -52,7 +52,7 @@ export function Market() {
           stockId={selectedStockId}
           onBuy={() => setIsBuyOpen(true)}
           onSell={() => setIsSellOpen(true)}
-          onEarn={() => setIsEarnOpen(true)}
+          onEarn={() => router.push(`/vault/pxPrime?stock=${selectedStockId}`)}
         />
       </div>
 
@@ -72,15 +72,6 @@ export function Market() {
         />
       )}
 
-      {/* Earn Modal: Reuses Agent 1's shared pxPrime Deposit flow */}
-      {isEarnOpen && (
-        <DepositModal
-          vaultId="pxPrime"
-          initialStock={selectedStockId}
-          initialMode="Deposit"
-          onClose={() => setIsEarnOpen(false)}
-        />
-      )}
     </main>
   );
 }

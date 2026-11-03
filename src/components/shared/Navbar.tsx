@@ -24,7 +24,10 @@ export function Navbar() {
             <Link
               key={label}
               aria-current={
-                path === `/${label.toLowerCase()}` ? "page" : undefined
+                path === `/${label.toLowerCase()}` ||
+                path.startsWith(`/${label.toLowerCase()}/`)
+                  ? "page"
+                  : undefined
               }
               href={`/${label.toLowerCase()}`}
             >

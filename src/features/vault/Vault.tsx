@@ -1,15 +1,12 @@
 "use client";
-import { useState } from "react";
+import "./vault.css";
+import { useRouter } from "next/navigation";
 import { StrategyCard } from "./StrategyCard";
 import { Portfolio } from "./Portfolio";
-import { DepositModal } from "./DepositModal";
-import type { StockId, VaultId } from "@/lib/assets";
+import { useVaultMarketData } from "./useVaultMarketData";
 export function Vault() {
-  const [selection, setSelection] = useState<{
-    vaultId: VaultId;
-    stockId: StockId;
-    mode: "Deposit" | "Withdraw";
-  } | null>(null);
+  const router = useRouter(),
+    market = useVaultMarketData();
   return (
     <main className="page vault-page">
       <div className="hero">
@@ -21,25 +18,30 @@ export function Vault() {
           <StrategyCard
             key={id}
             vaultId={id}
-            onDeposit={() =>
-              setSelection({ vaultId: id, stockId: "GOOGL", mode: "Deposit" })
-            }
+            market={market}
+            onDeposit={() => router.push(`/vault/${id}`)}
           />
         ))}
       </div>
+      {market.error && (
+        <p className="vault-feed-error" role="status">
+          {market.error}{" "}
+          <button type="button" onClick={() => void market.refresh()}>
+            Retry
+          </button>
+        </p>
+      )}
+      <p className="vault-source-note">
+        Protocol benchmark rates · refresh every 60 seconds. Source observations
+        may update less frequently.
+      </p>
       <Portfolio
         onManage={(vaultId, stockId, mode) =>
-          setSelection({ vaultId, stockId, mode })
+          router.push(
+            `/vault/${vaultId}?stock=${stockId}&mode=${mode.toLowerCase()}`,
+          )
         }
       />
-      {selection && (
-        <DepositModal
-          vaultId={selection.vaultId}
-          initialStock={selection.stockId}
-          initialMode={selection.mode}
-          onClose={() => setSelection(null)}
-        />
-      )}
     </main>
   );
 }

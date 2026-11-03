@@ -59,7 +59,7 @@ export function Chart({
     const lines = series.map((s) => {
       const line = chart.addSeries(AreaSeries, {
         lineColor: s.color,
-        topColor: `${s.color}40`,
+        topColor: `${s.color}16`,
         bottomColor: `${s.color}00`,
         lineType: LineType.Curved,
         lineWidth: 2,
@@ -103,7 +103,7 @@ export function Chart({
       }
       el.hidden = false;
       el.textContent =
-        `${String(p.time)} · ` +
+        `${typeof p.time === "object" ? `${p.time.year}-${String(p.time.month).padStart(2, "0")}-${String(p.time.day).padStart(2, "0")}` : String(p.time)} · ` +
         lines
           .map((line, i) => {
             const d = p.seriesData.get(line);
@@ -122,7 +122,7 @@ export function Chart({
     };
   }, [series, height]);
   return (
-    <div className="chart-wrap" aria-label="Seven-day APY area chart">
+    <div className="chart-wrap" aria-label="Protocol APY area chart">
       <div ref={host} />
       <div ref={labels} className="chart-endpoints" aria-hidden="true">
         {series.map((s) => (

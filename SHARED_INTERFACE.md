@@ -1,6 +1,6 @@
 # PORTIX shared interface
 
-Work inside `project/`. Foundation owner: Agent 1. Market owner: Agent 2 (`src/app/market/page.tsx`, `src/features/market/**`). Do not change root layout, global CSS, manifests, shared components, asset manifest, or account store without coordinating. Market is implemented and uses the shared store, components, and Vault deposit modal.
+Work inside `project/`. Foundation owner: Agent 1. Market owner: Agent 2 (`src/app/market/page.tsx`, `src/features/market/**`). Do not change root layout, global CSS, manifests, shared components, asset manifest, or account store without coordinating. Market uses the shared account store. Earn links to the Vault detail route with the stock preselected.
 
 Next.js App Router, React 19, TypeScript, Tailwind 4, Lucide, Lightweight Charts 5. Run `npm run dev`.
 
@@ -27,4 +27,8 @@ Integration checks cover build/typecheck/lint, Market buy/sell, Vault wallet/act
 
 ## Integrated release
 
-Market is complete. Its quoted `totalPayment` is passed as the optional third `buyStock` argument so the full reviewed payment, including the 0.1% fee and share-precision remainder, is debited exactly. The store validates that the payment quotes the requested quantity. Two-argument quantity buys add the same fee rate to the stock cost. `sellStock` credits the fee-adjusted payout shown by Market. Shared calculators live in `src/lib/trade-calculations.ts` and are re-exported by the Market calculation module. Opening vault shares derive from the shared stock prices. `npm test` runs both account integration and Market suites.
+Market is implemented. Its quoted `totalPayment` is passed as the optional third `buyStock` argument so the full reviewed payment, including the 0.1% fee and share-precision remainder, is debited exactly. The store validates that the payment quotes the requested quantity. Two-argument quantity buys add the same fee rate to the stock cost. `sellStock` credits the fee-adjusted payout shown by Market. Shared calculators live in `src/lib/trade-calculations.ts` and are re-exported by the Market calculation module. Opening vault shares derive from the shared stock prices. `npm test` runs both account integration and Market suites.
+
+## Vault detail route update
+
+The Vault popup has been removed. Use `/vault/{vaultId}?stock={stockId}&mode=withdraw` for portfolio management; omit `mode` for deposits. `VaultForm` calls the shared actions directly with inline results. `VaultDetail` contains Chart/About tabs and `CarryFlow`. Public source configuration and normalization live in `src/lib/vault-market-data.ts`; `useVaultMarketData` shares its browser cache and polling across consumers. `DepositModal` and fixed Vault chart fixtures are removed. See VAULT_EXPERIENCE.md for source identities and deployment disclosures.
