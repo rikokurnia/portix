@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Background } from "@/components/shared/Background";
 import { Navbar } from "@/components/shared/Navbar";
+import { WalletProvider } from "@/features/wallet/WalletProvider";
 export const metadata: Metadata = {
   icons: { icon: "/assets/logo.png" },
   title: "PORTIX — Put your stocks to work",
@@ -17,8 +18,10 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Background />
-        <Navbar />
-        {children}
+        <WalletProvider appId={process.env.APP_ID_PRIVY?.trim() ?? ""}>
+          <Navbar />
+          {children}
+        </WalletProvider>
       </body>
     </html>
   );

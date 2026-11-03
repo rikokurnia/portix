@@ -33,7 +33,7 @@ Import **rikokurnia/portix**, select branch **main**, and use:
 | Install Command | `npm ci` |
 | Build Command | `npm run build` |
 | Output Directory | Leave the Next.js default |
-| Environment Variables | **None required** |
+| Environment Variables | `APP_ID_PRIVY` (public Privy application ID) |
 
 `vercel.json` contains the framework, install, and build settings. The contents of the local `project/` folder form the repository root; do not set Vercel's Root Directory to `project`. See Vercel's [Next.js support](https://vercel.com/docs/frameworks/full-stack/nextjs) and [Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions).
 
@@ -41,7 +41,7 @@ Import **rikokurnia/portix**, select branch **main**, and use:
 
 Stock prices, Market candles, account balances, and portfolio activity are local fixtures. Vault protocol APY/TVL and history are fetched from public DefiLlama endpoints, with visible source timestamps and a 60-second refresh schedule. These benchmark rates are not PORTIX realized returns. Account state survives client route navigation and resets on reload. Market quotes and account actions share a 0.1% trade-fee calculation. Vault shares are calculated from collateral USD value: $100 per pxPrime share and $125 per pxBoost share. Withdrawals return proportional collateral and earned pUSDC.
 
-No API key, RPC URL, wallet SDK, backend, database, private key, or signing operation is required. Brand assets are cached locally and charts run in the browser. Never add private keys or credentials to `NEXT_PUBLIC_*` variables or frontend code.
+Wallet sign-in uses Privy with the public `APP_ID_PRIVY` variable from `.env` or Vercel. The app secret is not used by the frontend. No backend, database, or private key is required. Brand assets are cached locally and charts run in the browser. Never add private keys, the Privy app secret, or other private credentials to `NEXT_PUBLIC_*` variables or frontend code.
 
 The local `contracts/` directory is intentionally excluded from this frontend repository and Vercel uploads. Environment files, local credentials, build output, and dependencies are also ignored. Contract source files remain untouched locally.
 
@@ -56,3 +56,7 @@ The local `contracts/` directory is intentionally excluded from this frontend re
 ## Vault detail pages
 
 Deposit opens `/vault/pxPrime` or `/vault/pxBoost`, with Chart/About tabs on the left and a direct account form on the right. The interactive carry animation explains the planned multichain route. PORTIX/bridge contracts remain undeployed; About lists destination protocol contracts separately. See [Vault data sources and behavior](./VAULT_EXPERIENCE.md).
+
+## Wallet sign-in
+
+Configure `APP_ID_PRIVY` using `.env.example` and the same variable in Vercel. Enable email/wallet authentication in your Privy dashboard and allow your app origins. [Privy integration details](./PRIVY_INTEGRATION.md) cover setup and account controls. Wallet authentication is real; Market/Vault account actions remain local until contract integration.

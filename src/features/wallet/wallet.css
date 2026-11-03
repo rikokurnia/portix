@@ -1,0 +1,120 @@
+.wallet-account-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0;
+}
+.wallet-account-heading > svg {
+  color: var(--border);
+}
+.wallet-account-heading strong {
+  display: block;
+  font-size: 18px;
+}
+.wallet-account-heading span,
+.wallet-email {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+.wallet-email {
+  overflow-wrap: anywhere;
+}
+.wallet-address {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  background: #171326;
+}
+.wallet-address code {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  user-select: all;
+}
+.wallet-address button {
+  background: none;
+  border: 0;
+  color: var(--muted);
+  padding: 4px;
+  flex-shrink: 0;
+}
+.wallet-network {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 20px 0;
+  font-size: 13px;
+}
+.wallet-network > span {
+  color: var(--muted);
+}
+.wallet-account-actions {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  margin-top: 22px;
+  padding-top: 18px;
+}
+.wallet-select-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.wallet-select-label select {
+  background: #171326;
+  color: var(--text);
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.wallet-empty {
+  text-align: center;
+  padding: 20px 0;
+}
+.wallet-empty > svg {
+  color: var(--border);
+  margin: 0 auto 14px;
+}
+.wallet-empty h3 {
+  font-size: 23px;
+}
+.wallet-empty p {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 12px 0 22px;
+}
+.wallet-error {
+  font-size: 12px;
+  color: #ffb5bd;
+  margin-top: 14px;
+}
+.wallet-notice {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  max-width: calc(100vw - 30px);
+}
+.wallet-notice button {
+  background: transparent;
+  border: 0;
+  font-size: 20px;
+  color: var(--muted);
+}

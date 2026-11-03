@@ -1,17 +1,10 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Wallet } from "lucide-react";
 import { BrandIcon } from "./BrandIcon";
-import { Button } from "./Button";
-import { Modal } from "./Modal";
-import { money } from "@/lib/assets";
-import { usePortfolio } from "@/lib/portfolio-store";
+import { WalletControl } from "@/features/wallet/WalletControl";
 export function Navbar() {
-  const path = usePathname(),
-    [open, setOpen] = useState(false);
-  const { pUSDC } = usePortfolio();
+  const path = usePathname();
   return (
     <>
       <header className="navbar">
@@ -35,23 +28,8 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
-        <Button variant="secondary" onClick={() => setOpen(true)}>
-          <Wallet size={16} />
-          <span>My account</span>
-        </Button>
+        <WalletControl />
       </header>
-      {open && (
-        <Modal title="Your account" onClose={() => setOpen(false)}>
-          <p className="muted">Your PORTIX portfolio</p>
-          <div className="account-balance">
-            <span>Available pUSDC</span>
-            <strong>{money(pUSDC)}</strong>
-          </div>
-          <Button className="full-width" onClick={() => setOpen(false)}>
-            Back to portfolio
-          </Button>
-        </Modal>
-      )}
     </>
   );
 }
