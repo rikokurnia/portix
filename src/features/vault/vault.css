@@ -756,7 +756,10 @@
   }
 }
 /* A restrained current travels toward the next node in the active route. */
-.flow-node-art { position: relative; z-index: 1; }
+.flow-node-art {
+  position: relative;
+  z-index: 1;
+}
 .is-playing .flow-node.active:not(:last-child)::after {
   content: "";
   position: absolute;
@@ -769,6 +772,45 @@
   animation: carry-stream 1.5s linear infinite;
   pointer-events: none;
 }
-@keyframes carry-stream { from {background-position: 200% 0;} to {background-position: 0 0;} }
-@media (max-width: 700px) { .is-playing .flow-node.active:not(:last-child)::after { top:28px; } }
-@media (prefers-reduced-motion: reduce) { .is-playing .flow-node.active::after { animation:none; } }
+@keyframes carry-stream {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+@media (max-width: 700px) {
+  .is-playing .flow-node.active:not(:last-child)::after {
+    top: 28px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-playing .flow-node.active::after {
+    animation: none;
+  }
+}
+
+.overview-vault-chart-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.overview-vault-chart-heading .period {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 2px 9px;
+  color: var(--text);
+}
+.overview-chart-placeholder {
+  height: 224px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}

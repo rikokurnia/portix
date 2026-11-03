@@ -1,4 +1,6 @@
 "use client";
+import { useMemo } from "react";
+import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
 import { Panel } from "@/components/shared/Panel";
 import { BrandIcon } from "@/components/shared/BrandIcon";
@@ -11,6 +13,16 @@ import {
   formatBenchmarkTVL,
 } from "@/lib/vault-market-data";
 import { useVaultMarketData } from "./useVaultMarketData";
+const Chart = dynamic(
+  () => import("@/components/shared/Chart").then((module) => module.Chart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="overview-chart-placeholder">Loading chart…</div>
+    ),
+  },
+);
+
 export function StrategyCard({
   vaultId,
   onDeposit,
@@ -22,6 +34,25 @@ export function StrategyCard({
 }) {
   const prime = vaultId === "pxPrime",
     summary = summarizeVault(vaultId, market.histories);
+  const series = useMemo(
+    () =>
+      vaultProtocols[vaultId].flatMap((id) => {
+        const history = market.histories[id];
+        if (!history?.length) return [];
+        const protocol = protocols[id];
+        return [
+          {
+            name: protocol.name,
+            color: protocol.color,
+            logo: protocol.logo,
+            values: history
+              .slice(-7)
+              .map((point) => ({ time: point.time, value: point.apy })),
+          },
+        ];
+      }),
+    [vaultId, market.histories],
+  );
   return (
     <Panel className={`strategy-card ${prime ? "prime" : "boost"}`}>
       <div className="strategy-identity">
@@ -74,12 +105,20 @@ export function StrategyCard({
           <b>40%</b>
         </div>
       </div>
-      {!summary && (
-        <p className="vault-source-note">
+      <div className="overview-vault-chart-heading">
+        <span>{prime ? "Supply APY" : "Uniswap fee APY"}</span>
+        <span className="period" aria-label="Seven-day chart">
+          7D
+        </span>
+      </div>
+      {summary ? (
+        <Chart series={series} height={190} />
+      ) : (
+        <div className="overview-chart-placeholder" role="status">
           {market.status === "error"
-            ? "Benchmark feed unavailable."
-            : "Fetching protocol benchmarks…"}
-        </p>
+            ? "Seven-day history unavailable."
+            : "Fetching seven-day history…"}
+        </div>
       )}
       <Button className="full-width deposit-button" onClick={onDeposit}>
         Deposit <ArrowRight size={21} />
