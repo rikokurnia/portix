@@ -58,5 +58,41 @@
     "localPath": "/assets/META.png",
     "svgPath": "/assets/logos/META.svg",
     "description": "Authentic Meta blue infinity ribbon mark on transparent background"
+  },
+  "SPY": {
+    "ticker": "SPY",
+    "name": "SPDR S&P 500 ETF Trust",
+    "domain": "ssga.com",
+    "provider": "Wikimedia Commons / State Street Corporation",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/65/State-street-logo-final.svg",
+    "license": "Trademark / Fair Use (State Street Global Advisors)",
+    "format": "SVG / PNG 256x256 transparent",
+    "localPath": "/assets/SPY.png",
+    "svgPath": "/assets/logos/SPY.svg",
+    "description": "Authentic State Street three-sails wave emblem for SPDR S&P 500 ETF Trust"
+  },
+  "QQQ": {
+    "ticker": "QQQ",
+    "name": "Invesco QQQ Trust",
+    "domain": "invesco.com",
+    "provider": "Wikimedia Commons / Invesco Brand Identity",
+    "url": "https://upload.wikimedia.org/wikipedia/en/9/9a/Invesco_Logo.svg",
+    "license": "Trademark / Fair Use (Invesco Capital Management LLC)",
+    "format": "SVG / PNG 256x256 transparent",
+    "localPath": "/assets/QQQ.png",
+    "svgPath": "/assets/logos/QQQ.svg",
+    "description": "Authentic Invesco geometric mountain facet emblem for Invesco QQQ Trust"
+  },
+  "NVDA": {
+    "ticker": "NVDA",
+    "name": "NVIDIA",
+    "domain": "nvidia.com",
+    "provider": "Simple Icons / NVIDIA Brand Identity",
+    "url": "https://cdn.simpleicons.org/nvidia/76B900",
+    "license": "Trademark / Fair Use (NVIDIA Corporation)",
+    "format": "SVG / PNG 256x256 transparent",
+    "localPath": "/assets/NVDA.png",
+    "svgPath": "/assets/logos/NVDA.svg",
+    "description": "Authentic NVIDIA green spiral eye silhouette on transparent background"
   }
 }

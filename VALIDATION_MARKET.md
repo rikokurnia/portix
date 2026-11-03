@@ -1,51 +1,85 @@
-# Market Completion & Validation Report
+# Market Completion & Validation Report (V2 Update)
 
 ## Overview
-PORTIX complete Market frontend implemented by Agent 2, adhering to `market-dashboard.png` and `market-popup-confirmation.png`.
+Market prices and OHLCV candles are frontend fixtures, not live quotes. PORTIX complete Market frontend, updated with deep interactive chart panning, direct instant buy execution, 3 diverse asset varieties (Index ETFs and Semiconductors), spot trading clarification, and Portaldot Network V3 contract-plan inspector.
 
-## Deliverables
-- **Page Route**: `src/app/market/page.tsx`
-- **Feature Directory**: `src/features/market/`
-  - `Market.tsx`: Main market feature container coordinating stock selection and modals.
-  - `MarketStockList.tsx`: Left ~30% stock selection panel featuring authentic brand marks, ticker, name, price, and daily change.
-  - `MarketChart.tsx`: Right ~70% panel featuring selected stock summary, 1D/1W/1M timeframes, Vol/MA 5/MA 10 indicator toggles, TradingView Lightweight Charts candlestick + volume + moving averages visualizer, and aligned Buy/Sell/Earn action buttons.
-  - `BuyModal.tsx`: Local spot buy dialog matching `market-popup-confirmation.png` with pUSDC input, balance shortcuts, 0.1% fee calculation, review breakdown, and portfolio store update.
-  - `SellModal.tsx`: Local spot sell dialog with stock balance shortcuts, 0.1% fee calculation, review breakdown, overselling protection, and portfolio store update.
-  - `fixtures.ts`: Deterministic OHLCV candle fixtures for 1D (intraday matching screenshot trajectory), 1W, and 1M across all 5 stocks.
-  - `calculations.ts`: Strict close-price Simple Moving Averages (`calculateSMA`), trade fee arithmetic, and formatters.
-  - `types.ts`: TypeScript contracts for stock data, timeframes, and chart series.
-  - `market.css`: Scoped styling matching Agent 1's dark plum theme, lavender borders, and responsive breakpoints.
-  - `sources_market.json`: Logo source provenance manifest.
-- **Documentation**:
-  - `ASSET_SOURCES_MARKET.md`: Brand mark provenance, verification, and license details.
-  - `tests/market.test.ts`: Automated test suite for calculations, moving averages, and boundary conditions.
+---
 
-## Automated Verification
-1. `npm run typecheck` — Passed with zero errors (`tsc --noEmit`).
-2. `npm run lint` — Passed with zero errors and zero warnings (`eslint .`).
-3. `npx tsx tests/portfolio.test.ts` — Passed (all shared portfolio actions, conversion, and withdrawals).
-4. `npx tsx tests/market.test.ts` — Passed (SMA calculations, buy arithmetic matching $300 -> 0.30 fee -> 0.999 AAPL, sell arithmetic, boundary checks, and candle consistency).
-5. `npm run build` — Passed with Next.js Turbopack, prerendering `/`, `/vault`, and `/market`.
+## Key Updates & Deliverables
 
-## Browser & Visual Verification
-- **Desktop (1280x800)**:
-  - Preserved shared video background, walkway, gateway arch, and mascot composition.
-  - Left stock panel displays all 5 stocks (AAPL, GOOGL, NFLX, MSFT, META) with authentic transparent brand marks. Selected stock displays glowing purple outline.
-  - Chart renders candlesticks in mint (`#2dd4bf`) and coral (`#f87171`), gold MA 5 (`#f4b64f`), lavender MA 10 (`#be8af5`), compact volume histogram, and right price pill badge `$300.00`.
-  - Indicators toggle visibility cleanly without recreating chart instances.
-  - Timeframe buttons switch datasets deterministically between 1D, 1W, and 1M.
-  - Three aligned buttons: Buy (yellow-orange), Sell (dark secondary), Earn (turquoise border with pxPrime emblem and "via pxPrime" caption).
-- **Buy Modal**:
-  - Matches `market-popup-confirmation.png` layout, Apple white logo, "You pay", "300.00 pUSDC", balance line, shortcuts (25%, 50%, Max), divider with swap arrows, "You receive" (0.999 AAPL), and Review table (Price 300.00 pUSDC, Fee 0.30 pUSDC, Total 300.00 pUSDC).
-  - Executing Buy deducts pUSDC, credits AAPL, appends Completed Activity, and reflects in Vault's wallet tab via client-side routing.
+### 1. Interactive Drag / Pan for Historical Chart Data
+- **Lightweight Charts Configuration**:
+  - `handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true }` enabled.
+  - `handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true }` enabled.
+  - `timeScale`: `fixLeftEdge: false`, `fixRightEdge: false`, `rightOffset: 12`, `barSpacing: 9`.
+- **Deep Historical Data Fixtures**:
+  - **1D**: 5 consecutive trading days (~390 candles of 5-minute OHLCV data). Dragging left smoothly reveals past trading days.
+  - **1W**: 60 trading days of hourly OHLCV data (~280 candles).
+  - **1M**: 220 daily trading bars (~1 full trading year).
+- **Controls & UX**:
+  - Initial mount sets visible range to latest 55 candles so recent price action is crisp.
+  - Added `↺ Reset View` button to immediately snap back to current candles.
+  - Added "Drag to pan past history" user prompt.
+
+### 2. Expanded Asset Varieties (8 Total Assets)
+- **Big Tech Equities (5)**:
+  - `AAPL`: Apple Inc. ($300.00, +1.20%)
+  - `GOOGL`: Alphabet Inc. ($300.00, +0.85%)
+  - `NFLX`: Netflix Inc. ($120.00, -0.65%)
+  - `MSFT`: Microsoft Corp. ($510.00, +0.42%)
+  - `META`: Meta Platforms Inc. ($720.00, -0.38%)
+- **Index ETFs (2)**:
+  - `SPY`: SPDR S&P 500 ETF Trust ($585.00, +0.72%) — Broad market S&P 500 index exposure.
+  - `QQQ`: Invesco QQQ Trust ($495.00, +1.18%) — Nasdaq-100 tech index exposure.
+- **Semiconductors & AI Hardware (1)**:
+  - `NVDA`: NVIDIA Corporation ($140.00, +2.83%) — AI hardware & GPU compute leader.
+- **Logos & Asset Manifest**:
+  - Authentic SVGs and 256x256 transparent PNGs saved in `public/assets/` and `public/assets/logos/`.
+  - Documented in `ASSET_SOURCES_MARKET.md` and `sources_market.json`.
+- **UI Categorization**:
+  - Filter pills in stock panel: `All (8)` · `Tech (5)` · `ETFs (2)` · `Semis (1)`.
+  - Ticker badges: `EQUITY`, `ETF`, `CHIP`.
+
+### 3. Streamlined Direct Buy Flow (No Review Popup)
+- In `BuyModal.tsx`:
+  - Entering payment amount immediately displays real-time order breakdown (Price, 0.10% Liquidity fee, Total pUSDC payment, pending token-contract status).
+  - Primary button is **"Buy {ticker}"** (not "Review buy").
+  - Clicking **"Buy {ticker}"** executes `buyStock()` directly via the shared portfolio store.
+  - Provides inline confirmation with acquired shares and total spend, updates the local portfolio, then closes. No blockchain settlement is claimed.
+  - Zero redundant review modals.
+
+### 4. Spot Trading Clarification & Portaldot V3 Contracts
+- **Market Mode Selector**:
+  - Added in Market hero: `● Spot (1x)` [Live] alongside `⚡ Perps / Futures` [V2 Coming Soon].
+  - Clarifies that PORTIX MVP is spot synthetic equity ownership, eliminating confusion that "Sell" is a short or leveraged perpetual.
 - **Sell Modal**:
-  - Symmetrical workflow with available stock balance, shortcuts, fee calculation, and oversell protection.
-  - Executing Sell deducts AAPL, credits pUSDC, and records Completed Activity.
-- **Earn Flow**:
-  - Directly triggers Agent 1's exported `DepositModal` with `vaultId="pxPrime"` and current stock preselected.
-  - Converts stock collateral into `pxPrime` shares at 40% initial LTV.
-- **Mobile (390x844)**:
-  - Horizontal scrolling stock selector bar with comfortable spacing.
-  - Responsive chart resizing.
-  - Full-width stacked action buttons.
-  - Modal fits mobile viewport with internal scroll.
+  - Titled **"Sell {ticker} · Spot Market · Liquidate to pUSDC"**.
+  - Direct execution button **"Sell {ticker}"** liquidates shares back into pUSDC balance with 0.10% fee.
+- **Portaldot Network V3 Contract Plan Inspector**:
+  - Added dedicated **"Portaldot V3 Contracts"** badge and under-chart contract link bar.
+  - Opens comprehensive contract inspector:
+    - **Network**: Portaldot Network V3.0 (EVM Testnet, Chain ID `420420777`).
+    - **RPC**: `https://test-evm-rpc-v3.portaldot.dev`.
+    - **Explorer**: `https://scanner-testnet-v3.portaldot.dev/`.
+    - **Core Contracts**: planned StockMarket, PortixPriceOracle, PortixDebtPool, and pUSDC. No deployment addresses have been provided.
+    - **Synthetic Tokens**: all eight proposed token entries are listed with deployment pending. Copy and explorer actions are unavailable until real addresses are configured.
+
+---
+
+## Verification Results
+
+| Check | Command | Status | Result |
+|:---|:---|:---|:---|
+| TypeScript Typecheck | `npm run typecheck` | **PASSED** | 0 errors (`tsc --noEmit`) |
+| ESLint Rules | `npm run lint` | **PASSED** | 0 errors, 0 warnings (`eslint .`) |
+| Portfolio Test Suite | `npx tsx tests/portfolio.test.ts` | **PASSED** | Validated trade balances, conversions, withdrawals, yield |
+| Market Test Suite | `npx tsx tests/market.test.ts` | **PASSED** | Validated MA 5/10 on extended candles, 8 stocks, buy/sell math |
+| Next.js Build | `npm run build` | **PASSED** | Turbopack static prerender for `/`, `/market`, `/vault` |
+| Browser Desktop Test | `browse screenshot` | **PASSED** | Verified desktop layout, dragging, category filtering |
+| Browser Mobile Test | `browse viewport 390x844` | **PASSED** | Verified horizontal stock scroll, responsive actions |
+| Direct Buy Execution | Headless Browser Click | **PASSED** | Purchased 2.14 NVDA directly, balance updated instantly |
+| Contracts Inspector | Headless Browser Click | **PASSED** | Modal opens with 8 token entries; undeployed addresses have no explorer links |
+
+## Integration correction before publishing
+
+The user confirmed PORTIX is not deployed. Placeholder addresses were removed, and the inspector now shows pending deployment. Buy/sell confirmations report local portfolio updates without claiming router settlement or on-chain execution. No API keys, signing keys, or wallet integration are included.

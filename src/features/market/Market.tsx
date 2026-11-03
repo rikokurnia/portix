@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
+import { ShieldCheck } from 'lucide-react';
 import { MarketStockList } from './MarketStockList';
 import { BuyModal } from './BuyModal';
 import { SellModal } from './SellModal';
+import { ContractsModal } from './ContractsModal';
 import type { MarketStockId } from './types';
 import './market.css';
 
@@ -29,14 +31,51 @@ export function Market() {
   const [selectedStockId, setSelectedStockId] = useState<MarketStockId>('AAPL');
   const [isBuyOpen, setIsBuyOpen] = useState(false);
   const [isSellOpen, setIsSellOpen] = useState(false);
+  const [isContractsOpen, setIsContractsOpen] = useState(false);
   const router = useRouter();
 
   return (
     <main className="market-page">
-      {/* Minimal Header and Subtitle */}
+      {/* Header and Mode Selector */}
       <div className="market-hero">
-        <h1>Market</h1>
-        <p>Trade stocks. Put them to work.</p>
+        <div className="market-hero-left">
+          <h1>Market</h1>
+          <p>Trade synthetic equities & ETFs on Portaldot Network V3. Put them to work.</p>
+        </div>
+
+        <div className="market-hero-right">
+          {/* Trading Mode Indicator: Clarifying Spot focus vs Futures */}
+          <div className="market-mode-selector" role="group" aria-label="Market trading mode">
+            <button
+              type="button"
+              className="market-mode-pill active"
+              title="1x Spot synthetic stock trading active"
+            >
+              <span className="market-mode-dot live" />
+              <span>Spot (1x)</span>
+            </button>
+            <button
+              type="button"
+              className="market-mode-pill disabled"
+              title="Perpetual futures with leverage coming in V2"
+              disabled
+            >
+              <span className="market-mode-dot soon" />
+              <span>Perps / Futures</span>
+              <small className="market-soon-tag">V2</small>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="market-contracts-badge-btn"
+            onClick={() => setIsContractsOpen(true)}
+            title="Inspect Portaldot V3 EVM Testnet Contracts"
+          >
+            <ShieldCheck size={14} color="#2dd4bf" />
+            <span>Portaldot V3 Contracts</span>
+          </button>
+        </div>
       </div>
 
       {/* Main 2-Column Layout */}
@@ -53,10 +92,11 @@ export function Market() {
           onBuy={() => setIsBuyOpen(true)}
           onSell={() => setIsSellOpen(true)}
           onEarn={() => router.push(`/vault/pxPrime?stock=${selectedStockId}`)}
+          onOpenContracts={() => setIsContractsOpen(true)}
         />
       </div>
 
-      {/* Buy Modal */}
+      {/* Buy Modal: Instant direct buy, no review popup */}
       {isBuyOpen && (
         <BuyModal
           stockId={selectedStockId}
@@ -64,7 +104,7 @@ export function Market() {
         />
       )}
 
-      {/* Sell Modal */}
+      {/* Sell Modal: Spot liquidation to pUSDC */}
       {isSellOpen && (
         <SellModal
           stockId={selectedStockId}
@@ -72,6 +112,12 @@ export function Market() {
         />
       )}
 
+      {/* Contract plan modal */}
+      {isContractsOpen && (
+        <ContractsModal
+          onClose={() => setIsContractsOpen(false)}
+        />
+      )}
     </main>
   );
 }

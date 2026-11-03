@@ -11,15 +11,18 @@ import type {
  *
  * Provenance:
  * - Tickers, company names, current prices, and daily percentage changes are sourced
- *   directly from the approved reference screenshot `market-dashboard.png`:
- *   - AAPL: Apple, $300.00, +1.20%
- *   - GOOGL: Alphabet, $300.00, +0.85%
- *   - NFLX: Netflix, $120.00, -0.65%
- *   - MSFT: Microsoft, $510.00, +0.42%
- *   - META: Meta, $720.00, -0.38%
- * - Timeframe series (1D, 1W, 1M) provide deterministic, coherent OHLCV candles
- *   with valid trading volume and pre-loaded warmup periods ensuring that MA 5 and MA 10
- *   are mathematically valid from the very first visible timestamp.
+ *   directly from approved references:
+ *   - AAPL: Apple, $300.00, +1.20% (Tech Equity)
+ *   - GOOGL: Alphabet, $300.00, +0.85% (Tech Equity)
+ *   - NFLX: Netflix, $120.00, -0.65% (Tech Equity)
+ *   - MSFT: Microsoft, $510.00, +0.42% (Tech Equity)
+ *   - META: Meta, $720.00, -0.38% (Tech Equity)
+ *   - SPY: SPDR S&P 500 ETF Trust, $585.00, +0.72% (Index ETF)
+ *   - QQQ: Invesco QQQ Trust, $495.00, +1.18% (Index ETF)
+ *   - NVDA: NVIDIA Corporation, $140.00, +2.83% (Semiconductors)
+ * - Timeframe series (1D, 1W, 1M) provide deterministic, deep historical OHLCV candles
+ *   spanning multiple trading sessions so traders can pan/drag back in time to inspect past history.
+ * - MA 5 and MA 10 moving averages remain mathematically accurate across the full range.
  */
 
 export const MARKET_STOCKS: Record<MarketStockId, StockMarketInfo> = {
@@ -63,6 +66,30 @@ export const MARKET_STOCKS: Record<MarketStockId, StockMarketInfo> = {
     changePercent: -0.38,
     logo: "/assets/META.png",
   },
+  SPY: {
+    ...stocks.SPY,
+    id: "SPY",
+    name: "SPDR S&P 500 ETF",
+    change: 4.20,
+    changePercent: 0.72,
+    logo: "/assets/SPY.png",
+  },
+  QQQ: {
+    ...stocks.QQQ,
+    id: "QQQ",
+    name: "Invesco QQQ Trust",
+    change: 5.80,
+    changePercent: 1.18,
+    logo: "/assets/QQQ.png",
+  },
+  NVDA: {
+    ...stocks.NVDA,
+    id: "NVDA",
+    name: "NVIDIA",
+    change: 3.85,
+    changePercent: 2.83,
+    logo: "/assets/NVDA.png",
+  },
 };
 
 export const MARKET_STOCK_IDS: MarketStockId[] = [
@@ -71,6 +98,9 @@ export const MARKET_STOCK_IDS: MarketStockId[] = [
   "NFLX",
   "MSFT",
   "META",
+  "SPY",
+  "QQQ",
+  "NVDA",
 ];
 
 // Deterministic seed PRNG for repeatable, coherent candle series
@@ -83,145 +113,137 @@ function seededRandom(seed: number) {
   };
 }
 
+const SEED_MAP: Record<MarketStockId, number> = {
+  AAPL: 4201,
+  GOOGL: 5432,
+  NFLX: 6789,
+  MSFT: 8123,
+  META: 9876,
+  SPY: 3311,
+  QQQ: 4422,
+  NVDA: 7788,
+};
+
 /**
- * Generates deterministic 1D intraday candles for trading hours (09:30 to 16:00 UTC).
- * Base timestamp: 2026-11-02 09:30:00 UTC
- * Uses 5-minute intervals (78 candles for trading day + 15 preceding warmup candles).
+ * Generates deterministic 1D intraday candles spanning 5 consecutive trading days (390 candles).
+ * Each day contains 78 five-minute candles (09:30 to 16:00 UTC).
+ * Enables smooth drag/pan backwards into past days.
  */
 function generate1DCandles(
   stockId: MarketStockId,
   finalPrice: number,
   changePercent: number,
 ): CandleData[] {
-  const seedMap: Record<MarketStockId, number> = {
-    AAPL: 4201,
-    GOOGL: 5432,
-    NFLX: 6789,
-    MSFT: 8123,
-    META: 9876,
-  };
+  const rand = seededRandom(SEED_MAP[stockId]);
+  const days = [
+    Date.UTC(2026, 9, 27, 9, 30) / 1000,
+    Date.UTC(2026, 9, 28, 9, 30) / 1000,
+    Date.UTC(2026, 9, 29, 9, 30) / 1000,
+    Date.UTC(2026, 9, 30, 9, 30) / 1000,
+    Date.UTC(2026, 10, 2, 9, 30) / 1000, // Today
+  ];
 
-  const rand = seededRandom(seedMap[stockId]);
-  const startPrice = finalPrice / (1 + changePercent / 100);
-
-  // 15 warmup candles before 09:30 (for moving averages validity) + 79 intraday candles (09:30 to 16:00, step 5 min)
-  const totalCandles = 94;
-  const warmupCount = 15;
-  const baseTime = Date.UTC(2026, 10, 2, 9, 30) / 1000; // 09:30:00
-
-  // Key curve control points for AAPL 1D trajectory matching market-dashboard.png:
-  // 09:30 (~294.00) -> 11:30 (~300.00) -> 12:00 (~303.50 peak) -> 13:45 (~294.50 dip) -> 16:00 (300.00 close)
+  const candlesPerDay = 78;
   const candles: CandleData[] = [];
-  let currentPrice = startPrice;
 
-  for (let i = 0; i < totalCandles; i++) {
-    const minuteOffset = (i - warmupCount) * 5;
-    const time = (baseTime +
-      minuteOffset * 60) as unknown as CandleData["time"];
+  // Start from 5 days ago (~3% offset)
+  const initialBasePrice = finalPrice * (1 - (changePercent / 100) * 1.5 - 0.02);
+  let currentPrice = initialBasePrice;
 
-    // Normalized progress in trading day (0 to 1)
-    const progress = Math.max(
-      0,
-      Math.min(1, (i - warmupCount) / (totalCandles - warmupCount - 1)),
-    );
+  days.forEach((dayStart, dayIdx) => {
+    const isToday = dayIdx === days.length - 1;
+    const dayTargetStart = currentPrice * (1 + (rand() - 0.48) * 0.008);
+    currentPrice = dayTargetStart;
 
-    let targetTrajectory: number;
-    if (stockId === "AAPL") {
-      // Curve modeled directly from market-dashboard.png
-      if (progress <= 0.38) {
-        // 09:30 to 12:00: climb from 294 to peak at ~303.5
-        const p = progress / 0.38;
-        targetTrajectory =
-          294.0 + (303.5 - 294.0) * Math.sin((p * Math.PI) / 2);
-      } else if (progress <= 0.65) {
-        // 12:00 to 13:45: selloff from 303.5 to dip at ~294.5
-        const p = (progress - 0.38) / (0.65 - 0.38);
-        targetTrajectory =
-          303.5 - (303.5 - 294.5) * Math.sin((p * Math.PI) / 2);
+    for (let c = 0; c < candlesPerDay; c++) {
+      const time = (dayStart + c * 300) as unknown as CandleData["time"];
+      const progress = c / (candlesPerDay - 1);
+
+      let targetPrice: number;
+      if (isToday && stockId === "AAPL") {
+        // Curve modeled directly from market-dashboard.png for AAPL today:
+        // 09:30 (~294.00) -> 11:30 (~300.00) -> 12:00 (~303.50 peak) -> 13:45 (~294.50 dip) -> 16:00 (300.00 close)
+        if (progress <= 0.38) {
+          const p = progress / 0.38;
+          targetPrice = 294.0 + (303.5 - 294.0) * Math.sin((p * Math.PI) / 2);
+        } else if (progress <= 0.65) {
+          const p = (progress - 0.38) / (0.65 - 0.38);
+          targetPrice = 303.5 - (303.5 - 294.5) * Math.sin((p * Math.PI) / 2);
+        } else {
+          const p = (progress - 0.65) / (1 - 0.65);
+          targetPrice = 294.5 + (300.0 - 294.5) * p;
+        }
+      } else if (isToday) {
+        const todayStart = finalPrice / (1 + changePercent / 100);
+        const wave = Math.sin(progress * Math.PI * 2.2) * (finalPrice * 0.01);
+        targetPrice = todayStart + (finalPrice - todayStart) * progress + wave;
       } else {
-        // 13:45 to 16:00: steady recovery from 294.5 to exactly 300.00
-        const p = (progress - 0.65) / (1 - 0.65);
-        targetTrajectory = 294.5 + (300.0 - 294.5) * p;
+        const dayDrift = (rand() - 0.49) * (currentPrice * 0.004);
+        targetPrice = currentPrice + dayDrift;
       }
-    } else {
-      // General realistic walk towards finalPrice with intraday waves
-      const wave = Math.sin(progress * Math.PI * 2.2) * (finalPrice * 0.012);
-      targetTrajectory =
-        startPrice + (finalPrice - startPrice) * progress + wave;
+
+      if (isToday && c === candlesPerDay - 1) {
+        targetPrice = finalPrice;
+      }
+
+      const noise = (rand() - 0.49) * (finalPrice * 0.0025);
+      const open = Math.round(currentPrice * 100) / 100;
+      let close = Math.round((targetPrice + noise) * 100) / 100;
+      if (isToday && c === candlesPerDay - 1) close = finalPrice;
+
+      const high = Math.round((Math.max(open, close) + rand() * (finalPrice * 0.003)) * 100) / 100;
+      const low = Math.round((Math.min(open, close) - rand() * (finalPrice * 0.003)) * 100) / 100;
+
+      const volumeMultiplier = progress < 0.15 || progress > 0.85 ? 1.9 : 1.0;
+      const baseVolume = Math.round((14000 + rand() * 22000) * volumeMultiplier);
+
+      candles.push({
+        time,
+        open,
+        high,
+        low,
+        close,
+        volume: baseVolume,
+      });
+
+      currentPrice = close;
     }
-
-    if (i === totalCandles - 1) {
-      targetTrajectory = finalPrice;
-    }
-
-    const noise = (rand() - 0.49) * (finalPrice * 0.003);
-    const open = Math.round(currentPrice * 100) / 100;
-    let close = Math.round((targetTrajectory + noise) * 100) / 100;
-    if (i === totalCandles - 1) close = finalPrice;
-
-    const high =
-      Math.round(
-        (Math.max(open, close) + rand() * (finalPrice * 0.0035)) * 100,
-      ) / 100;
-    const low =
-      Math.round(
-        (Math.min(open, close) - rand() * (finalPrice * 0.0035)) * 100,
-      ) / 100;
-
-    // Volume profile: higher at market open and close, with mid-day activity
-    const volumeMultiplier = progress < 0.15 || progress > 0.85 ? 1.8 : 1.0;
-    const baseVolume = Math.round((12000 + rand() * 18000) * volumeMultiplier);
-
-    candles.push({
-      time,
-      open,
-      high,
-      low,
-      close,
-      volume: baseVolume,
-    });
-
-    currentPrice = close;
-  }
+  });
 
   return candles;
 }
 
 /**
- * Generates 1W candles (7 days, 1-hour intervals).
+ * Generates 1W candles: 60 trading days with 5 hourly candles per day (~300 candles).
+ * Allows extensive backwards panning over multi-week history.
  */
 function generate1WCandles(
   stockId: MarketStockId,
   finalPrice: number,
   changePercent: number,
 ): CandleData[] {
-  const rand = seededRandom(stockId.charCodeAt(0) * 113);
-  const totalCandles = 45; // 7 days with ~6-7 market hours/day
-  const baseTime = Date.UTC(2026, 9, 27, 9, 30) / 1000;
-  const startPrice = finalPrice * (1 - (changePercent / 100) * 1.8);
+  const rand = seededRandom(SEED_MAP[stockId] * 3);
+  const totalCandles = 280;
+  const baseTime = Date.UTC(2026, 7, 10, 9, 30) / 1000;
+  const startPrice = finalPrice * (1 - (changePercent / 100) * 2.8 - 0.06);
 
   const candles: CandleData[] = [];
   let currentPrice = startPrice;
 
   for (let i = 0; i < totalCandles; i++) {
-    const time = (baseTime + i * 3600 * 3.5) as unknown as CandleData["time"];
+    const time = (baseTime + i * 3600 * 4) as unknown as CandleData["time"];
     const progress = i / (totalCandles - 1);
-    const target = startPrice + (finalPrice - startPrice) * progress;
-    const noise = (rand() - 0.48) * (finalPrice * 0.008);
+    const macroTrend = Math.sin(progress * Math.PI * 3.5) * (finalPrice * 0.04);
+    const target = startPrice + (finalPrice - startPrice) * progress + macroTrend;
+    const noise = (rand() - 0.48) * (finalPrice * 0.007);
 
     const open = Math.round(currentPrice * 100) / 100;
     let close = Math.round((target + noise) * 100) / 100;
     if (i === totalCandles - 1) close = finalPrice;
 
-    const high =
-      Math.round(
-        (Math.max(open, close) + rand() * (finalPrice * 0.006)) * 100,
-      ) / 100;
-    const low =
-      Math.round(
-        (Math.min(open, close) - rand() * (finalPrice * 0.006)) * 100,
-      ) / 100;
-    const volume = Math.round(35000 + rand() * 45000);
+    const high = Math.round((Math.max(open, close) + rand() * (finalPrice * 0.006)) * 100) / 100;
+    const low = Math.round((Math.min(open, close) - rand() * (finalPrice * 0.006)) * 100) / 100;
+    const volume = Math.round(45000 + rand() * 65000);
 
     candles.push({
       time,
@@ -239,17 +261,18 @@ function generate1WCandles(
 }
 
 /**
- * Generates 1M candles (30 daily candles).
+ * Generates 1M candles: 220 daily trading candles (~1 full trading year).
+ * Formatted as "YYYY-MM-DD" daily bars.
  */
 function generate1MCandles(
   stockId: MarketStockId,
   finalPrice: number,
   changePercent: number,
 ): CandleData[] {
-  const rand = seededRandom(stockId.charCodeAt(0) * 257);
-  const totalDays = 30;
-  const startDate = new Date("2026-10-04");
-  const startPrice = finalPrice * (1 - (changePercent / 100) * 3.5);
+  const rand = seededRandom(SEED_MAP[stockId] * 7);
+  const totalDays = 220;
+  const startDate = new Date("2026-01-05");
+  const startPrice = finalPrice * (1 - (changePercent / 100) * 4.2 - 0.12);
 
   const candles: CandleData[] = [];
   let currentPrice = startPrice;
@@ -263,22 +286,17 @@ function generate1MCandles(
     const time = `${yyyy}-${mm}-${dd}` as unknown as CandleData["time"];
 
     const progress = i / (totalDays - 1);
-    const target = startPrice + (finalPrice - startPrice) * progress;
-    const noise = (rand() - 0.48) * (finalPrice * 0.015);
+    const multiCycle = Math.sin(progress * Math.PI * 4) * (finalPrice * 0.06);
+    const target = startPrice + (finalPrice - startPrice) * progress + multiCycle;
+    const noise = (rand() - 0.48) * (finalPrice * 0.014);
 
     const open = Math.round(currentPrice * 100) / 100;
     let close = Math.round((target + noise) * 100) / 100;
     if (i === totalDays - 1) close = finalPrice;
 
-    const high =
-      Math.round(
-        (Math.max(open, close) + rand() * (finalPrice * 0.012)) * 100,
-      ) / 100;
-    const low =
-      Math.round(
-        (Math.min(open, close) - rand() * (finalPrice * 0.012)) * 100,
-      ) / 100;
-    const volume = Math.round(150000 + rand() * 200000);
+    const high = Math.round((Math.max(open, close) + rand() * (finalPrice * 0.012)) * 100) / 100;
+    const low = Math.round((Math.min(open, close) - rand() * (finalPrice * 0.012)) * 100) / 100;
+    const volume = Math.round(180000 + rand() * 320000);
 
     candles.push({
       time,
@@ -295,7 +313,7 @@ function generate1MCandles(
   return candles;
 }
 
-// Pre-generated fixture store for immediate zero-latency access
+// Pre-generated fixture store for immediate zero-latency access across all 8 stocks
 export const MARKET_FIXTURE_DATA: Record<
   MarketStockId,
   Record<Timeframe, CandleData[]>
@@ -324,5 +342,20 @@ export const MARKET_FIXTURE_DATA: Record<
     "1D": generate1DCandles("META", stocks.META.price, -0.38),
     "1W": generate1WCandles("META", stocks.META.price, -0.38),
     "1M": generate1MCandles("META", stocks.META.price, -0.38),
+  },
+  SPY: {
+    "1D": generate1DCandles("SPY", stocks.SPY.price, 0.72),
+    "1W": generate1WCandles("SPY", stocks.SPY.price, 0.72),
+    "1M": generate1MCandles("SPY", stocks.SPY.price, 0.72),
+  },
+  QQQ: {
+    "1D": generate1DCandles("QQQ", stocks.QQQ.price, 1.18),
+    "1W": generate1WCandles("QQQ", stocks.QQQ.price, 1.18),
+    "1M": generate1MCandles("QQQ", stocks.QQQ.price, 1.18),
+  },
+  NVDA: {
+    "1D": generate1DCandles("NVDA", stocks.NVDA.price, 2.83),
+    "1W": generate1WCandles("NVDA", stocks.NVDA.price, 2.83),
+    "1M": generate1MCandles("NVDA", stocks.NVDA.price, 2.83),
   },
 };

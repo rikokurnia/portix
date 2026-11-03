@@ -5,7 +5,16 @@ export const assets = {
   pxPrime: "/assets/vault-prime.png",
   pxBoost: "/assets/vault-boost.png",
 } as const;
-export const stockIds = ["AAPL", "GOOGL", "NFLX", "MSFT", "META"] as const;
+export const stockIds = [
+  "AAPL",
+  "GOOGL",
+  "NFLX",
+  "MSFT",
+  "META",
+  "SPY",
+  "QQQ",
+  "NVDA",
+] as const;
 export type StockId = (typeof stockIds)[number];
 export type VaultId = "pxPrime" | "pxBoost";
 // Fixed product fixtures, not live market quotes. All USD prices and yields are illustrative.
@@ -18,6 +27,9 @@ export const stocks: Record<
   NFLX: { name: "Netflix", price: 120, logo: "/assets/NFLX.png" },
   MSFT: { name: "Microsoft", price: 510, logo: "/assets/MSFT.png" },
   META: { name: "Meta", price: 720, logo: "/assets/META.png" },
+  SPY: { name: "SPDR S&P 500 ETF", price: 585, logo: "/assets/SPY.png" },
+  QQQ: { name: "Invesco QQQ Trust", price: 495, logo: "/assets/QQQ.png" },
+  NVDA: { name: "NVIDIA", price: 140, logo: "/assets/NVDA.png" },
 };
 export const vaults = {
   pxPrime: {

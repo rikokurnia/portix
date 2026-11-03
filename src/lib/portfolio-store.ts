@@ -33,7 +33,16 @@ export type ActionResult = { ok: true } | { ok: false; error: string };
 // One in-memory account per browser tab. SSR always reads this immutable initial snapshot.
 export const initialState: PortfolioState = {
   pUSDC: 2500,
-  stockBalances: { AAPL: 4, GOOGL: 5, NFLX: 8, MSFT: 2, META: 1 },
+  stockBalances: {
+    AAPL: 4,
+    GOOGL: 5,
+    NFLX: 8,
+    MSFT: 2,
+    META: 1,
+    SPY: 3,
+    QQQ: 2,
+    NVDA: 15,
+  },
   positions: [
     {
       id: "pxPrime-GOOGL",

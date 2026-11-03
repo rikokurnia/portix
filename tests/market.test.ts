@@ -1,3 +1,8 @@
+import {
+  CORE_CONTRACTS,
+  STOCK_TOKEN_CONTRACTS,
+  getExplorerAddressUrl,
+} from "../src/features/market/contracts";
 import { stocks } from "../src/lib/assets";
 import { strict as assert } from "node:assert";
 import {
@@ -123,14 +128,26 @@ assert.equal(
 assert.equal(calculateSell(NaN, 300).netPayout, 0, "NaN stock gives 0 payout");
 
 // 4. Test Stock Fixtures Catalog
-assert.equal(MARKET_STOCK_IDS.length, 5, "Exactly 5 stocks supported");
-assert.deepEqual(MARKET_STOCK_IDS, ["AAPL", "GOOGL", "NFLX", "MSFT", "META"]);
+assert.equal(MARKET_STOCK_IDS.length, 8, "All 8 stocks supported");
+assert.deepEqual(MARKET_STOCK_IDS, [
+  "AAPL",
+  "GOOGL",
+  "NFLX",
+  "MSFT",
+  "META",
+  "SPY",
+  "QQQ",
+  "NVDA",
+]);
 
 assert.equal(MARKET_STOCKS.AAPL.price, 300.0, "AAPL price is $300.00");
 assert.equal(MARKET_STOCKS.GOOGL.price, 300.0, "GOOGL price is $300.00");
 assert.equal(MARKET_STOCKS.NFLX.price, 120.0, "NFLX price is $120.00");
 assert.equal(MARKET_STOCKS.MSFT.price, 510.0, "MSFT price is $510.00");
 assert.equal(MARKET_STOCKS.META.price, 720.0, "META price is $720.00");
+assert.equal(MARKET_STOCKS.SPY.price, 585.0, "SPY price is $585.00");
+assert.equal(MARKET_STOCKS.QQQ.price, 495.0, "QQQ price is $495.00");
+assert.equal(MARKET_STOCKS.NVDA.price, 140.0, "NVDA price is $140.00");
 
 // 5. Test Candle Fixtures for all timeframes
 for (const id of MARKET_STOCK_IDS) {
@@ -183,3 +200,14 @@ assert.equal(calculateBuy(10, NaN).stockQuantity, 0);
 assert.equal(calculateBuy(10, Infinity).stockQuantity, 0);
 assert.equal(calculateSell(1, NaN).netPayout, 0);
 assert.equal(calculateSell(1, Infinity).netPayout, 0);
+
+// No deployed addresses were supplied. Frontend fixtures must not fabricate verification links.
+for (const contract of Object.values(CORE_CONTRACTS))
+  assert.equal(contract.address, "");
+for (const token of Object.values(STOCK_TOKEN_CONTRACTS)) {
+  assert.equal(token.contractAddress, "");
+  assert.equal(token.primeVaultAddress, "");
+  assert.equal(token.boostVaultAddress, "");
+}
+assert.equal(getExplorerAddressUrl(""), undefined);
+assert.equal(getExplorerAddressUrl("not-an-address"), undefined);
