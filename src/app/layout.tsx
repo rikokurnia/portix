@@ -19,16 +19,6 @@ export default function RootLayout({
         <Background />
         <Navbar />
         {children}
-        <footer>
-          PORTIX{" "}
-          <a
-            href="https://www.tradingview.com/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            TradingView Lightweight Charts™ © 2025 TradingView, Inc.
-          </a>
-        </footer>
       </body>
     </html>
   );

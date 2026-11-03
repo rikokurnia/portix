@@ -11,14 +11,9 @@ import {
   type IChartApi,
   type ISeriesApi,
 } from 'lightweight-charts';
-import { ExternalLink, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { assets } from '@/lib/assets';
 import { MARKET_STOCKS, MARKET_FIXTURE_DATA } from './fixtures';
-import {
-  STOCK_TOKEN_CONTRACTS,
-  getExplorerAddressUrl,
-  formatTruncatedAddress,
-} from './contracts';
 import { calculateSMA, formatUSD, formatPercent } from './calculations';
 import type { MarketStockId, Timeframe } from './types';
 
@@ -27,7 +22,6 @@ interface MarketChartProps {
   onBuy: () => void;
   onSell: () => void;
   onEarn: () => void;
-  onOpenContracts?: () => void;
 }
 
 export function MarketChart({
@@ -35,7 +29,6 @@ export function MarketChart({
   onBuy,
   onSell,
   onEarn,
-  onOpenContracts,
 }: MarketChartProps) {
   const [timeframe, setTimeframe] = useState<Timeframe>('1D');
   const [showVol, setShowVol] = useState(true);
@@ -47,7 +40,6 @@ export function MarketChart({
   const chartInstanceRef = useRef<IChartApi | null>(null);
 
   const stock = MARKET_STOCKS[stockId];
-  const tokenContract = STOCK_TOKEN_CONTRACTS[stockId];
   const isPositive = stock.change >= 0;
 
   const handleResetView = () => {
@@ -76,7 +68,7 @@ export function MarketChart({
         textColor: '#cbb6eb',
         fontFamily: "'Portix Sans', Arial, Helvetica, sans-serif",
         fontSize: 12,
-        attributionLogo: true,
+        attributionLogo: false,
       },
       grid: {
         vertLines: { color: '#9582b520', style: LineStyle.Dotted },
@@ -196,8 +188,7 @@ export function MarketChart({
       ma10Series.setData(ma10Data);
     }
 
-    // Initialize visible window to latest 55 candles so it looks crisp on mount,
-    // while allowing users to drag/pan back in time to inspect earlier sessions
+    // Initialize visible window to latest 55 candles
     const totalCandles = candles.length;
     chart.timeScale().setVisibleLogicalRange({
       from: Math.max(0, totalCandles - 55),
@@ -270,27 +261,12 @@ export function MarketChart({
 
   return (
     <div className="panel market-chart-panel">
-      {/* Top Header Row with Stock ID & Portaldot Contract Link */}
+      {/* Top Header Row: Clean Logo, Ticker, Name, Price, Daily Change */}
       <div className="market-chart-header">
         <div className="market-chart-identity">
           <img src={stock.logo} alt={`${stock.name} logo`} width={38} height={38} />
           <div className="market-chart-ticker">
-            <div className="market-chart-title-row">
-              <h2>{stock.id}</h2>
-              <span className={`market-tag-category ${tokenContract.category.toLowerCase().replace(/\s+/g, '-')}`}>
-                {tokenContract.category}
-              </span>
-              <a
-                href={getExplorerAddressUrl(tokenContract.contractAddress)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="market-chart-contract-link"
-                title={`View ${tokenContract.tokenSymbol} contract on Portaldot Explorer`}
-              >
-                {tokenContract.tokenSymbol} ({formatTruncatedAddress(tokenContract.contractAddress)})
-                <ExternalLink size={12} />
-              </a>
-            </div>
+            <h2>{stock.id}</h2>
             <span>{stock.name}</span>
           </div>
         </div>
@@ -345,10 +321,6 @@ export function MarketChart({
           role="toolbar"
           aria-label="Chart indicators"
         >
-          <span className="market-pan-hint" aria-hidden="true">
-            Drag to pan past history
-          </span>
-
           <button
             type="button"
             aria-pressed={showVol}
@@ -384,7 +356,7 @@ export function MarketChart({
       {/* Lightweight Charts Canvas Viewport */}
       <div
         className="market-chart-viewport"
-        aria-label={`${stock.name} candlestick chart with interactive scroll`}
+        aria-label={`${stock.name} candlestick chart`}
       >
         <div ref={hostRef} style={{ cursor: 'grab' }} />
         <div ref={tooltipRef} className="market-chart-tooltip" hidden />
@@ -419,25 +391,6 @@ export function MarketChart({
           </button>
           <span className="market-earn-caption">via pxPrime</span>
         </div>
-      </div>
-
-      {/* Under-Chart Portaldot Testnet Contract Badge Bar */}
-      <div className="market-contract-bar">
-        <div className="market-contract-bar-left">
-          <span className="market-net-dot" />
-          <span>Portaldot Network V3 (Chain 420420777)</span>
-          <span className="market-contract-divider-dot">·</span>
-          <span>Router: <code>Not deployed</code></span>
-        </div>
-        {onOpenContracts && (
-          <button
-            type="button"
-            className="market-open-contracts-btn"
-            onClick={onOpenContracts}
-          >
-            Contract details <ExternalLink size={12} />
-          </button>
-        )}
       </div>
     </div>
   );

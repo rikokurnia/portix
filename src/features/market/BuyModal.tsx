@@ -1,15 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { ArrowUpDown, CheckCircle2, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { ArrowUpDown, CheckCircle2 } from "lucide-react";
 import { Modal } from "@/components/shared/Modal";
 import { usePortfolio } from "@/lib/portfolio-store";
 import { MARKET_STOCKS } from "./fixtures";
-import {
-  STOCK_TOKEN_CONTRACTS,
-  getExplorerAddressUrl,
-  formatTruncatedAddress,
-} from "./contracts";
 import { calculateBuy, formatUSD, formatStockUnits } from "./calculations";
 import type { MarketStockId } from "./types";
 
@@ -21,20 +16,12 @@ interface BuyModalProps {
 export function BuyModal({ stockId, onClose }: BuyModalProps) {
   const { pUSDC, buyStock } = usePortfolio();
   const stock = MARKET_STOCKS[stockId];
-  const tokenContract = STOCK_TOKEN_CONTRACTS[stockId];
 
   // Default input ($300.00 if affordable, else available pUSDC balance)
   const [spendStr, setSpendStr] = useState<string>(
     pUSDC >= 300 ? "300.00" : pUSDC > 0 ? pUSDC.toFixed(2) : "",
   );
   const [error, setError] = useState<string>("");
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (closeTimer.current) clearTimeout(closeTimer.current);
-    },
-    [],
-  );
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [successInfo, setSuccessInfo] = useState<{
     stockQuantity: number;
@@ -86,8 +73,7 @@ export function BuyModal({ stockId, onClose }: BuyModalProps) {
         stockQuantity: calc.stockQuantity,
         totalPayment: calc.totalPayment,
       });
-      // Automatically close modal after brief confirmation feedback
-      closeTimer.current = setTimeout(() => {
+      setTimeout(() => {
         onClose();
       }, 1400);
     } else {
@@ -99,12 +85,7 @@ export function BuyModal({ stockId, onClose }: BuyModalProps) {
   const modalTitle = (
     <div className="trade-modal-title">
       <img src={stock.logo} alt="" width={28} height={28} />
-      <div>
-        <span>Buy {stock.id}</span>
-        <span className="trade-modal-token-sub">
-          Spot Market · Portaldot V3
-        </span>
-      </div>
+      <span>Buy {stock.id}</span>
     </div>
   );
 
@@ -115,15 +96,9 @@ export function BuyModal({ stockId, onClose }: BuyModalProps) {
           <CheckCircle2 size={46} color="#2dd4bf" />
           <h3>Purchase Executed!</h3>
           <p>
-            Acquired{" "}
-            <b>
-              {formatStockUnits(successInfo.stockQuantity)} {stock.id}
-            </b>{" "}
-            for <b>{formatUSD(successInfo.totalPayment)}</b> pUSDC.
+            Acquired <b>{formatStockUnits(successInfo.stockQuantity)} {stock.id}</b> for{" "}
+            <b>{formatUSD(successInfo.totalPayment)}</b> pUSDC.
           </p>
-          <div className="trade-success-meta">
-            <span>Portfolio updated locally</span>
-          </div>
         </div>
       ) : (
         <div>
@@ -197,17 +172,14 @@ export function BuyModal({ stockId, onClose }: BuyModalProps) {
 
           {/* Real-time Order Summary */}
           <div className="trade-review-box">
-            <div className="trade-review-head">
-              <h4>Order Breakdown</h4>
-              <span className="trade-tag-spot">1x Spot Trade</span>
-            </div>
+            <h4>Review</h4>
             <dl style={{ margin: 0 }}>
               <div className="trade-review-row">
                 <dt>Price per share</dt>
                 <dd>{stock.price.toFixed(2)} pUSDC</dd>
               </div>
               <div className="trade-review-row">
-                <dt>Liquidity fee (0.10%)</dt>
+                <dt>Estimated fee (0.10%)</dt>
                 <dd>{calc.fee.toFixed(2)} pUSDC</dd>
               </div>
               <div className="trade-review-row">
@@ -215,22 +187,6 @@ export function BuyModal({ stockId, onClose }: BuyModalProps) {
                 <dd>{calc.totalPayment.toFixed(2)} pUSDC</dd>
               </div>
             </dl>
-          </div>
-
-          {/* Deployment status */}
-          <div className="trade-contract-pill">
-            <span className="trade-contract-label">Token Contract:</span>
-            <a
-              href={getExplorerAddressUrl(tokenContract.contractAddress)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="trade-contract-link"
-              title="View on Portaldot Testnet Explorer"
-            >
-              {tokenContract.tokenSymbol} (
-              {formatTruncatedAddress(tokenContract.contractAddress)})
-              <ExternalLink size={12} />
-            </a>
           </div>
 
           {error && (

@@ -1,15 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { ArrowUpDown, CheckCircle2, ExternalLink } from "lucide-react";
+import { useState } from "react";
+import { ArrowUpDown, CheckCircle2 } from "lucide-react";
 import { Modal } from "@/components/shared/Modal";
 import { usePortfolio } from "@/lib/portfolio-store";
 import { MARKET_STOCKS } from "./fixtures";
-import {
-  STOCK_TOKEN_CONTRACTS,
-  getExplorerAddressUrl,
-  formatTruncatedAddress,
-} from "./contracts";
 import { calculateSell, formatUSD, formatStockUnits } from "./calculations";
 import type { MarketStockId } from "./types";
 
@@ -22,19 +17,11 @@ export function SellModal({ stockId, onClose }: SellModalProps) {
   const { stockBalances, sellStock } = usePortfolio();
   const stock = MARKET_STOCKS[stockId];
   const userBalance = stockBalances[stockId] ?? 0;
-  const tokenContract = STOCK_TOKEN_CONTRACTS[stockId];
 
   const [amountStr, setAmountStr] = useState<string>(
     userBalance >= 1 ? "1.00" : userBalance > 0 ? userBalance.toString() : "",
   );
   const [error, setError] = useState<string>("");
-  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (closeTimer.current) clearTimeout(closeTimer.current);
-    },
-    [],
-  );
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [successInfo, setSuccessInfo] = useState<{
     stockQuantity: number;
@@ -60,7 +47,6 @@ export function SellModal({ stockId, onClose }: SellModalProps) {
     setError("");
   };
 
-  // Direct spot sell execution — immediately redeems shares for pUSDC
   const handleDirectSell = () => {
     if (!isValidInput) {
       if (isInsufficient) {
@@ -80,7 +66,7 @@ export function SellModal({ stockId, onClose }: SellModalProps) {
         stockQuantity: calc.stockQuantity,
         netPayout: calc.netPayout,
       });
-      closeTimer.current = setTimeout(() => {
+      setTimeout(() => {
         onClose();
       }, 1400);
     } else {
@@ -92,12 +78,7 @@ export function SellModal({ stockId, onClose }: SellModalProps) {
   const modalTitle = (
     <div className="trade-modal-title">
       <img src={stock.logo} alt="" width={28} height={28} />
-      <div>
-        <span>Sell {stock.id}</span>
-        <span className="trade-modal-token-sub">
-          Spot Market · Liquidate to pUSDC
-        </span>
-      </div>
+      <span>Sell {stock.id}</span>
     </div>
   );
 
@@ -108,22 +89,16 @@ export function SellModal({ stockId, onClose }: SellModalProps) {
           <CheckCircle2 size={46} color="#2dd4bf" />
           <h3>Sale Executed!</h3>
           <p>
-            Liquidated{" "}
-            <b>
-              {formatStockUnits(successInfo.stockQuantity)} {stock.id}
-            </b>{" "}
-            for <b>{formatUSD(successInfo.netPayout)}</b> pUSDC.
+            Liquidated <b>{formatStockUnits(successInfo.stockQuantity)} {stock.id}</b> for{" "}
+            <b>{formatUSD(successInfo.netPayout)}</b> pUSDC.
           </p>
-          <div className="trade-success-meta">
-            <span>Portfolio updated locally</span>
-          </div>
         </div>
       ) : (
         <div>
           {/* Section 1: You sell */}
           <div>
             <label htmlFor="sell-amount-input" className="trade-section-label">
-              You sell (Spot Asset)
+              You sell
             </label>
             <div className="trade-input-row">
               <input
@@ -188,40 +163,21 @@ export function SellModal({ stockId, onClose }: SellModalProps) {
 
           {/* Real-time Order Summary */}
           <div className="trade-review-box">
-            <div className="trade-review-head">
-              <h4>Order Breakdown</h4>
-              <span className="trade-tag-spot">Spot Position Close</span>
-            </div>
+            <h4>Review</h4>
             <dl style={{ margin: 0 }}>
               <div className="trade-review-row">
                 <dt>Price per share</dt>
                 <dd>{stock.price.toFixed(2)} pUSDC</dd>
               </div>
               <div className="trade-review-row">
-                <dt>Liquidity fee (0.10%)</dt>
+                <dt>Estimated fee (0.10%)</dt>
                 <dd>{calc.fee.toFixed(2)} pUSDC</dd>
               </div>
               <div className="trade-review-row">
-                <dt>Net payout received</dt>
+                <dt>Total payout</dt>
                 <dd>{calc.netPayout.toFixed(2)} pUSDC</dd>
               </div>
             </dl>
-          </div>
-
-          {/* Deployment status */}
-          <div className="trade-contract-pill">
-            <span className="trade-contract-label">Token Contract:</span>
-            <a
-              href={getExplorerAddressUrl(tokenContract.contractAddress)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="trade-contract-link"
-              title="View on Portaldot Testnet Explorer"
-            >
-              {tokenContract.tokenSymbol} (
-              {formatTruncatedAddress(tokenContract.contractAddress)})
-              <ExternalLink size={12} />
-            </a>
           </div>
 
           {error && (

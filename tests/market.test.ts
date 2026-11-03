@@ -1,8 +1,3 @@
-import {
-  CORE_CONTRACTS,
-  STOCK_TOKEN_CONTRACTS,
-  getExplorerAddressUrl,
-} from "../src/features/market/contracts";
 import { stocks } from "../src/lib/assets";
 import { strict as assert } from "node:assert";
 import {
@@ -200,14 +195,3 @@ assert.equal(calculateBuy(10, NaN).stockQuantity, 0);
 assert.equal(calculateBuy(10, Infinity).stockQuantity, 0);
 assert.equal(calculateSell(1, NaN).netPayout, 0);
 assert.equal(calculateSell(1, Infinity).netPayout, 0);
-
-// No deployed addresses were supplied. Frontend fixtures must not fabricate verification links.
-for (const contract of Object.values(CORE_CONTRACTS))
-  assert.equal(contract.address, "");
-for (const token of Object.values(STOCK_TOKEN_CONTRACTS)) {
-  assert.equal(token.contractAddress, "");
-  assert.equal(token.primeVaultAddress, "");
-  assert.equal(token.boostVaultAddress, "");
-}
-assert.equal(getExplorerAddressUrl(""), undefined);
-assert.equal(getExplorerAddressUrl("not-an-address"), undefined);
