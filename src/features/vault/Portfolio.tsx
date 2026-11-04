@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { TransactionLink } from "@/components/shared/TransactionLink";
 import { Panel } from "@/components/shared/Panel";
@@ -177,54 +178,80 @@ export function Portfolio({
             </tbody>
           </table>
         ) : tab === "Wallet stocks" ? (
-          <table>
-            <thead>
-              <tr>
-                <th>Stock</th>
-                <th>Holdings</th>
-                <th>Price</th>
-                <th>Value</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stockIds.map((id) => (
-                <tr key={id}>
-                  <td>
-                    <div className="table-identity">
-                      <img
-                        src={stocks[id].logo}
-                        width="34"
-                        height="34"
-                        alt=""
-                      />
-                      <div>
-                        <b>{id}</b>
-                        <small>{stocks[id].name}</small>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    {ready && stockReady[id] ? units(stockBalances[id]) : "—"}
-                  </td>
-                  <td>{prices[id] ? money(prices[id]!) : "—"}</td>
-                  <td>
-                    {ready && stockReady[id] && prices[id]
-                      ? money(stockBalances[id] * prices[id]!)
-                      : "—"}
-                  </td>
-                  <td>
-                    <Button
-                      disabled={stockBalances[id] <= 0}
-                      onClick={() => onManage("pxPrime", id, "Deposit")}
-                    >
-                      Deposit to vault <ArrowRight size={16} />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          (() => {
+            const ownedStocks = stockIds.filter(
+              (id) => (stockBalances[id] ?? 0) > 0,
+            );
+            if (!ownedStocks.length) {
+              return (
+                <div className="empty-state">
+                  <p>You do not hold any tokenized stocks in your wallet yet.</p>
+                  <Link
+                    href="/market"
+                    className="button"
+                    style={{
+                      display: "inline-flex",
+                      marginTop: "12px",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    Buy stock in Market <ArrowRight size={16} />
+                  </Link>
+                </div>
+              );
+            }
+            return (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Stock</th>
+                    <th>Holdings</th>
+                    <th>Price</th>
+                    <th>Value</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ownedStocks.map((id) => (
+                    <tr key={id}>
+                      <td>
+                        <div className="table-identity">
+                          <img
+                            src={stocks[id].logo}
+                            width="34"
+                            height="34"
+                            alt=""
+                          />
+                          <div>
+                            <b>{id}</b>
+                            <small>{stocks[id].name}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        {ready && stockReady[id] ? units(stockBalances[id]) : "—"}
+                      </td>
+                      <td>{prices[id] ? money(prices[id]!) : "—"}</td>
+                      <td>
+                        {ready && stockReady[id] && prices[id]
+                          ? money(stockBalances[id] * prices[id]!)
+                          : "—"}
+                      </td>
+                      <td>
+                        <Button
+                          disabled={stockBalances[id] <= 0}
+                          onClick={() => onManage("pxPrime", id, "Deposit")}
+                        >
+                          Deposit to vault <ArrowRight size={16} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            );
+          })()
         ) : (
           <table>
             <thead>

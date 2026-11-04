@@ -31,8 +31,8 @@ export async function submitNative(api:ApiPromise,tx:SubmittableExtrinsic<'promi
    if(result.status.isInvalid||result.status.isDropped||result.status.isUsurped){onStage({hash,status:'Failed',fromBlock});finish(new Error('Transaction was not included.'));return;}
    if(result.status.isInBlock||result.status.isFinalized){
     const error=failed(api,result);const blockHash=(result.status.isFinalized?result.status.asFinalized:result.status.asInBlock).toHex() as Hash;
-    onStage({hash,status:error?'Failed':result.status.isFinalized?'Completed':'Pending',fromBlock,blockHash});
-    if(error)finish(new Error(error));else if(result.status.isFinalized)finish(undefined,hash);
+    onStage({hash,status:error?'Failed':'Completed',fromBlock,blockHash});
+    if(error)finish(new Error(error));else finish(undefined,hash);
    }else onStage({hash,status:'Pending',fromBlock});
   }).then(unsub=>{stop=unsub;if(settled)unsub();}).catch(error=>finish(error instanceof Error?error:new Error('Wallet request failed.')));
  });return hash;

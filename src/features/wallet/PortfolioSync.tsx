@@ -421,7 +421,10 @@ function Sync({selected}:{selected?:ReturnType<typeof useWallets>["wallets"][num
                 vaultSettlement.toLowerCase() !== settlement.toLowerCase()
               )
                 throw new Error("Vault configuration mismatch.");
-              if (command.type === "Deposit")
+              if (
+                command.type === "Deposit" &&
+                token.toLowerCase() !== target.toLowerCase()
+              )
                 await approve(token, target, raw, command.stockId, 18);
               hash = await send(
                 target,

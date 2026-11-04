@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { parseUnits } from "viem";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/shared/Button";
@@ -37,23 +38,37 @@ export function VaultForm({
     [working, setWorking] = useState(false);
   const lock = useRef(false),
     deposit = mode === "Deposit";
+
+  const availableStocks = deposit
+    ? stockIds.filter((id) => (account.stockBalances[id] ?? 0) > 0)
+    : account.positions
+        .filter((p) => p.vaultId === vaultId && p.shares > 0)
+        .map((p) => p.stockId);
+
+  const selectedStockId =
+    availableStocks.length > 0 && !availableStocks.includes(stockId)
+      ? availableStocks[0]
+      : stockId;
+
   const position = account.positions.find(
-      (p) => p.vaultId === vaultId && p.stockId === stockId,
+      (p) => p.vaultId === vaultId && p.stockId === selectedStockId,
     ),
-    limit = deposit ? account.stockBalances[stockId] : (position?.shares ?? 0);
+    limit = deposit ? (account.stockBalances[selectedStockId] ?? 0) : (position?.shares ?? 0);
   const rawLimit = deposit
-    ? account.rawStockBalances[stockId]
+    ? (account.rawStockBalances[selectedStockId] ?? "0")
     : (position?.rawShares ?? "0");
   const n = Number(amount),
     {
       configured,
       quote,
       error: quoteError,
-    } = useQuote(mode, stockId, amount, vaultId);
+    } = useQuote(mode, selectedStockId, amount, vaultId);
   const valid =
     !!account.address &&
     account.ready &&
-    (deposit ? account.stockReady[stockId] : account.positionsReady) &&
+    availableStocks.length > 0 &&
+    availableStocks.includes(selectedStockId) &&
+    (deposit ? account.stockReady[selectedStockId] : account.positionsReady) &&
     configured &&
     !!quote &&
     n > 0 &&
@@ -74,8 +89,8 @@ export function VaultForm({
     onProcess();
     try {
       const result = deposit
-        ? await account.depositToVault(vaultId, stockId, amount)
-        : await account.withdrawFromVault(vaultId, stockId, amount);
+        ? await account.depositToVault(vaultId, selectedStockId, amount)
+        : await account.withdrawFromVault(vaultId, selectedStockId, amount);
       if (result.ok) {
         setHash(result.hash);
         setAmount("");
@@ -111,26 +126,57 @@ export function VaultForm({
       <label className="input-label" htmlFor="vault-stock">
         Collateral stock
       </label>
-      <div className="vault-stock-select">
-        <img src={stocks[stockId].logo} alt="" width={24} height={24} />
-        <select
-          id="vault-stock"
-          value={stockId}
-          disabled={working}
-          onChange={(e) => {
-            const id = e.target.value as StockId;
-            setStock(id);
-            onStockChange(id);
-            clear();
-          }}
-        >
-          {stockIds.map((id) => (
-            <option key={id} value={id}>
-              {id} · {stocks[id].name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {availableStocks.length === 0 ? (
+        <div className="vault-stock-empty">
+          <p>
+            {deposit
+              ? "You don't hold any tokenized stocks in your wallet to deposit."
+              : `No active positions in ${vaultId} to withdraw.`}
+          </p>
+          {deposit ? (
+            <Link
+              href="/market"
+              className="button small"
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+            >
+              Buy stock in Market <ArrowRight size={14} />
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="button small"
+              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+              onClick={() => {
+                setMode("Deposit");
+                clear();
+              }}
+            >
+              Deposit to this vault
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="vault-stock-select">
+          <img src={stocks[selectedStockId]?.logo ?? ""} alt="" width={24} height={24} />
+          <select
+            id="vault-stock"
+            value={selectedStockId}
+            disabled={working}
+            onChange={(e) => {
+              const id = e.target.value as StockId;
+              setStock(id);
+              onStockChange(id);
+              clear();
+            }}
+          >
+            {availableStocks.map((id) => (
+              <option key={id} value={id}>
+                {id} · {stocks[id].name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <label className="input-label" htmlFor="vault-amount">
         {deposit ? "You deposit" : "Shares to redeem"}
       </label>
@@ -149,14 +195,14 @@ export function VaultForm({
             setHash("");
           }}
         />
-        <span>{deposit ? stockId : vaultId}</span>
+        <span>{deposit ? selectedStockId : vaultId}</span>
       </div>
       <div className="balance-line" id="vault-balance">
         <span>{quote ? `≈ ${money(quote.value)}` : "—"}</span>
         <span>
           Available{" "}
           {account.ready &&
-          (deposit ? account.stockReady[stockId] : account.positionsReady)
+          (deposit ? account.stockReady[selectedStockId] : account.positionsReady)
             ? units(limit)
             : "—"}
         </span>
@@ -192,7 +238,8 @@ export function VaultForm({
       <div className="receipt">
         <span>Estimated receive</span>
         <strong>
-          {quote ? units(quote.receive) : "—"} {deposit ? vaultId : stockId}
+          {quote ? units(quote.receive) : "—"}{" "}
+          {deposit ? vaultId : selectedStockId}
         </strong>
         {!deposit && quote && (
           <small className="positive">
@@ -229,14 +276,18 @@ export function VaultForm({
       )}
       <Button
         className="full-width"
-        disabled={!valid || working || !!account.pending}
+        disabled={!valid || working || !!account.pending || availableStocks.length === 0}
         type="submit"
       >
         {working
           ? account.pending || "Processing…"
-          : deposit
-            ? "Deposit & earn"
-            : "Withdraw assets"}
+          : availableStocks.length === 0
+            ? deposit
+              ? "No stock available"
+              : "No position to withdraw"
+            : deposit
+              ? "Deposit & earn"
+              : "Withdraw assets"}
         <ArrowRight size={17} />
       </Button>
       {hash && (
