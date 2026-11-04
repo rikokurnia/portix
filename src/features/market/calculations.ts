@@ -30,7 +30,6 @@ export function calculateSMA(
 
 // One quote implementation for Market previews and account settlement.
 export {
-  TRADING_FEE_RATE,
   calculateBuy,
   calculateSell,
 } from "@/lib/trade-calculations";

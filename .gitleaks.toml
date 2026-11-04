@@ -1,0 +1,11 @@
+[extend]
+useDefault = true
+
+# Public stock token addresses, not credentials. Keep every other default rule.
+[[rules]]
+id = "generic-api-key"
+[[rules.allowlists]]
+condition = "AND"
+paths = ['''src/lib/onchain/addresses\.json$''']
+regexTarget = "secret"
+regexes = ['''^0x[0-9a-fA-F]{40}$''']

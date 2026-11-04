@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { TransactionLink } from "@/components/shared/TransactionLink";
 import { Panel } from "@/components/shared/Panel";
 import { Button } from "@/components/shared/Button";
 import { BrandIcon } from "@/components/shared/BrandIcon";
@@ -22,16 +23,28 @@ export function Portfolio({
     mode: "Deposit" | "Withdraw",
   ) => void;
 }) {
-  const { pUSDC, stockBalances, positions, activity } = usePortfolio(),
+  const {
+      pUSDC,
+      stockBalances,
+      positions,
+      activity,
+      prices,
+      ready,
+      stockReady,
+      positionsReady,
+      address,
+      error,
+      pending,
+    } = usePortfolio(),
     [tab, setTab] = useState("Vault positions");
   const earned = positions.reduce((sum, p) => sum + p.earnedYield, 0),
     value =
       stockIds.reduce(
-        (sum, id) => sum + stockBalances[id] * stocks[id].price,
+        (sum, id) => sum + stockBalances[id] * (prices[id] ?? 0),
         0,
       ) +
       positions.reduce(
-        (sum, p) => sum + p.collateral * stocks[p.stockId].price,
+        (sum, p) => sum + p.collateral * (prices[p.stockId] ?? 0),
         0,
       ) +
       earned +
@@ -39,18 +52,51 @@ export function Portfolio({
   return (
     <Panel className="portfolio">
       <h2>Your portfolio</h2>
+      {!address && (
+        <p className="muted">Connect your wallet to view your portfolio.</p>
+      )}
+      {error && (
+        <p className="error" role="alert">
+          {error}{" "}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event("portix:refresh"))}
+          >
+            Retry
+          </button>
+        </p>
+      )}
+      {pending && (
+        <p className="muted" role="status">
+          {pending}
+        </p>
+      )}
       <div className="portfolio-summary">
         <div>
           <span>Portfolio value</span>
-          <strong>{money(value)}</strong>
+          <strong>
+            {ready &&
+            positionsReady &&
+            stockIds.every(
+              (id) =>
+                !(
+                  stockBalances[id] > 0 ||
+                  positions.some((p) => p.stockId === id)
+                ) || prices[id],
+            )
+              ? money(value)
+              : "—"}
+          </strong>
         </div>
         <div>
           <span>Earned yield</span>
-          <strong className="positive">+{money(earned)}</strong>
+          <strong className="positive">
+            {ready && positionsReady ? money(earned) : "—"}
+          </strong>
         </div>
         <div>
           <span>Available pUSDC</span>
-          <strong>{units(pUSDC)}</strong>
+          <strong>{ready ? units(pUSDC) : "—"}</strong>
         </div>
       </div>
       <div
@@ -107,11 +153,17 @@ export function Portfolio({
                       </div>
                     </div>
                   </td>
-                  <td>{money(p.collateral * stocks[p.stockId].price)}</td>
+                  <td>
+                    {prices[p.stockId]
+                      ? money(p.collateral * prices[p.stockId]!)
+                      : "—"}
+                  </td>
                   <td className="positive">+{money(p.earnedYield)}</td>
                   <td>
-                    <span className="positive">1.85</span>
-                    <small>40% LTV</small>
+                    <span className={p.healthy ? "positive" : "negative"}>
+                      {p.healthy ? "Healthy" : "At risk"}
+                    </span>
+                    <small>{p.ltv.toFixed(2)}% LTV</small>
                   </td>
                   <td>
                     <Button
@@ -152,9 +204,15 @@ export function Portfolio({
                       </div>
                     </div>
                   </td>
-                  <td>{units(stockBalances[id])}</td>
-                  <td>{money(stocks[id].price)}</td>
-                  <td>{money(stockBalances[id] * stocks[id].price)}</td>
+                  <td>
+                    {ready && stockReady[id] ? units(stockBalances[id]) : "—"}
+                  </td>
+                  <td>{prices[id] ? money(prices[id]!) : "—"}</td>
+                  <td>
+                    {ready && stockReady[id] && prices[id]
+                      ? money(stockBalances[id] * prices[id]!)
+                      : "—"}
+                  </td>
                   <td>
                     <Button
                       disabled={stockBalances[id] <= 0}
@@ -183,6 +241,7 @@ export function Portfolio({
                   <td>
                     {a.type}
                     {a.vaultId && <small>{a.vaultId}</small>}
+                    <TransactionLink hash={a.hash} />
                   </td>
                   <td>
                     {units(a.amount)} {a.stockId}
@@ -192,7 +251,17 @@ export function Portfolio({
                       {new Date(a.timestamp).toLocaleString()}
                     </time>
                   </td>
-                  <td className="positive">{a.status}</td>
+                  <td
+                    className={
+                      a.status === "Completed"
+                        ? "positive"
+                        : a.status === "Failed"
+                          ? "negative"
+                          : "muted"
+                    }
+                  >
+                    {a.status}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -203,7 +272,9 @@ export function Portfolio({
           <div className="empty-state">
             {tab === "Activity"
               ? "Your activity will appear here after your first trade or vault action."
-              : "No vault positions yet. Choose a strategy above to start earning."}
+              : ready && !positionsReady
+                ? "Vault positions are currently unavailable."
+                : "No vault positions yet. Choose a strategy above to start earning."}
           </div>
         )}
       </div>

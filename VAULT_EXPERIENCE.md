@@ -1,3 +1,5 @@
+> Current integration: see [INTEGRATION_STATUS.md](INTEGRATION_STATUS.md) and [live deployment checks](docs/onchain-verification.json). The on-chain integration replaces the earlier local fixture behavior documented below.
+
 # Vault detail experience
 
 - `/vault` keeps two concise strategy cards and the shared portfolio. Deposit opens `/vault/pxPrime` or `/vault/pxBoost`.

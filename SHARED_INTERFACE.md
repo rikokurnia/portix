@@ -1,3 +1,5 @@
+> Current integration: see [INTEGRATION_STATUS.md](INTEGRATION_STATUS.md) and [live deployment checks](docs/onchain-verification.json). The on-chain integration replaces the earlier local fixture behavior documented below.
+
 # PORTIX shared interface
 
 Work inside `project/`. Foundation owner: Agent 1. Market owner: Agent 2 (`src/app/market/page.tsx`, `src/features/market/**`). Do not change root layout, global CSS, manifests, shared components, asset manifest, or account store without coordinating. Market uses the shared account store. Earn links to the Vault detail route with the stock preselected.

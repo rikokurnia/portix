@@ -4,62 +4,103 @@ import {
   sellStock,
   depositToVault,
   withdrawFromVault,
+  claimFaucet,
   getPortfolioSnapshot,
+  setPortfolioAccount,
+  updatePortfolio,
+  registerPortfolioExecutor,
+  recordActivity,
 } from "../src/lib/portfolio-store";
-const near = (a: number, b: number) =>
-  assert.ok(Math.abs(a - b) < 0.000002, `${a} != ${b}`);
-assert.equal(buyStock("AAPL", 0).ok, false);
-assert.equal(buyStock("AAPL", NaN).ok, false);
-assert.equal(buyStock("AAPL", 0.1234567).ok, false);
-assert.equal(buyStock("AAPL", 100).ok, false);
-assert.equal(sellStock("AAPL", 5).ok, false);
-assert.equal(buyStock("AAPL", 0.5).ok, true);
-near(getPortfolioSnapshot().pUSDC, 2349.85);
-near(getPortfolioSnapshot().stockBalances.AAPL, 4.5);
-assert.equal(sellStock("AAPL", 0.5).ok, true);
-near(getPortfolioSnapshot().pUSDC, 2499.7);
-assert.equal(depositToVault("pxPrime", "MSFT", 0.5).ok, true);
-const position = getPortfolioSnapshot().positions.find(
-  (p) => p.stockId === "MSFT",
-)!;
-near(position.shares, 2.55); // 0.5 * $510 / $100
-near(getPortfolioSnapshot().stockBalances.MSFT, 1.5);
-assert.equal(withdrawFromVault("pxPrime", "MSFT", 1.275).ok, true);
-near(getPortfolioSnapshot().stockBalances.MSFT, 1.75);
-assert.equal(withdrawFromVault("pxPrime", "MSFT", 1.275).ok, true);
-near(getPortfolioSnapshot().stockBalances.MSFT, 2);
-assert.equal(
-  getPortfolioSnapshot().positions.some((p) => p.stockId === "MSFT"),
-  false,
-);
-assert.equal(withdrawFromVault("pxPrime", "GOOGL", 3.75).ok, true);
-near(getPortfolioSnapshot().pUSDC, 2506);
-near(getPortfolioSnapshot().stockBalances.GOOGL, 6.25);
-near(
-  getPortfolioSnapshot().positions.find((p) => p.stockId === "GOOGL")!
-    .earnedYield,
-  6.3,
-);
-assert.equal(withdrawFromVault("pxPrime", "GOOGL", 4).ok, false);
-assert.equal(getPortfolioSnapshot().activity.length, 6);
-console.log(
-  "PASS: trade balances, invalid inputs, conversion, partial/full withdrawal, proportional yield and shared activity.",
-);
-
-// The Market receipt and shared account must settle identical fee-inclusive amounts.
-const before = getPortfolioSnapshot();
-assert.equal(buyStock("AAPL", 0.999, 300).ok, true);
-near(getPortfolioSnapshot().pUSDC, before.pUSDC - 300);
-near(
-  getPortfolioSnapshot().stockBalances.AAPL,
-  before.stockBalances.AAPL + 0.999,
-);
-assert.equal(buyStock("AAPL", 1, 0.01).ok, false);
-assert.equal(buyStock("AAPL", 0.999, Infinity).ok, false);
-assert.equal(buyStock("AAPL", 0.999, 300.001).ok, false);
-assert.equal(sellStock("AAPL", 1).ok, true);
-near(getPortfolioSnapshot().pUSDC, before.pUSDC - 0.3);
-assert.equal(getPortfolioSnapshot().activity.length, 8);
-console.log(
-  "PASS: Market quoted payment and payout match account balances, including fees.",
-);
+import type { Address, Hash } from "viem";
+const owner = "0x0000000000000000000000000000000000000001" as Address;
+const other = "0x0000000000000000000000000000000000000002" as Address;
+const hash = `0x${"1".repeat(64)}` as Hash;
+async function main() {
+  assert.equal(getPortfolioSnapshot().pUSDC, 0);
+  assert.equal(getPortfolioSnapshot().positions.length, 0);
+  assert.equal(
+    (await claimFaucet()).ok,
+    false,
+    "Disconnected faucet cannot change balances",
+  );
+  const storage = new Map<string, string>();
+  Object.defineProperty(globalThis, "localStorage", {
+    value: {
+      getItem: (k: string) => storage.get(k) ?? null,
+      setItem: (k: string, v: string) => storage.set(k, v),
+    },
+    configurable: true,
+  });
+  setPortfolioAccount(owner);
+  let executed = 0;
+  registerPortfolioExecutor(async () => {
+    executed++;
+    return { ok: true, hash };
+  });
+  assert.equal((await sellStock("AAPL", 0)).ok, false);
+  assert.equal((await depositToVault("pxPrime", "AAPL", NaN)).ok, false);
+  assert.equal((await withdrawFromVault("pxBoost", "AAPL", -1)).ok, false);
+  assert.equal(executed, 0);
+  assert.equal((await buyStock("AAPL", 1, 300)).ok, true);
+  assert.equal(
+    getPortfolioSnapshot().pUSDC,
+    0,
+    "Actions must not optimistically credit fixture balances",
+  );
+  updatePortfolio({ pending: "Waiting for receipt" });
+  assert.equal(
+    (await claimFaucet()).ok,
+    false,
+    "Prevent concurrent wallet requests",
+  );
+  updatePortfolio({ pending: "" });
+  recordActivity(owner, {
+    id: hash,
+    hash,
+    type: "Faucet",
+    stockId: "pUSDC",
+    amount: 5000,
+    timestamp: new Date().toISOString(),
+    status: "Pending",
+  });
+  recordActivity(owner, {
+    ...getPortfolioSnapshot().activity[0],
+    status: "Completed",
+  });
+  assert.equal(
+    getPortfolioSnapshot().activity.length,
+    1,
+    "Receipt updates deduplicate by real hash",
+  );
+  assert.equal(getPortfolioSnapshot().activity[0].status, "Completed");
+  updatePortfolio({ pUSDC: 5000, ready: true });
+  setPortfolioAccount(other);
+  assert.equal(
+    getPortfolioSnapshot().activity.length,
+    0,
+    "Activity is wallet scoped",
+  );
+  assert.equal(
+    getPortfolioSnapshot().pUSDC,
+    0,
+    "No previous wallet balance leaks on switch",
+  );
+  setPortfolioAccount(owner);
+  assert.equal(
+    getPortfolioSnapshot().activity[0].hash,
+    hash,
+    "Activity survives reconnect",
+  );
+  assert.equal(
+    getPortfolioSnapshot().ready,
+    false,
+    "Balances always reload from chain",
+  );
+  setPortfolioAccount(undefined);
+  registerPortfolioExecutor(undefined);
+  assert.equal((await claimFaucet()).ok, false);
+  console.log(
+    "Portfolio: empty initial state, wallet isolation, receipt persistence, concurrent and disconnected action guards passed.",
+  );
+}
+void main();

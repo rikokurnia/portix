@@ -18,7 +18,7 @@ In the Privy dashboard, enable email/wallet login and embedded Ethereum wallets,
 - Privy sessions are restored by the SDK across reloads. Login cancellations are handled quietly and operational errors offer a retry.
 - Linking and network-change flows close the native account dialog before Privy/wallet UI opens, avoiding competing modal layers.
 
-Portaldot V3 uses chain ID 420420777, the RPC/explorer in the project handoff, and its documented 14-decimal tPOT native asset. No network switching, signature request, or transaction is initiated automatically outside the sign-in/wallet flow. Market and Vault actions still use the shared local frontend portfolio; this change does not implement deployed-token balances or contract execution. The wallet modal does not present fixture pUSDC as an on-chain wallet balance.
+Portaldot V3 uses chain ID 420420777, the RPC/explorer in the project handoff, and its documented 14-decimal tPOT native asset. No network switching, signature request, or transaction is initiated automatically outside the sign-in/wallet flow. Market and Vault now use the shared on-chain portfolio integration, wallet signatures, token approvals and receipt-confirmed Activity. See INTEGRATION_STATUS.md and docs/onchain-verification.json for the current deployment checks.
 
 ## References
 

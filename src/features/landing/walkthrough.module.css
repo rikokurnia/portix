@@ -1,0 +1,70 @@
+.walkthrough { position: relative; }
+.pinned { display: none; }
+.flow { padding: 96px 6% 50px; }
+.heading { text-align: center; font-size: clamp(34px, 4.8vw, 82px); }
+.grid { display: grid; grid-template-columns: 29% 71%; align-items: center; }
+.steps { display: flex; flex-direction: column; gap: 26px; list-style: none; padding: 0; margin: 0; }
+.steps li { display: flex; gap: 20px; align-items: center; min-height: 86px; padding: 12px 20px; border: 1.5px solid #aa79e9; border-radius: 20px; background: #252044bb; box-shadow: inset 0 0 25px #2d236b50; transition: background .2s, box-shadow .2s; }
+.steps li[aria-current='step'] { background: #7140a9c9; border-color: #e0b2ff; box-shadow: 0 0 0 2px #c89cff80, 0 0 22px #9f66ed60; }
+.steps li > span { color: #ffc755; font-size: clamp(25px, 2.8vw, 48px); font-weight: 700; padding-right: 20px; border-right: 1px solid #b69bd3; line-height: 1.3; }
+.steps b { font-size: clamp(18px, 1.9vw, 32px); white-space: nowrap; }
+.book { position: relative; width: 96%; margin-left: -5%; container-type: inline-size; }
+.artwork { width: 100%; height: auto; display: block; }
+.bookContent { position: absolute; inset: 0; color: #1a1035; animation: stepChange 240ms ease-out both; }
+.leftPage, .rightPage, .yieldPage { position: absolute; top: 27%; width: 18%; height: 34%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3%; }
+.leftPage { left: 26%; }
+.rightPage { left: 49%; }
+.leftPage img, .rightPage img { width: 61%; height: 55%; object-fit: contain; }
+.leftPage strong, .rightPage strong { font-size: 3.5cqw; line-height: 1.1; letter-spacing: -.04em; white-space: nowrap; }
+.rightPage > span { font-size: 2cqw; font-weight: 600; border-radius: 30px; padding: 1px 10px; background: #bc87ed; white-space: nowrap; }
+.leftPage > img[src='/assets/AAPL.png'], .rightPage > img[src='/assets/logos/AAPL.svg'] { filter: brightness(.16) sepia(1) hue-rotate(210deg) saturate(4); }
+.bookArrow { position: absolute; left: 44%; top: 40%; font-size: 5.5cqw; color: #8e3cdd; line-height: 1; }
+.yieldPage { left: 48.5%; top: 28%; width: 16%; height: 29%; gap: 5%; }
+.apyLabel { text-align: center; font-size: 1.65cqw; font-weight: 600; line-height: 1.15; max-width: 100%; }
+.apy { font-size: 4.4cqw; line-height: 1.15; letter-spacing: -.045em; }
+.yieldProtocols { display: flex; justify-content: center; align-items: center; gap: 1cqw; width: 100%; }
+.yieldProtocols img { width: 3.4cqw; height: 3.4cqw; object-fit: contain; border-radius: 50%; }
+.dialogue { width: 78%; height: clamp(100px, 12svh, 130px); margin: 10px auto 0; }
+.dialogue[data-active='false'] { visibility: hidden; }
+.dialogue p { animation: stepChange 240ms ease-out both; }
+.flowStage { min-height: 100svh; padding: 40px 0 70px; }
+@keyframes stepChange { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@media (min-width: 1100px) and (min-height: 760px) {
+  .walkthrough { height: 355svh; }
+  .pinned { display: flex; flex-direction: column; justify-content: center; position: sticky; top: 0; height: 100svh; padding: 96px 7.5% 42px; }
+  .pinned .grid { margin-top: -8px; }
+  .flow { display: none; }
+}
+@media (max-width: 1099px), (max-height: 759px) {
+  .flow .grid { max-width: 1150px; margin: auto; }
+  .flow .steps li { min-height: 70px; padding: 10px 14px; gap: 12px; }
+  .flow .steps li > span { padding-right: 12px; }
+  .flow .dialogue { margin-top: 25px; }
+}
+@media (max-width: 760px) {
+  .flow { padding-inline: 4%; }
+  .grid { grid-template-columns: 1fr; gap: 26px; }
+  .steps { width: 88%; margin: auto; gap: 12px; }
+  .steps b { font-size: 21px; }
+  .steps li > span { font-size: 28px; }
+  .book { width: 100%; margin: 0; }
+  .leftPage strong, .rightPage strong { font-size: 4cqw; }
+  .rightPage > span { font-size: 2.7cqw; padding-inline: 7px; }
+  .apyLabel { font-size: 2.55cqw; }
+  .apy { font-size: 5.6cqw; }
+  .yieldPage { top: 25%; height: 34%; }
+  .yieldProtocols { gap: 1cqw; }
+  .yieldProtocols img { width: 4cqw; height: 4cqw; }
+  .dialogue { width: 100%; height: 130px; }
+  .dialogue p { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .steps li { transition: none; }
+  .bookContent, .dialogue p { animation: none; }
+}
+@media (min-width: 1100px) and (min-height: 760px) {
+  .pinned .grid { width: 100%; max-width: calc((100svh - 350px) * 2.6); margin-inline: auto; }
+  .steps li { padding-inline: 14px; gap: 16px; }
+  .steps li > span { padding-right: 14px; }
+  .steps b { font-size: clamp(18px, 1.8vw, 30px); }
+}

@@ -1,32 +1,34 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
-import { MarketStockList } from './MarketStockList';
-import { BuyModal } from './BuyModal';
-import { SellModal } from './SellModal';
-import type { MarketStockId } from './types';
-import './market.css';
+import { useState } from "react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { Portfolio } from "@/features/vault/Portfolio";
+import "@/features/vault/vault.css";
+import { MarketStockList } from "./MarketStockList";
+import { BuyModal } from "./BuyModal";
+import { SellModal } from "./SellModal";
+import type { MarketStockId } from "./types";
+import "./market.css";
 
 // Dynamically load MarketChart to guarantee clean client-side canvas mounting without SSR issues
 const MarketChart = dynamic(
-  () => import('./MarketChart').then((m) => m.MarketChart),
+  () => import("./MarketChart").then((m) => m.MarketChart),
   {
     ssr: false,
     loading: () => (
       <div
         className="panel market-chart-panel"
-        style={{ minHeight: 460, display: 'grid', placeItems: 'center' }}
+        style={{ minHeight: 460, display: "grid", placeItems: "center" }}
       >
         <span className="muted">Loading market chart...</span>
       </div>
     ),
-  }
+  },
 );
 
 export function Market() {
-  const [selectedStockId, setSelectedStockId] = useState<MarketStockId>('AAPL');
+  const [selectedStockId, setSelectedStockId] = useState<MarketStockId>("AAPL");
   const [isBuyOpen, setIsBuyOpen] = useState(false);
   const [isSellOpen, setIsSellOpen] = useState(false);
   const router = useRouter();
@@ -56,6 +58,13 @@ export function Market() {
         />
       </div>
 
+      <Portfolio
+        onManage={(vault, stock, mode) =>
+          router.push(
+            `/vault/${vault}?stock=${stock}${mode === "Withdraw" ? "&mode=withdraw" : ""}`,
+          )
+        }
+      />
       {/* Buy Modal: Direct instant buy without popup review */}
       {isBuyOpen && (
         <BuyModal

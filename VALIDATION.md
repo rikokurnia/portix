@@ -1,3 +1,5 @@
+> Current integration: see [INTEGRATION_STATUS.md](INTEGRATION_STATUS.md) and [live deployment checks](docs/onchain-verification.json). The on-chain integration replaces the earlier local fixture behavior documented below.
+
 # Frontend release validation
 
 The repository root is the local `project/` directory. Market and Vault are integrated; smart contracts remain untouched locally and are excluded from Git and Vercel uploads.

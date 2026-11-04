@@ -7,6 +7,11 @@ import {
   type ProtocolId,
   type YieldPoint,
 } from "@/lib/vault-market-data";
+import {
+  contracts,
+  vaultAddress,
+  explorerContract,
+} from "@/lib/onchain/contracts";
 import { money, stockIds, type VaultId } from "@/lib/assets";
 function ContractAddress({
   address,
@@ -159,30 +164,56 @@ export function VaultAbout({
       <section>
         <h3>PORTIX contracts on Portaldot</h3>
         <p>
-          Chain ID <b>420420777</b>. Deployment addresses have not been
-          provided.
+          Chain ID <b>420420777</b>
         </p>
         <div className="deployment-table">
-          <div>
-            <span>Vault factory / oracle / debt pool</span>
-            <b>Not deployed</b>
-          </div>
-          <div>
-            <span>pUSDC / stock market</span>
-            <b>Not deployed</b>
-          </div>
-          {stockIds.map((stock) => (
-            <div key={stock}>
-              <span>
-                {stock} collateral / {vaultId} vault
-              </span>
-              <b>Not deployed</b>
+          {Object.entries({
+            pUSDC: contracts.pUSDC,
+            Market: contracts.market,
+            Oracle: contracts.oracle,
+            "Debt pool": contracts.debtPool,
+            "Vault factory": contracts.factory,
+          }).map(([label, value]) => (
+            <div key={label}>
+              <span>{label}</span>
+              {value ? (
+                <a
+                  href={explorerContract(value)}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={value}
+                >
+                  {value.slice(0, 8)}…{value.slice(-6)}{" "}
+                  <ExternalLink size={12} />
+                </a>
+              ) : (
+                <b>Awaiting deployment</b>
+              )}
             </div>
           ))}
-          <div>
-            <span>Bridge adapter</span>
-            <b>Not configured</b>
-          </div>
+          {stockIds.map((stock) => {
+            const target = vaultAddress(vaultId, stock);
+            return (
+              <div key={stock}>
+                <span>
+                  {stock} / {vaultId}
+                </span>
+                {target ? (
+                  <a
+                    href={explorerContract(target)}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={target}
+                  >
+                    {target.slice(0, 8)}…{target.slice(-6)}{" "}
+                    <ExternalLink size={12} />
+                  </a>
+                ) : (
+                  <b>Awaiting deployment</b>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
       <section className="about-sources">

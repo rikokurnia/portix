@@ -1,6 +1,8 @@
 "use client";
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
+import { WalletSelection } from "./selection";
+import { PortfolioSync } from "./PortfolioSync";
 import { portaldot } from "./chain";
 const WalletConfigured = createContext(false);
 export const useWalletConfigured = () => useContext(WalletConfigured);
@@ -11,6 +13,7 @@ export function WalletProvider({
   appId: string;
   children: ReactNode;
 }) {
+  const [selected, setSelected] = useState("");
   if (!appId)
     return (
       <WalletConfigured.Provider value={false}>
@@ -36,7 +39,10 @@ export function WalletProvider({
           supportedChains: [portaldot],
         }}
       >
-        {children}
+        <WalletSelection.Provider value={{ selected, setSelected }}>
+          <PortfolioSync />
+          {children}
+        </WalletSelection.Provider>
       </PrivyProvider>
     </WalletConfigured.Provider>
   );

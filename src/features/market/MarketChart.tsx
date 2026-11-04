@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createChart,
   CandlestickSeries,
@@ -10,12 +10,15 @@ import {
   LineStyle,
   type IChartApi,
   type ISeriesApi,
-} from 'lightweight-charts';
-import { RotateCcw } from 'lucide-react';
-import { assets } from '@/lib/assets';
-import { MARKET_STOCKS, MARKET_FIXTURE_DATA } from './fixtures';
-import { calculateSMA, formatUSD, formatPercent } from './calculations';
-import type { MarketStockId, Timeframe } from './types';
+} from "lightweight-charts";
+import { RotateCcw } from "lucide-react";
+import { useStockHistory } from "./useStockHistory";
+import { aggregateObservations, dailyChange } from "@/lib/onchain/history";
+import { usePortfolio } from "@/lib/portfolio-store";
+import { assets } from "@/lib/assets";
+import { MARKET_STOCKS } from "./stocks";
+import { calculateSMA, formatUSD, formatPercent } from "./calculations";
+import type { MarketStockId, Timeframe } from "./types";
 
 interface MarketChartProps {
   stockId: MarketStockId;
@@ -30,8 +33,8 @@ export function MarketChart({
   onSell,
   onEarn,
 }: MarketChartProps) {
-  const [timeframe, setTimeframe] = useState<Timeframe>('1D');
-  const [showVol, setShowVol] = useState(true);
+  const [timeframe, setTimeframe] = useState<Timeframe>("1D");
+  const showVol = false;
   const [showMA5, setShowMA5] = useState(true);
   const [showMA10, setShowMA10] = useState(true);
 
@@ -40,11 +43,18 @@ export function MarketChart({
   const chartInstanceRef = useRef<IChartApi | null>(null);
 
   const stock = MARKET_STOCKS[stockId];
-  const isPositive = stock.change >= 0;
+  const account = usePortfolio();
+  const history = useStockHistory(stockId);
+  const candles = useMemo(
+    () => aggregateObservations(history.observations, timeframe),
+    [history.observations, timeframe],
+  );
+  const change = dailyChange(history.observations);
+  const price = account.prices[stockId];
+  const isPositive = change !== undefined && change >= 0;
 
   const handleResetView = () => {
     if (!chartInstanceRef.current) return;
-    const candles = MARKET_FIXTURE_DATA[stockId][timeframe];
     const total = candles.length;
     chartInstanceRef.current.timeScale().setVisibleLogicalRange({
       from: Math.max(0, total - 55),
@@ -56,7 +66,6 @@ export function MarketChart({
     if (!hostRef.current) return;
 
     // Active dataset for current stock & timeframe
-    const candles = MARKET_FIXTURE_DATA[stockId][timeframe];
     const ma5Data = calculateSMA(candles, 5);
     const ma10Data = calculateSMA(candles, 10);
 
@@ -64,15 +73,15 @@ export function MarketChart({
     const chart = createChart(hostRef.current, {
       height: 340,
       layout: {
-        background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#cbb6eb',
+        background: { type: ColorType.Solid, color: "transparent" },
+        textColor: "#cbb6eb",
         fontFamily: "'Portix Sans', Arial, Helvetica, sans-serif",
         fontSize: 12,
-        attributionLogo: false,
+        attributionLogo: true,
       },
       grid: {
-        vertLines: { color: '#9582b520', style: LineStyle.Dotted },
-        horzLines: { color: '#9582b530', style: LineStyle.Dotted },
+        vertLines: { color: "#9582b520", style: LineStyle.Dotted },
+        horzLines: { color: "#9582b530", style: LineStyle.Dotted },
       },
       leftPriceScale: {
         visible: true,
@@ -83,8 +92,8 @@ export function MarketChart({
         visible: false,
       },
       timeScale: {
-        borderColor: '#9582b545',
-        timeVisible: timeframe === '1D',
+        borderColor: "#9582b545",
+        timeVisible: timeframe === "1D",
         secondsVisible: false,
         rightOffset: 12,
         barSpacing: 9,
@@ -94,14 +103,14 @@ export function MarketChart({
       },
       crosshair: {
         vertLine: {
-          color: '#be8af560',
+          color: "#be8af560",
           style: LineStyle.Dashed,
-          labelBackgroundColor: '#2d1e4e',
+          labelBackgroundColor: "#2d1e4e",
         },
         horzLine: {
-          color: '#be8af560',
+          color: "#be8af560",
           style: LineStyle.Dashed,
-          labelBackgroundColor: '#2d1e4e',
+          labelBackgroundColor: "#2d1e4e",
         },
       },
       // Panning and scaling enabled for dragging backwards into past history
@@ -125,48 +134,48 @@ export function MarketChart({
 
     // 1. Candlestick series (Restrained mint & coral)
     const candleSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#2dd4bf',
-      downColor: '#f87171',
-      borderUpColor: '#2dd4bf',
-      borderDownColor: '#f87171',
-      wickUpColor: '#2dd4bf',
-      wickDownColor: '#f87171',
-      priceScaleId: 'left',
+      upColor: "#2dd4bf",
+      downColor: "#f87171",
+      borderUpColor: "#2dd4bf",
+      borderDownColor: "#f87171",
+      wickUpColor: "#2dd4bf",
+      wickDownColor: "#f87171",
+      priceScaleId: "left",
       lastValueVisible: true,
       priceLineVisible: true,
-      priceLineColor: '#2dd4bf',
+      priceLineColor: "#2dd4bf",
       priceLineStyle: LineStyle.Dotted,
     });
     candleSeries.setData(candles);
 
     // 2. Volume histogram series (Compact at bottom)
     const volSeries = chart.addSeries(HistogramSeries, {
-      priceScaleId: 'volume',
-      priceFormat: { type: 'volume' },
+      priceScaleId: "volume",
+      priceFormat: { type: "volume" },
       lastValueVisible: false,
       priceLineVisible: false,
     });
-    chart.priceScale('volume').applyOptions({
+    chart.priceScale("volume").applyOptions({
       scaleMargins: { top: 0.82, bottom: 0 },
     });
 
-    if (showVol) {
+    if (showVol && candles.some((c) => c.volume !== undefined)) {
       volSeries.setData(
         candles.map((c) => ({
           time: c.time,
-          value: c.volume,
-          color: c.close >= c.open ? '#2dd4bf55' : '#f8717155',
-        }))
+          value: c.volume ?? 0,
+          color: c.close >= c.open ? "#2dd4bf55" : "#f8717155",
+        })),
       );
     }
 
     // 3. Moving Average 5 Series (Warm gold)
-    let ma5Series: ISeriesApi<'Line'> | null = null;
+    let ma5Series: ISeriesApi<"Line"> | null = null;
     if (showMA5 && ma5Data.length > 0) {
       ma5Series = chart.addSeries(LineSeries, {
-        color: '#f4b64f',
+        color: "#f4b64f",
         lineWidth: 2,
-        priceScaleId: 'left',
+        priceScaleId: "left",
         lastValueVisible: false,
         priceLineVisible: false,
         crosshairMarkerVisible: true,
@@ -175,12 +184,12 @@ export function MarketChart({
     }
 
     // 4. Moving Average 10 Series (Lavender)
-    let ma10Series: ISeriesApi<'Line'> | null = null;
+    let ma10Series: ISeriesApi<"Line"> | null = null;
     if (showMA10 && ma10Data.length > 0) {
       ma10Series = chart.addSeries(LineSeries, {
-        color: '#be8af5',
+        color: "#be8af5",
         lineWidth: 2,
-        priceScaleId: 'left',
+        priceScaleId: "left",
         lastValueVisible: false,
         priceLineVisible: false,
         crosshairMarkerVisible: true,
@@ -223,11 +232,16 @@ export function MarketChart({
         ? (param.seriesData.get(ma10Series) as { value?: number } | undefined)
         : undefined;
 
-      const timeStr = typeof param.time === 'object'
-        ? `${param.time.year}-${String(param.time.month).padStart(2, '0')}-${String(param.time.day).padStart(2, '0')}`
-        : typeof param.time === 'number'
-        ? new Date(param.time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
-        : String(param.time);
+      const timeStr =
+        typeof param.time === "object"
+          ? `${param.time.year}-${String(param.time.month).padStart(2, "0")}-${String(param.time.day).padStart(2, "0")}`
+          : typeof param.time === "number"
+            ? new Date(param.time * 1000).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              })
+            : String(param.time);
 
       let content = `<span>${timeStr}</span>`;
       if (candleData && candleData.open !== undefined) {
@@ -257,14 +271,19 @@ export function MarketChart({
       chart.remove();
       chartInstanceRef.current = null;
     };
-  }, [stockId, timeframe, showVol, showMA5, showMA10]);
+  }, [candles, timeframe, showVol, showMA5, showMA10]);
 
   return (
     <div className="panel market-chart-panel">
       {/* Top Header Row: Clean Logo, Ticker, Name, Price, Daily Change */}
       <div className="market-chart-header">
         <div className="market-chart-identity">
-          <img src={stock.logo} alt={`${stock.name} logo`} width={38} height={38} />
+          <img
+            src={stock.logo}
+            alt={`${stock.name} logo`}
+            width={38}
+            height={38}
+          />
           <div className="market-chart-ticker">
             <h2>{stock.id}</h2>
             <span>{stock.name}</span>
@@ -274,11 +293,13 @@ export function MarketChart({
         <div className="market-chart-divider" aria-hidden="true" />
 
         <div className="market-chart-price-block">
-          <span className="market-chart-price">{formatUSD(stock.price)}</span>
+          <span className="market-chart-price">
+            {price ? formatUSD(price) : "—"}
+          </span>
           <span
-            className={`market-chart-change ${isPositive ? 'positive' : 'negative'}`}
+            className={`market-chart-change ${isPositive ? "positive" : "negative"}`}
           >
-            {formatPercent(stock.changePercent)}
+            {change !== undefined ? formatPercent(change) : "—"}
           </span>
         </div>
       </div>
@@ -291,13 +312,13 @@ export function MarketChart({
             role="tablist"
             aria-label="Chart timeframes"
           >
-            {(['1D', '1W', '1M'] as const).map((tf) => (
+            {(["1D", "1W", "1M"] as const).map((tf) => (
               <button
                 key={tf}
                 type="button"
                 role="tab"
                 aria-selected={timeframe === tf}
-                className={`market-timeframe-button ${timeframe === tf ? 'active' : ''}`}
+                className={`market-timeframe-button ${timeframe === tf ? "active" : ""}`}
                 onClick={() => setTimeframe(tf)}
               >
                 {tf}
@@ -323,18 +344,8 @@ export function MarketChart({
         >
           <button
             type="button"
-            aria-pressed={showVol}
-            className={`market-indicator-toggle ${showVol ? '' : 'inactive'}`}
-            onClick={() => setShowVol((prev) => !prev)}
-          >
-            <i className="market-indicator-dot vol" />
-            <span>Vol</span>
-          </button>
-
-          <button
-            type="button"
             aria-pressed={showMA5}
-            className={`market-indicator-toggle ${showMA5 ? '' : 'inactive'}`}
+            className={`market-indicator-toggle ${showMA5 ? "" : "inactive"}`}
             onClick={() => setShowMA5((prev) => !prev)}
           >
             <i className="market-indicator-dot ma5" />
@@ -344,7 +355,7 @@ export function MarketChart({
           <button
             type="button"
             aria-pressed={showMA10}
-            className={`market-indicator-toggle ${showMA10 ? '' : 'inactive'}`}
+            className={`market-indicator-toggle ${showMA10 ? "" : "inactive"}`}
             onClick={() => setShowMA10((prev) => !prev)}
           >
             <i className="market-indicator-dot ma10" />
@@ -358,17 +369,23 @@ export function MarketChart({
         className="market-chart-viewport"
         aria-label={`${stock.name} candlestick chart`}
       >
-        <div ref={hostRef} style={{ cursor: 'grab' }} />
+        <div ref={hostRef} style={{ cursor: "grab" }} />
+        {!candles.length && (
+          <div className="market-history-empty" role="status">
+            {history.loading
+              ? "Loading oracle history…"
+              : history.error || "No oracle observations yet."}
+            {history.error && (
+              <button onClick={() => void history.refresh()}>Retry</button>
+            )}
+          </div>
+        )}
         <div ref={tooltipRef} className="market-chart-tooltip" hidden />
       </div>
 
       {/* Three Main Actions Row (Below Chart) */}
       <div className="market-action-row">
-        <button
-          type="button"
-          className="button market-btn-buy"
-          onClick={onBuy}
-        >
+        <button type="button" className="button market-btn-buy" onClick={onBuy}>
           Buy
         </button>
 

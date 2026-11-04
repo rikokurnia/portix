@@ -1,3 +1,5 @@
+> Current integration: see [INTEGRATION_STATUS.md](INTEGRATION_STATUS.md) and [live deployment checks](docs/onchain-verification.json). The on-chain integration replaces the earlier local fixture behavior documented below.
+
 # portix
 
 PORTIX is a frontend for tokenized-stock trading and carry-yield vaults. It includes Market, pxPrime and pxBoost vaults, direct deposit/withdraw forms, interactive TradingView Lightweight Charts, and one shared portfolio with wallet holdings and activity.

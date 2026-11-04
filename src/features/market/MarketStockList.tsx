@@ -1,16 +1,21 @@
-'use client';
+"use client";
 
-import { Panel } from '@/components/shared/Panel';
-import { MARKET_STOCKS, MARKET_STOCK_IDS } from './fixtures';
-import { formatUSD, formatPercent } from './calculations';
-import type { MarketStockId } from './types';
+import { usePortfolio } from "@/lib/portfolio-store";
+import { Panel } from "@/components/shared/Panel";
+import { MARKET_STOCKS, MARKET_STOCK_IDS } from "./stocks";
+import { formatUSD } from "./calculations";
+import type { MarketStockId } from "./types";
 
 interface MarketStockListProps {
   selectedStockId: MarketStockId;
   onSelectStock: (id: MarketStockId) => void;
 }
 
-export function MarketStockList({ selectedStockId, onSelectStock }: MarketStockListProps) {
+export function MarketStockList({
+  selectedStockId,
+  onSelectStock,
+}: MarketStockListProps) {
+  const { prices } = usePortfolio();
   return (
     <Panel className="market-stocks-panel">
       <h2>Stocks</h2>
@@ -22,7 +27,6 @@ export function MarketStockList({ selectedStockId, onSelectStock }: MarketStockL
         {MARKET_STOCK_IDS.map((id) => {
           const stock = MARKET_STOCKS[id];
           const isSelected = selectedStockId === id;
-          const isPositive = stock.change >= 0;
 
           return (
             <button
@@ -30,10 +34,10 @@ export function MarketStockList({ selectedStockId, onSelectStock }: MarketStockL
               type="button"
               role="radio"
               aria-checked={isSelected}
-              className={`market-stock-item ${isSelected ? 'selected' : ''}`}
+              className={`market-stock-item ${isSelected ? "selected" : ""}`}
               onClick={() => onSelectStock(id)}
               onKeyDown={(e) => {
-                if (e.key === ' ' || e.key === 'Enter') {
+                if (e.key === " " || e.key === "Enter") {
                   e.preventDefault();
                   onSelectStock(id);
                 }
@@ -53,11 +57,8 @@ export function MarketStockList({ selectedStockId, onSelectStock }: MarketStockL
                 </div>
               </div>
               <div className="market-stock-right">
-                <span className="market-stock-price">{formatUSD(stock.price)}</span>
-                <span
-                  className={`market-stock-change ${isPositive ? 'positive' : 'negative'}`}
-                >
-                  {formatPercent(stock.changePercent)}
+                <span className="market-stock-price">
+                  {prices[id] ? formatUSD(prices[id]!) : "—"}
                 </span>
               </div>
             </button>

@@ -105,8 +105,14 @@ a {
   object-fit: contain;
   flex-shrink: 0;
 }
-.navbar > .button {
+.navbar > .button,
+.navbar-actions {
   justify-self: end;
+}
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .segmented {
   display: flex;
@@ -775,9 +781,13 @@ footer > span {
     width: 34px;
     height: 34px;
   }
-  .navbar > .button {
+  .navbar > .button,
+  .navbar-actions {
     grid-column: 2;
     grid-row: 1;
+    justify-self: end;
+  }
+  .navbar > .button {
     padding: 8px 11px;
     font-size: 12px;
   }
@@ -955,4 +965,20 @@ footer > span {
 @media (min-width: 761px) {
   .world-background { background-position: right top; }
   .world-background video { object-position: right top; }
+}
+
+.transaction-link { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: #cfb6e8; text-decoration: none; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.transaction-link:hover { color: #f4b64f; }
+.transaction-link img { object-fit: contain; }
+.transaction-link span { font-family: ui-monospace, monospace; }
+.faucet-trigger-btn:disabled { opacity: .45; cursor: not-allowed; }
+.market-history-empty { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; gap: 12px; pointer-events: none; color: #cbb6eb; }
+.market-history-empty button { pointer-events: auto; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 100; background: #100e2480; backdrop-filter: blur(8px); display: grid; place-items: center; padding: 20px; overflow-y: auto; }
+.modal-backdrop .modal { position: relative; margin: auto; max-height: calc(100dvh - 40px); overflow-y: auto; }
+@media (max-width: 480px) {
+  .navbar-actions { gap: 8px; min-width: 0; }
+  .navbar-actions .faucet-trigger-btn { width: 36px; height: 36px; padding: 8px; flex: 0 0 36px; justify-content: center; }
+  .navbar-actions .faucet-trigger-btn span { display: none; }
+  .navbar-actions > .button { padding: 10px 11px; font-size: 12px; white-space: nowrap; gap: 7px; }
 }

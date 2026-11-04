@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+// A portal avoids the native dialog top layer covering Privy's wallet confirmation UI.
 export function Modal({
   title,
   onClose,
@@ -10,54 +12,74 @@ export function Modal({
   onClose: () => void;
   children: ReactNode;
 }) {
-  const ref = useRef<HTMLDialogElement>(null),
+  const ref = useRef<HTMLDivElement>(null),
     id = useId();
   useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null;
-    const dialog = ref.current!;
-    dialog.showModal();
-    const overflow = document.body.style.overflow;
+    const previous = document.activeElement as HTMLElement | null,
+      overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    ref.current?.querySelector<HTMLButtonElement>("button")?.focus();
     return () => {
-      dialog.close();
       document.body.style.overflow = overflow;
       if (previous?.isConnected) previous.focus();
     };
   }, []);
-  return (
-    <dialog
-      ref={ref}
-      className="modal"
-      aria-labelledby={id}
-      onCancel={(e) => {
-        e.preventDefault();
-        onClose();
-      }}
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <div
+      className="modal-backdrop"
       onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          const rect = e.currentTarget.getBoundingClientRect();
-          if (
-            e.clientX < rect.left ||
-            e.clientX > rect.right ||
-            e.clientY < rect.top ||
-            e.clientY > rect.bottom
-          )
-            onClose();
-        }
+        if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal-heading">
-        <h2 id={id}>{title}</h2>
-        <button
-          autoFocus
-          className="icon-button"
-          aria-label="Close dialog"
-          onClick={onClose}
-        >
-          <X size={20} />
-        </button>
+      <div
+        ref={ref}
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={id}
+        tabIndex={-1}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+            onClose();
+          }
+          if (e.key === "Tab") {
+            const focusable = Array.from(
+              ref.current!.querySelectorAll<HTMLElement>(
+                'button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),[tabindex="0"]',
+              ),
+            ).filter((el) => el.getClientRects().length > 0);
+            const first = focusable[0],
+              last = focusable.at(-1);
+            if (!first) {
+              e.preventDefault();
+              ref.current?.focus();
+            } else if (e.shiftKey && document.activeElement === first) {
+              e.preventDefault();
+              last?.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+              e.preventDefault();
+              first.focus();
+            }
+          }
+        }}
+      >
+        <div className="modal-heading">
+          <h2 id={id}>{title}</h2>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Close dialog"
+            onClick={onClose}
+          >
+            <X size={20} />
+          </button>
+        </div>
+        {children}
       </div>
-      {children}
-    </dialog>
+    </div>,
+    document.body,
   );
 }

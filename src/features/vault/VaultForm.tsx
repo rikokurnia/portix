@@ -1,17 +1,19 @@
 "use client";
 import { useRef, useState } from "react";
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { parseUnits } from "viem";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/shared/Button";
+import { TransactionLink } from "@/components/shared/TransactionLink";
 import {
   stockIds,
   stocks,
-  vaults,
   money,
   units,
   type StockId,
   type VaultId,
 } from "@/lib/assets";
 import { usePortfolio } from "@/lib/portfolio-store";
+import { useQuote } from "@/lib/onchain/useQuote";
 export function VaultForm({
   vaultId,
   initialStock,
@@ -25,56 +27,62 @@ export function VaultForm({
   onProcess: () => void;
   onStockChange: (id: StockId) => void;
 }) {
-  const account = usePortfolio(),
-    [mode, setMode] = useState(initialMode),
+  const account = usePortfolio();
+  const [mode, setMode] = useState(initialMode),
     [stockId, setStock] = useState(initialStock),
     [amount, setAmount] = useState(""),
     [error, setError] = useState(""),
-    [message, setMessage] = useState("");
-  const submitting = useRef(false);
-  const deposit = mode === "Deposit",
-    position = account.positions.find(
+    [hash, setHash] = useState(""),
+    [working, setWorking] = useState(false);
+  const lock = useRef(false),
+    deposit = mode === "Deposit";
+  const position = account.positions.find(
       (p) => p.vaultId === vaultId && p.stockId === stockId,
     ),
-    limit = deposit ? account.stockBalances[stockId] : (position?.shares ?? 0),
-    n = Number(amount),
-    valid =
-      Number.isFinite(n) &&
-      n > 0 &&
-      /^\d*\.?\d{0,6}$/.test(amount) &&
-      n <= limit;
-  const quantity = deposit
-      ? n
-      : position
-        ? position.collateral * Math.min(n / position.shares, 1)
-        : 0,
-    value = quantity * stocks[stockId].price,
-    receipt = Math.round((value / vaults[vaultId].sharePrice) * 1e6) / 1e6,
-    yieldReturn = position
-      ? position.earnedYield * Math.min(n / position.shares, 1)
-      : 0;
+    limit = deposit ? account.stockBalances[stockId] : (position?.shares ?? 0);
+  const rawLimit = deposit
+    ? account.rawStockBalances[stockId]
+    : (position?.rawShares ?? "0");
+  const n = Number(amount),
+    {
+      configured,
+      quote,
+      error: quoteError,
+    } = useQuote(mode, stockId, amount, vaultId);
+  const valid =
+    !!account.address &&
+    account.ready &&
+    (deposit ? account.stockReady[stockId] : account.positionsReady) &&
+    configured &&
+    !!quote &&
+    n > 0 &&
+    /^\d*\.?\d{0,18}$/.test(amount) &&
+    parseUnits(amount, 18) <= parseUnits(rawLimit, 18) &&
+    quote.receive > 0;
   function clear() {
     setAmount("");
-    setMessage("");
+    setHash("");
     setError("");
   }
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!valid || submitting.current) return;
-    submitting.current = true;
-    const result = deposit
-      ? account.depositToVault(vaultId, stockId, n)
-      : account.withdrawFromVault(vaultId, stockId, n);
-    if (result.ok) {
-      setMessage(
-        deposit
-          ? `${units(n)} ${stockId} deposited. ${units(receipt)} ${vaultId} added.`
-          : `${units(quantity)} ${stockId} and ${money(yieldReturn)} earned pUSDC returned.`,
-      );
-      setAmount("");
-      onProcess();
-    } else setError(result.error);
-    submitting.current = false;
+    if (!valid || lock.current) return;
+    lock.current = true;
+    setWorking(true);
+    setError("");
+    onProcess();
+    try {
+      const result = deposit
+        ? await account.depositToVault(vaultId, stockId, amount)
+        : await account.withdrawFromVault(vaultId, stockId, amount);
+      if (result.ok) {
+        setHash(result.hash);
+        setAmount("");
+      } else setError(result.error);
+    } finally {
+      lock.current = false;
+      setWorking(false);
+    }
   }
   return (
     <form className="vault-order panel" onSubmit={submit}>
@@ -88,6 +96,7 @@ export function VaultForm({
             type="button"
             role="tab"
             aria-selected={mode === t}
+            disabled={working}
             key={t}
             onClick={() => {
               setMode(t);
@@ -102,13 +111,15 @@ export function VaultForm({
         Collateral stock
       </label>
       <div className="vault-stock-select">
-        <img src={stocks[stockId].logo} alt="" width="24" height="24" />
+        <img src={stocks[stockId].logo} alt="" width={24} height={24} />
         <select
           id="vault-stock"
           value={stockId}
+          disabled={working}
           onChange={(e) => {
-            setStock(e.target.value as StockId);
-            onStockChange(e.target.value as StockId);
+            const id = e.target.value as StockId;
+            setStock(id);
+            onStockChange(id);
             clear();
           }}
         >
@@ -128,97 +139,111 @@ export function VaultForm({
           inputMode="decimal"
           autoComplete="off"
           placeholder="0.00"
+          disabled={working}
           value={amount}
           aria-describedby="vault-balance"
           onChange={(e) => {
             setAmount(e.target.value);
             setError("");
-            setMessage("");
+            setHash("");
           }}
         />
         <span>{deposit ? stockId : vaultId}</span>
       </div>
       <div className="balance-line" id="vault-balance">
-        <span>≈ {money(Number.isFinite(value) ? value : 0)}</span>
-        <span>Available {units(limit)}</span>
+        <span>{quote ? `≈ ${money(quote.value)}` : "—"}</span>
+        <span>
+          Available{" "}
+          {account.ready &&
+          (deposit ? account.stockReady[stockId] : account.positionsReady)
+            ? units(limit)
+            : "—"}
+        </span>
       </div>
       <div className="shortcuts">
         {[25, 50, 75, 100].map((p) => (
           <button
-            type="button"
             key={p}
+            type="button"
+            disabled={working || !account.ready}
             onClick={() => {
-              setAmount(String(Math.floor(((limit * p) / 100) * 1e6) / 1e6));
-              setMessage("");
+              setAmount(
+                p === 100
+                  ? rawLimit
+                  : String(Math.floor(((limit * p) / 100) * 1e6) / 1e6),
+              );
               setError("");
+              setHash("");
             }}
           >
             {p === 100 ? "Max" : `${p}%`}
           </button>
         ))}
       </div>
-      {amount && !valid && (
-        <p className="error" role="alert">
-          {n > limit
-            ? "Insufficient balance."
-            : "Use a positive amount with up to 6 decimals."}
-        </p>
-      )}
+      {amount &&
+        (!/^\d*\.?\d{0,18}$/.test(amount) || !(n > 0) || n > limit) && (
+          <p className="error" role="alert">
+            {n > limit
+              ? "Insufficient balance."
+              : "Use a positive amount with up to 18 decimals."}
+          </p>
+        )}
       <div className="receipt">
-        <span>You receive</span>
+        <span>Estimated receive</span>
         <strong>
-          {units(
-            Number.isFinite(deposit ? receipt : quantity)
-              ? deposit
-                ? receipt
-                : quantity
-              : 0,
-          )}{" "}
-          {deposit ? vaultId : stockId}
+          {quote ? units(quote.receive) : "—"} {deposit ? vaultId : stockId}
         </strong>
-        {!deposit && (
+        {!deposit && quote && (
           <small className="positive">
-            + {money(Number.isFinite(yieldReturn) ? yieldReturn : 0)} earned
-            pUSDC
+            + {units(quote.yield)} earned pUSDC
           </small>
         )}
       </div>
       <dl className="carry-summary">
         <div>
           <dt>Collateral value</dt>
-          <dd>{money(Number.isFinite(value) ? value : 0)}</dd>
+          <dd>{quote ? money(quote.value) : "—"}</dd>
         </div>
         <div>
           <dt>{deposit ? "Borrow allocation" : "Debt released"}</dt>
-          <dd>{money(Number.isFinite(value) ? value * 0.4 : 0)}</dd>
+          <dd>{quote ? `${units(quote.borrow)} pUSDC` : "—"}</dd>
         </div>
         <div>
-          <dt>Initial LTV</dt>
-          <dd>40%</dd>
-        </div>
-        <div>
-          <dt>Share reference value</dt>
-          <dd>{money(vaults[vaultId].sharePrice)}</dd>
+          <dt>Network</dt>
+          <dd>Portaldot V3</dd>
         </div>
       </dl>
-      {error && (
+      {!account.address ? (
+        <p className="muted">Connect your wallet to continue.</p>
+      ) : !configured ? (
+        <p className="muted">This vault is awaiting its deployment address.</p>
+      ) : null}
+      {(error || quoteError) && (
         <p className="error" role="alert">
-          {error}
+          {error || quoteError}
         </p>
       )}
-      <Button className="full-width" disabled={!valid} type="submit">
-        {deposit ? "Deposit & earn" : "Withdraw assets"}
+      <Button
+        className="full-width"
+        disabled={!valid || working || !!account.pending}
+        type="submit"
+      >
+        {working
+          ? account.pending || "Processing…"
+          : deposit
+            ? "Deposit & earn"
+            : "Withdraw assets"}
         <ArrowRight size={17} />
       </Button>
-      {message && (
+      {hash && (
         <div className="vault-order-success" role="status">
           <CheckCircle2 size={18} />
-          <p>{message}</p>
+          <div>
+            <p>{deposit ? "Deposit" : "Withdrawal"} confirmed</p>
+            <TransactionLink hash={hash} />
+          </div>
         </div>
       )}
-      <p className="vault-order-footnote">
-        Updates your local portfolio. No wallet signature required.
-      </p>
     </form>
   );
 }

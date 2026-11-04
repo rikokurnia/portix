@@ -1,67 +1,70 @@
 "use client";
 import { useSyncExternalStore } from "react";
-import { stocks, vaults, type StockId, type VaultId } from "./assets";
-import {
-  calculateBuy,
-  calculateSell,
-  TRADING_FEE_RATE,
-} from "./trade-calculations";
+import { stockIds, type StockId, type VaultId } from "./assets";
+import type { Address, Hash } from "viem";
 export interface VaultPosition {
   id: string;
   vaultId: VaultId;
   stockId: StockId;
   collateral: number;
   shares: number;
+  rawShares: string;
   earnedYield: number;
+  ltv: number;
+  healthy: boolean;
 }
+export type ActivityType =
+  | "Buy"
+  | "Sell"
+  | "Deposit"
+  | "Withdraw"
+  | "Faucet"
+  | "Approve";
 export interface Activity {
-  id: string;
-  type: "Buy" | "Sell" | "Deposit" | "Withdraw";
-  stockId: StockId;
+  id: Hash;
+  hash: Hash;
+  type: ActivityType;
+  stockId: StockId | "pUSDC";
   amount: number;
   vaultId?: VaultId;
   timestamp: string;
-  status: "Completed";
+  status: "Pending" | "Completed" | "Failed";
 }
 export interface PortfolioState {
+  observedAt: number;
+  stockReady: Partial<Record<StockId, boolean>>;
+  positionsReady: boolean;
+  address?: Address;
   pUSDC: number;
   stockBalances: Record<StockId, number>;
+  rawStockBalances: Record<StockId, string>;
+  prices: Partial<Record<StockId, number>>;
+  feeBps?: number;
   positions: VaultPosition[];
   activity: Activity[];
+  ready: boolean;
+  refreshing: boolean;
+  error: string;
+  pending: string;
 }
-export type ActionResult = { ok: true } | { ok: false; error: string };
-// One in-memory account per browser tab. SSR always reads this immutable initial snapshot.
+const emptyBalances = () =>
+  Object.fromEntries(stockIds.map((id) => [id, 0])) as Record<StockId, number>;
 export const initialState: PortfolioState = {
-  pUSDC: 2500,
-  stockBalances: {
-    AAPL: 4,
-    GOOGL: 5,
-    NFLX: 8,
-    MSFT: 2,
-    META: 1,
-    SPY: 3,
-    QQQ: 2,
-    NVDA: 15,
-  },
-  positions: [
-    {
-      id: "pxPrime-GOOGL",
-      vaultId: "pxPrime",
-      stockId: "GOOGL",
-      collateral: 2.5,
-      shares: (2.5 * stocks.GOOGL.price) / vaults.pxPrime.sharePrice,
-      earnedYield: 12.6,
-    },
-    {
-      id: "pxBoost-AAPL",
-      vaultId: "pxBoost",
-      stockId: "AAPL",
-      collateral: 4,
-      shares: (4 * stocks.AAPL.price) / vaults.pxBoost.sharePrice,
-      earnedYield: 5.82,
-    },
-  ],
+  observedAt: 0,
+  stockReady: {},
+  positionsReady: false,
+  pUSDC: 0,
+  stockBalances: emptyBalances(),
+  rawStockBalances: Object.fromEntries(
+    stockIds.map((id) => [id, "0"]),
+  ) as Record<StockId, string>,
+  prices: {},
+  positions: [],
   activity: [],
+  ready: false,
+  refreshing: false,
+  error: "",
+  pending: "",
 };
 let state = initialState;
 const listeners = new Set<() => void>();
@@ -71,161 +74,143 @@ const subscribe = (fn: () => void) => {
     listeners.delete(fn);
   };
 };
-const round = (n: number) => Math.round(n * 1e6) / 1e6;
-const valid = (n: number) =>
-  Number.isFinite(n) && n > 0 && Math.abs(n - round(n)) < 1e-9;
-function commit(
-  next: PortfolioState,
-  event: Omit<Activity, "id" | "timestamp" | "status">,
-): ActionResult {
-  state = {
-    ...next,
-    activity: [
-      {
-        ...event,
-        id: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
-        status: "Completed",
-      },
-      ...state.activity,
-    ],
-  };
-  listeners.forEach((fn) => fn());
-  return { ok: true };
-}
-const fail = (error: string): ActionResult => ({ ok: false, error });
-export const portfolioActions = {
-  buyStock(
-    stockId: StockId,
-    amount: number,
-    totalPayment?: number,
-  ): ActionResult {
-    if (!stocks[stockId] || !valid(amount))
-      return fail("Enter a positive amount with up to 6 decimals.");
-    const gross = round(amount * stocks[stockId].price);
-    const cost =
-      totalPayment === undefined
-        ? round(gross + Math.round(gross * TRADING_FEE_RATE * 100) / 100)
-        : totalPayment;
-    if (totalPayment !== undefined) {
-      const quote = calculateBuy(totalPayment, stocks[stockId].price);
-      if (
-        !Number.isFinite(totalPayment) ||
-        totalPayment <= 0 ||
-        Math.abs(totalPayment * 100 - Math.round(totalPayment * 100)) > 1e-6 ||
-        Math.abs(quote.stockQuantity - amount) > 1e-9
-      )
-        return fail("The payment no longer matches the stock quote.");
-    }
-    if (cost > state.pUSDC) return fail("Insufficient pUSDC balance.");
-    return commit(
-      {
-        ...state,
-        pUSDC: round(state.pUSDC - cost),
-        stockBalances: {
-          ...state.stockBalances,
-          [stockId]: round(state.stockBalances[stockId] + amount),
-        },
-      },
-      { type: "Buy", stockId, amount },
-    );
-  },
-  sellStock(stockId: StockId, amount: number): ActionResult {
-    if (!stocks[stockId] || !valid(amount))
-      return fail("Enter a positive amount with up to 6 decimals.");
-    if (amount > state.stockBalances[stockId])
-      return fail("Insufficient stock balance.");
-    return commit(
-      {
-        ...state,
-        pUSDC: round(
-          state.pUSDC + calculateSell(amount, stocks[stockId].price).netPayout,
-        ),
-        stockBalances: {
-          ...state.stockBalances,
-          [stockId]: round(state.stockBalances[stockId] - amount),
-        },
-      },
-      { type: "Sell", stockId, amount },
-    );
-  },
-  depositToVault(
-    vaultId: VaultId,
-    stockId: StockId,
-    amount: number,
-  ): ActionResult {
-    if (!vaults[vaultId] || !stocks[stockId] || !valid(amount))
-      return fail("Enter a positive amount with up to 6 decimals.");
-    if (amount > state.stockBalances[stockId])
-      return fail("Insufficient stock balance.");
-    const shares = round(
-      (amount * stocks[stockId].price) / vaults[vaultId].sharePrice,
-    );
-    const id = `${vaultId}-${stockId}`;
-    const current = state.positions.find((p) => p.id === id);
-    const position: VaultPosition = current
-      ? {
-          ...current,
-          collateral: round(current.collateral + amount),
-          shares: round(current.shares + shares),
-        }
-      : { id, vaultId, stockId, collateral: amount, shares, earnedYield: 0 };
-    return commit(
-      {
-        ...state,
-        stockBalances: {
-          ...state.stockBalances,
-          [stockId]: round(state.stockBalances[stockId] - amount),
-        },
-        positions: [...state.positions.filter((p) => p.id !== id), position],
-      },
-      { type: "Deposit", stockId, amount, vaultId },
-    );
-  },
-  withdrawFromVault(
-    vaultId: VaultId,
-    stockId: StockId,
-    shares: number,
-  ): ActionResult {
-    if (!valid(shares))
-      return fail("Enter a positive share amount with up to 6 decimals.");
-    const p = state.positions.find(
-      (p) => p.vaultId === vaultId && p.stockId === stockId,
-    );
-    if (!p || shares > p.shares + 1e-9)
-      return fail("Insufficient vault shares.");
-    const ratio = Math.min(1, shares / p.shares),
-      amount = p.collateral * ratio;
-    return commit(
-      {
-        ...state,
-        pUSDC: round(state.pUSDC + p.earnedYield * ratio),
-        stockBalances: {
-          ...state.stockBalances,
-          [stockId]: round(state.stockBalances[stockId] + amount),
-        },
-        positions: state.positions.flatMap((x) =>
-          x.id !== p.id
-            ? [x]
-            : ratio >= 1 - 1e-9
-              ? []
-              : [
-                  {
-                    ...p,
-                    collateral: p.collateral - amount,
-                    shares: p.shares - shares,
-                    earnedYield: p.earnedYield * (1 - ratio),
-                  },
-                ],
-        ),
-      },
-      { type: "Withdraw", stockId, amount, vaultId },
-    );
-  },
-};
-export const { buyStock, sellStock, depositToVault, withdrawFromVault } =
-  portfolioActions;
 export const getPortfolioSnapshot = () => state;
+export function updatePortfolio(next: Partial<PortfolioState>) {
+  state = { ...state, ...next };
+  listeners.forEach((fn) => fn());
+}
+const storageKey = (owner: string) =>
+  `portix:activity:420420777:${owner.toLowerCase()}`;
+export function setPortfolioAccount(owner?: Address) {
+  if (state.address?.toLowerCase() === owner?.toLowerCase()) return;
+  let activity: Activity[] = [];
+  if (owner) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey(owner)) ?? "[]");
+      if (Array.isArray(saved))
+        activity = saved
+          .filter(
+            (a: Activity) =>
+              /^0x[\da-f]{64}$/i.test(a.hash) &&
+              a.id === a.hash &&
+              [
+                "Buy",
+                "Sell",
+                "Deposit",
+                "Withdraw",
+                "Faucet",
+                "Approve",
+              ].includes(a.type) &&
+              ["Pending", "Completed", "Failed"].includes(a.status) &&
+              (a.stockId === "pUSDC" || stockIds.includes(a.stockId)) &&
+              Number.isFinite(a.amount) &&
+              a.amount >= 0 &&
+              Number.isFinite(Date.parse(a.timestamp)),
+          )
+          .slice(0, 200);
+    } catch {
+      /* Storage is optional; chain balances are always fetched again. */
+    }
+  }
+  updatePortfolio({
+    ...initialState,
+    prices: state.prices,
+    feeBps: state.feeBps,
+    address: owner,
+    activity,
+  });
+}
+export function recordActivity(owner: Address, event: Activity) {
+  const selected = state.address?.toLowerCase() === owner.toLowerCase();
+  let previous = selected ? state.activity : [];
+  if (!selected)
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey(owner)) ?? "[]");
+      if (Array.isArray(saved)) previous = saved;
+    } catch {
+      /* Optional persistence. */
+    }
+  const activity = [
+    event,
+    ...previous.filter((a) => a.hash !== event.hash),
+  ].slice(0, 200);
+  if (selected) updatePortfolio({ activity });
+  try {
+    localStorage.setItem(storageKey(owner), JSON.stringify(activity));
+  } catch {
+    /* Optional persistence. */
+  }
+}
+export type ActionResult =
+  | { ok: true; hash: Hash }
+  | { ok: false; error: string };
+export type PortfolioCommand =
+  | { type: "Buy"; stockId: StockId; amount: number; spend?: number }
+  | { type: "Sell"; stockId: StockId; amount: number; rawAmount?: string }
+  | {
+      type: "Deposit" | "Withdraw";
+      vaultId: VaultId;
+      stockId: StockId;
+      amount: number;
+      rawAmount?: string;
+    }
+  | { type: "Faucet"; stockId: "pUSDC"; amount: number };
+let execute: ((command: PortfolioCommand) => Promise<ActionResult>) | undefined;
+export function registerPortfolioExecutor(fn: typeof execute) {
+  execute = fn;
+}
+async function run(command: PortfolioCommand): Promise<ActionResult> {
+  if (!execute || !state.address)
+    return { ok: false, error: "Connect your wallet to continue." };
+  if (!Number.isFinite(command.amount) || command.amount <= 0)
+    return { ok: false, error: "Enter a positive amount." };
+  if (state.pending)
+    return { ok: false, error: "Finish the current wallet request first." };
+  return execute(command);
+}
+export const portfolioActions = {
+  buyStock: (stockId: StockId, amount: number, spend?: number) =>
+    run({ type: "Buy", stockId, amount, spend }),
+  sellStock: (stockId: StockId, amount: number | string) =>
+    run({
+      type: "Sell",
+      stockId,
+      amount: Number(amount),
+      rawAmount: String(amount),
+    }),
+  depositToVault: (
+    vaultId: VaultId,
+    stockId: StockId,
+    amount: number | string,
+  ) =>
+    run({
+      type: "Deposit",
+      vaultId,
+      stockId,
+      amount: Number(amount),
+      rawAmount: String(amount),
+    }),
+  withdrawFromVault: (
+    vaultId: VaultId,
+    stockId: StockId,
+    amount: number | string,
+  ) =>
+    run({
+      type: "Withdraw",
+      vaultId,
+      stockId,
+      amount: Number(amount),
+      rawAmount: String(amount),
+    }),
+  claimFaucet: () => run({ type: "Faucet", stockId: "pUSDC", amount: 5000 }),
+};
+export const {
+  buyStock,
+  sellStock,
+  depositToVault,
+  withdrawFromVault,
+  claimFaucet,
+} = portfolioActions;
 export function usePortfolio() {
   return {
     ...useSyncExternalStore(

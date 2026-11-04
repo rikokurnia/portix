@@ -17,30 +17,26 @@ export const stockIds = [
 ] as const;
 export type StockId = (typeof stockIds)[number];
 export type VaultId = "pxPrime" | "pxBoost";
-// Fixed product fixtures, not live market quotes. All USD prices and yields are illustrative.
+// Identity metadata only. Prices, shares and balances come from deployed contracts.
 export const stocks: Record<
   StockId,
-  { name: string; price: number; logo: string }
+  { name: string; logo: string }
 > = {
-  AAPL: { name: "Apple", price: 300, logo: "/assets/AAPL.png" },
-  GOOGL: { name: "Alphabet", price: 300, logo: "/assets/GOOGL.png" },
-  NFLX: { name: "Netflix", price: 120, logo: "/assets/NFLX.png" },
-  MSFT: { name: "Microsoft", price: 510, logo: "/assets/MSFT.png" },
-  META: { name: "Meta", price: 720, logo: "/assets/META.png" },
-  SPY: { name: "SPDR S&P 500 ETF", price: 585, logo: "/assets/SPY.png" },
-  QQQ: { name: "Invesco QQQ Trust", price: 495, logo: "/assets/QQQ.png" },
-  NVDA: { name: "NVIDIA", price: 140, logo: "/assets/NVDA.png" },
+  AAPL: { name: "Apple", logo: "/assets/AAPL.png" },
+  GOOGL: { name: "Alphabet", logo: "/assets/GOOGL.png" },
+  NFLX: { name: "Netflix", logo: "/assets/NFLX.png" },
+  MSFT: { name: "Microsoft", logo: "/assets/MSFT.png" },
+  META: { name: "Meta", logo: "/assets/META.png" },
+  SPY: { name: "SPDR S&P 500 ETF", logo: "/assets/SPY.png" },
+  QQQ: { name: "Invesco QQQ Trust", logo: "/assets/QQQ.png" },
+  NVDA: { name: "NVIDIA", logo: "/assets/NVDA.png" },
 };
 export const vaults = {
   pxPrime: {
-    apy: 4.8,
-    sharePrice: 100,
     description:
       "Earn automated yield by deploying tokenized stocks into diversified lending pools.",
   },
   pxBoost: {
-    apy: 8.1,
-    sharePrice: 125,
     description:
       "Leverage borrowed liquidity in AMM pools to maximize trading fee yields.",
   },

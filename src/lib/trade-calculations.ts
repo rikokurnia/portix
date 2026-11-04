@@ -1,8 +1,4 @@
-/**
- * Trading fee rate: 0.10% (matching market-popup-confirmation.png where $300 has $0.30 fee)
- */
-export const TRADING_FEE_RATE = 0.001;
-
+import { parseUnits, formatUnits } from "viem";
 export interface BuyCalculation {
   totalPayment: number;
   fee: number;
@@ -10,42 +6,6 @@ export interface BuyCalculation {
   stockQuantity: number;
   pricePerShare: number;
 }
-
-export function calculateBuy(
-  pUSDCSpend: number,
-  pricePerShare: number,
-): BuyCalculation {
-  if (
-    !Number.isFinite(pUSDCSpend) ||
-    pUSDCSpend <= 0 ||
-    !Number.isFinite(pricePerShare) ||
-    pricePerShare <= 0
-  ) {
-    return {
-      totalPayment: 0,
-      fee: 0,
-      netSpend: 0,
-      stockQuantity: 0,
-      pricePerShare,
-    };
-  }
-
-  const totalPayment = Math.round(pUSDCSpend * 100) / 100;
-  // In market-popup-confirmation.png: Total payment 300.00 pUSDC includes 0.30 fee, yielding 0.999 AAPL.
-  // 300 * 0.001 = 0.30 fee; Net spend = 299.70; 299.70 / 300 = 0.999 stock
-  const fee = Math.round(totalPayment * TRADING_FEE_RATE * 100) / 100;
-  const netSpend = Math.max(0, Math.round((totalPayment - fee) * 100) / 100);
-  const stockQuantity = Math.floor((netSpend / pricePerShare) * 1e6) / 1e6;
-
-  return {
-    totalPayment,
-    fee,
-    netSpend,
-    stockQuantity,
-    pricePerShare,
-  };
-}
-
 export interface SellCalculation {
   stockQuantity: number;
   grossPayout: number;
@@ -53,36 +13,68 @@ export interface SellCalculation {
   netPayout: number;
   pricePerShare: number;
 }
-
-export function calculateSell(
-  stockAmount: number,
-  pricePerShare: number,
-): SellCalculation {
+const human = (v: bigint, d: number) => Number(formatUnits(v, d));
+// Exact integer arithmetic matching StockMarket.sol. Fee and price are fetched from the chain.
+export function calculateBuy(
+  spend: number,
+  price: number,
+  feeBps: number,
+): BuyCalculation {
+  const empty = {
+    totalPayment: 0,
+    fee: 0,
+    netSpend: 0,
+    stockQuantity: 0,
+    pricePerShare: price,
+  };
   if (
-    !Number.isFinite(stockAmount) ||
-    stockAmount <= 0 ||
-    !Number.isFinite(pricePerShare) ||
-    pricePerShare <= 0
-  ) {
-    return {
-      stockQuantity: 0,
-      grossPayout: 0,
-      fee: 0,
-      netPayout: 0,
-      pricePerShare,
-    };
-  }
-
-  const stockQuantity = Math.floor(stockAmount * 1e6) / 1e6;
-  const grossPayout = Math.round(stockQuantity * pricePerShare * 100) / 100;
-  const fee = Math.round(grossPayout * TRADING_FEE_RATE * 100) / 100;
-  const netPayout = Math.max(0, Math.round((grossPayout - fee) * 100) / 100);
-
+    ![spend, price, feeBps].every(Number.isFinite) ||
+    spend <= 0 ||
+    price <= 0 ||
+    feeBps < 0 ||
+    !Number.isInteger(feeBps)
+  )
+    return empty;
+  const payment = parseUnits(spend.toFixed(6), 6),
+    p = parseUnits(price.toFixed(6), 6);
+  const gross = (payment * 10000n) / (10000n + BigInt(feeBps));
+  const quantity = (gross * 10n ** 18n) / p;
   return {
-    stockQuantity,
-    grossPayout,
-    fee,
-    netPayout,
-    pricePerShare,
+    totalPayment: human(payment, 6),
+    fee: human(payment - gross, 6),
+    netSpend: human(gross, 6),
+    stockQuantity: human(quantity, 18),
+    pricePerShare: price,
+  };
+}
+export function calculateSell(
+  amount: number,
+  price: number,
+  feeBps: number,
+): SellCalculation {
+  const empty = {
+    stockQuantity: 0,
+    grossPayout: 0,
+    fee: 0,
+    netPayout: 0,
+    pricePerShare: price,
+  };
+  if (
+    ![amount, price, feeBps].every(Number.isFinite) ||
+    amount <= 0 ||
+    price <= 0 ||
+    feeBps < 0 ||
+    !Number.isInteger(feeBps)
+  )
+    return empty;
+  const quantity = parseUnits(amount.toFixed(6), 18),
+    gross = (quantity * parseUnits(price.toFixed(6), 6)) / 10n ** 18n;
+  const fee = (gross * BigInt(feeBps)) / 10000n;
+  return {
+    stockQuantity: human(quantity, 18),
+    grossPayout: human(gross, 6),
+    fee: human(fee, 6),
+    netPayout: human(gross - fee, 6),
+    pricePerShare: price,
   };
 }

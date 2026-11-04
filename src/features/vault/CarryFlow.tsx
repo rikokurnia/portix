@@ -7,7 +7,6 @@ import { stocks, type StockId, type VaultId } from "@/lib/assets";
 export function CarryFlow({
   vaultId,
   stockId,
-  run,
 }: {
   vaultId: VaultId;
   stockId: StockId;
@@ -36,7 +35,7 @@ export function CarryFlow({
     media.addEventListener("change", update);
     return () => media.removeEventListener("change", update);
   }, []);
-  // Remount is controlled by the caller after an account action; no transaction animation claims settlement.
+  // The caller can restart this educational route when an account action begins.
   return (
     <section
       className={`carry-flow panel ${playing ? "is-playing" : ""}`}
@@ -137,11 +136,7 @@ export function CarryFlow({
       </div>
       <p className="flow-caption">
         {descriptions[stage]}{" "}
-        <span>
-          {run > 0
-            ? "Portfolio updated locally."
-            : "Routing preview; bridge execution is not connected."}
-        </span>
+        <span>Bridge execution is not connected.</span>
       </p>
     </section>
   );

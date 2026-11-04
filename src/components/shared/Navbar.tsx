@@ -3,6 +3,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrandIcon } from "./BrandIcon";
 import { WalletControl } from "@/features/wallet/WalletControl";
+import { FaucetControl } from "@/components/faucet/FaucetControl";
+
 export function Navbar() {
   const path = usePathname();
   return (
@@ -28,7 +30,10 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
-        <WalletControl />
+        <div className="navbar-actions">
+          <FaucetControl />
+          <WalletControl />
+        </div>
       </header>
     </>
   );

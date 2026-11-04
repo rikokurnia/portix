@@ -7,7 +7,7 @@
 .openApp { padding: 6px 26px; border: 1.5px solid #d3a1ff; border-radius: 12px; font-size: 20px; font-weight: 600; background: #11194040; }
 .openApp:hover { background: #7547ae55; }
 .landing section { min-height: 100svh; position: relative; scroll-margin-top: 0; }
-.hero { padding: 0 8%; }
+.hero { padding: 0 8% 64px; }
 .heroDialogue { position: absolute; top: 13.7svh; left: 40.5%; width: 43%; height: 14svh; }
 .cloud { width: 100%; height: 100%; position: relative; display: grid; align-items: center; filter: drop-shadow(0 5px 10px #1a0e3540); }
 .cloud svg { position: absolute; width: 100%; height: 100%; overflow: visible; }
@@ -63,7 +63,7 @@
 .chartHeading span:last-child { border: 1px solid #8d65b3; border-radius: 12px; padding: 0 10px; }
 .chart { min-height: 162px; }
 .unavailable { height: 162px; display: grid; place-items: center; color: var(--muted); font-size: 13px; }
-.closing > .cta { margin-top: 24px; font-size: clamp(24px, 2.1vw, 36px); padding: 10px 42px; }
+.closingAction .cta { margin-top: 24px; font-size: clamp(24px, 2.1vw, 36px); padding: 10px 42px; }
 .credit { font-size: 10px; margin: 9px auto 0; color: #f4e7ff; text-shadow: 0 1px 5px #211537; }
 .credit a { text-decoration: underline; }
 .skip { position: fixed; top: -100px; left: 16px; z-index: 20; padding: 12px; background: #211d31; }
@@ -98,7 +98,7 @@
   .wordmark { font-size: 23px; gap: 8px; }
   .wordmark img { width: 34px; height: 34px; }
   .openApp { padding: 7px 15px; font-size: 15px; background: #171a4260; }
-  .hero { padding: 0 7%; }
+  .hero { padding: 0 7% 64px; }
   .heroDialogue { position: relative; top: auto; left: auto; padding-top: 110px; width: 100%; height: 230px; }
   .cloud p { font-size: 19px; }
   .heroCopy { padding-top: 45px; }
@@ -157,3 +157,9 @@
   .bookArrow { left: 44%; font-size: 25px; }
   .rightPage strong { font-size: clamp(16px, 4.1vw, 26px); }
 }
+
+/* Reserve tile space so animation never shifts the subtitle or CTA. */
+.heroCopy > .cta { margin-top: 24px; }
+
+.cards > div { min-width: 0; }
+.cards > div > .card { height: 100%; }

@@ -10,6 +10,7 @@ import { Check, Copy, LogOut, Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/shared/Button";
 import { Modal } from "@/components/shared/Modal";
 import { useWalletConfigured } from "./WalletProvider";
+import { useWalletSelection } from "./selection";
 import { isPortaldotChain, portaldot, shortAddress } from "./chain";
 import "./wallet.css";
 export function WalletControl() {
@@ -32,10 +33,10 @@ function ConnectedWalletControl() {
     { wallets, ready: walletsReady } = useWallets(),
     { createWallet } = useCreateWallet();
   const [open, setOpen] = useState(false),
-    [selected, setSelected] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [copied, setCopied] = useState("");
+  const { selected, setSelected } = useWalletSelection();
   const active =
     wallets.find((wallet) => wallet.address === selected) ??
     wallets.find((wallet) => wallet.address === user?.wallet?.address) ??
