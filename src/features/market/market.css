@@ -195,6 +195,40 @@
   gap: 12px;
 }
 
+.market-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #2dd4bf;
+}
+
+.market-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2dd4bf;
+  box-shadow: 0 0 8px #2dd4bf;
+  animation: livePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
 .market-chart-price {
   font-size: 32px;
   font-weight: 750;
@@ -488,9 +522,33 @@
 }
 
 .trade-balance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 12px;
   color: var(--muted, #cbb6eb);
   margin-bottom: 12px;
+}
+
+.trade-demo-faucet-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(244, 182, 79, 0.15);
+  border: 1px solid rgba(244, 182, 79, 0.4);
+  color: #f4b64f;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.trade-demo-faucet-btn:hover {
+  background: rgba(244, 182, 79, 0.25);
+  border-color: #f4b64f;
+  transform: translateY(-1px);
 }
 
 .trade-shortcuts {

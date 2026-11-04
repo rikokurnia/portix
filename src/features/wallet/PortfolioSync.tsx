@@ -14,6 +14,8 @@ import { useWalletSelection } from "./selection";
 import { portaldot } from "./chain";
 import { readAccount, readMarket } from "@/lib/onchain/account";
 import {
+  isolatedAccounting,
+  vaultIntegrationIssue,
   contracts,
   publicClient,
   tokenAbi,
@@ -141,6 +143,11 @@ export function PortfolioSync() {
           };
         updatePortfolio({ pending: "Confirm the network in your wallet…" });
         try {
+          if (
+            (command.type === "Deposit" || command.type === "Withdraw") &&
+            !isolatedAccounting
+          )
+            return { ok: false, error: vaultIntegrationIssue };
           const signer = walletRef.current;
           if (!signer || signer.address.toLowerCase() !== owner.toLowerCase())
             throw new Error("Wallet changed.");

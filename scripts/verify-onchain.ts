@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { getAddress } from "viem";
 import {
+  isolatedAccounting,
   publicClient,
   manifest,
   tokenAbi,
@@ -108,6 +109,8 @@ async function main() {
       });
   }
   const report = {
+    isolatedAccounting,
+    compatibility: isolatedAccounting ? "isolated" : "BLOCKED: aliases one balance across all stocks/vaults; see CONTRACT_INTEGRATION_FINDINGS.md",
     checkedAt: new Date().toISOString(),
     chainId,
     block: String(block),
@@ -122,7 +125,7 @@ async function main() {
   console.log(
     `Checked chain ${chainId} at block ${block}. Report: docs/onchain-verification.json`,
   );
-  if (results.some((r) => r.status !== "VERIFIED")) process.exitCode = 1;
+  if (!isolatedAccounting || results.some((r) => r.status !== "VERIFIED")) process.exitCode = 1;
 }
 main().catch(() => {
   console.error(

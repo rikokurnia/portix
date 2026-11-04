@@ -55,6 +55,21 @@ export const vaultAddress = (id: VaultId, stock: StockId) =>
   address(
     manifest.stocks[stock][id === "pxPrime" ? "primeVault" : "boostVault"],
   );
+// The supplied ERC-4626 interface requires separate readable stock/vault balances.
+// Reusing one balanceOf() address for every asset would fabricate duplicate positions.
+const stockTargets = Object.values(manifest.stocks).map((s) =>
+  s.token.toLowerCase(),
+);
+const vaultTargets = Object.values(manifest.stocks).flatMap((s) => [
+  s.primeVault.toLowerCase(),
+  s.boostVault.toLowerCase(),
+]);
+export const isolatedAccounting =
+  new Set(stockTargets).size === stockTargets.length &&
+  new Set(vaultTargets).size === vaultTargets.length;
+export const vaultIntegrationIssue = isolatedAccounting
+  ? ""
+  : "This deployment needs compatible vault balance accounting before deposits can open.";
 export const explorerTransaction = (hash: string) =>
   `${portaldot.blockExplorers.default.url}#/extrinsics/${hash}`;
 export const explorerContract = (value: string) =>

@@ -34,8 +34,11 @@ const files = [
 ];
 let failures = 0;
 for (const file of [...new Set(files)]) {
-  if (!fs.statSync(file).isFile()) continue;
-  const data = fs.readFileSync(file);
+  let data;
+  try {
+    if (!fs.statSync(file).isFile()) continue;
+    data = fs.readFileSync(file);
+  } catch (error) { if (error.code === 'ENOENT') continue; throw error; }
   for (const secret of secrets) {
     const values = [
       secret.value,

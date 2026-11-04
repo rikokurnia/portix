@@ -1,10 +1,16 @@
 "use client";
 
-import { usePortfolio } from "@/lib/portfolio-store";
+import { useEffect, useState } from "react";
 import { Panel } from "@/components/shared/Panel";
 import { MARKET_STOCKS, MARKET_STOCK_IDS } from "./stocks";
-import { formatUSD } from "./calculations";
+import { formatUSD, formatPercent } from "./calculations";
 import type { MarketStockId } from "./types";
+
+interface StockQuote {
+  price: number;
+  change: number;
+  changePercent: number;
+}
 
 interface MarketStockListProps {
   selectedStockId: MarketStockId;
@@ -15,7 +21,39 @@ export function MarketStockList({
   selectedStockId,
   onSelectStock,
 }: MarketStockListProps) {
-  const { prices } = usePortfolio();
+  const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadQuotes() {
+      try {
+        const res = await fetch("/api/market");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (active && data.stocks) {
+          setQuotes(data.stocks);
+        }
+      } catch {
+        // Fallback to static base quotes
+      }
+    }
+
+    void loadQuotes();
+
+    // Poll live quotes every 5 seconds for real-time price updates
+    const timer = setInterval(() => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        void loadQuotes();
+      }
+    }, 5000);
+
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, []);
+
   return (
     <Panel className="market-stocks-panel">
       <h2>Stocks</h2>
@@ -27,6 +65,11 @@ export function MarketStockList({
         {MARKET_STOCK_IDS.map((id) => {
           const stock = MARKET_STOCKS[id];
           const isSelected = selectedStockId === id;
+          const quote = quotes[id];
+
+          const displayPrice = quote?.price ?? stock.price;
+          const displayChangePercent = quote?.changePercent ?? stock.changePercent;
+          const isPositive = displayChangePercent >= 0;
 
           return (
             <button
@@ -58,7 +101,14 @@ export function MarketStockList({
               </div>
               <div className="market-stock-right">
                 <span className="market-stock-price">
-                  {prices[id] ? formatUSD(prices[id]!) : "—"}
+                  {formatUSD(displayPrice)}
+                </span>
+                <span
+                  className={`market-stock-change ${
+                    isPositive ? "positive" : "negative"
+                  }`}
+                >
+                  {formatPercent(displayChangePercent)}
                 </span>
               </div>
             </button>

@@ -13,6 +13,7 @@ import {
   type VaultId,
 } from "@/lib/assets";
 import { usePortfolio } from "@/lib/portfolio-store";
+import { vaultIntegrationIssue } from "@/lib/onchain/contracts";
 import { useQuote } from "@/lib/onchain/useQuote";
 export function VaultForm({
   vaultId,
@@ -216,7 +217,10 @@ export function VaultForm({
       {!account.address ? (
         <p className="muted">Connect your wallet to continue.</p>
       ) : !configured ? (
-        <p className="muted">This vault is awaiting its deployment address.</p>
+        <p className="muted">
+          {vaultIntegrationIssue ||
+            "This vault is awaiting its deployment address."}
+        </p>
       ) : null}
       {(error || quoteError) && (
         <p className="error" role="alert">

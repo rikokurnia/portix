@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useLogin, usePrivy } from "@privy-io/react-auth";
+import { useWalletConfigured } from "@/features/wallet/WalletProvider";
 import { Droplets, CheckCircle2 } from "lucide-react";
 import { Modal } from "@/components/shared/Modal";
 import { TransactionLink } from "@/components/shared/TransactionLink";
@@ -7,11 +9,41 @@ import { usePortfolio } from "@/lib/portfolio-store";
 import { shortAddress } from "@/features/wallet/chain";
 import "./faucet.css";
 export function FaucetControl() {
+  const configured = useWalletConfigured();
+  if (!configured)
+    return (
+      <button
+        type="button"
+        className="faucet-trigger-btn"
+        aria-label="Faucet"
+        disabled
+        title="Wallet sign-in is unavailable"
+      >
+        <Droplets size={16} />
+        <span>Faucet</span>
+      </button>
+    );
+  return <ConfiguredFaucet />;
+}
+function ConfiguredFaucet() {
   const account = usePortfolio();
   const [open, setOpen] = useState(false),
     [error, setError] = useState(""),
     [hash, setHash] = useState(""),
     [working, setWorking] = useState(false);
+  const { ready } = usePrivy();
+  const requested = useRef(false);
+  const { login } = useLogin({
+    onComplete: () => {
+      if (requested.current) {
+        requested.current = false;
+        setOpen(true);
+      }
+    },
+    onError: () => {
+      requested.current = false;
+    },
+  });
   async function claim() {
     if (working || !account.address) return;
     setWorking(true);
@@ -30,8 +62,13 @@ export function FaucetControl() {
         type="button"
         className="faucet-trigger-btn"
         aria-label="Faucet"
-        disabled={!account.address}
+        disabled={!ready}
         onClick={() => {
+          if (!account.address) {
+            requested.current = true;
+            login();
+            return;
+          }
           setOpen(true);
           setHash("");
           setError("");

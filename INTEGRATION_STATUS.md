@@ -1,3 +1,5 @@
+> Latest: see CONTRACT_INTEGRATION_FINDINGS.md. The unified protocol now has live code and confirmed receipts, but its withdrawal authorization and share-accounting interfaces block complete Vault integration.
+
 # PORTIX frontend integration
 
 ## Implemented

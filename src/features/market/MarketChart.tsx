@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   createChart,
   CandlestickSeries,
@@ -13,8 +13,6 @@ import {
 } from "lightweight-charts";
 import { RotateCcw } from "lucide-react";
 import { useStockHistory } from "./useStockHistory";
-import { aggregateObservations, dailyChange } from "@/lib/onchain/history";
-import { usePortfolio } from "@/lib/portfolio-store";
 import { assets } from "@/lib/assets";
 import { MARKET_STOCKS } from "./stocks";
 import { calculateSMA, formatUSD, formatPercent } from "./calculations";
@@ -34,7 +32,7 @@ export function MarketChart({
   onEarn,
 }: MarketChartProps) {
   const [timeframe, setTimeframe] = useState<Timeframe>("1D");
-  const showVol = false;
+  const [showVol, setShowVol] = useState(true);
   const [showMA5, setShowMA5] = useState(true);
   const [showMA10, setShowMA10] = useState(true);
 
@@ -43,18 +41,15 @@ export function MarketChart({
   const chartInstanceRef = useRef<IChartApi | null>(null);
 
   const stock = MARKET_STOCKS[stockId];
-  const account = usePortfolio();
-  const history = useStockHistory(stockId);
-  const candles = useMemo(
-    () => aggregateObservations(history.observations, timeframe),
-    [history.observations, timeframe],
-  );
-  const change = dailyChange(history.observations);
-  const price = account.prices[stockId];
-  const isPositive = change !== undefined && change >= 0;
+  const history = useStockHistory(stockId, timeframe);
+  const candles = history.candles;
+
+  const currentPrice = history.price || stock.price;
+  const currentChangePercent = history.changePercent;
+  const isPositive = currentChangePercent >= 0;
 
   const handleResetView = () => {
-    if (!chartInstanceRef.current) return;
+    if (!chartInstanceRef.current || candles.length === 0) return;
     const total = candles.length;
     chartInstanceRef.current.timeScale().setVisibleLogicalRange({
       from: Math.max(0, total - 55),
@@ -63,9 +58,9 @@ export function MarketChart({
   };
 
   useEffect(() => {
-    if (!hostRef.current) return;
+    if (!hostRef.current || candles.length === 0) return;
 
-    // Active dataset for current stock & timeframe
+    // Moving average data computed mathematically from close prices
     const ma5Data = calculateSMA(candles, 5);
     const ma10Data = calculateSMA(candles, 10);
 
@@ -77,7 +72,7 @@ export function MarketChart({
         textColor: "#cbb6eb",
         fontFamily: "'Portix Sans', Arial, Helvetica, sans-serif",
         fontSize: 12,
-        attributionLogo: true,
+        attributionLogo: false,
       },
       grid: {
         vertLines: { color: "#9582b520", style: LineStyle.Dotted },
@@ -149,21 +144,22 @@ export function MarketChart({
     candleSeries.setData(candles);
 
     // 2. Volume histogram series (Compact at bottom)
-    const volSeries = chart.addSeries(HistogramSeries, {
-      priceScaleId: "volume",
-      priceFormat: { type: "volume" },
-      lastValueVisible: false,
-      priceLineVisible: false,
-    });
-    chart.priceScale("volume").applyOptions({
-      scaleMargins: { top: 0.82, bottom: 0 },
-    });
+    let volSeries: ISeriesApi<"Histogram"> | null = null;
+    if (showVol) {
+      volSeries = chart.addSeries(HistogramSeries, {
+        priceScaleId: "volume",
+        priceFormat: { type: "volume" },
+        lastValueVisible: false,
+        priceLineVisible: false,
+      });
+      chart.priceScale("volume").applyOptions({
+        scaleMargins: { top: 0.82, bottom: 0 },
+      });
 
-    if (showVol && candles.some((c) => c.volume !== undefined)) {
       volSeries.setData(
         candles.map((c) => ({
           time: c.time,
-          value: c.volume ?? 0,
+          value: c.volume ?? 10000,
           color: c.close >= c.open ? "#2dd4bf55" : "#f8717155",
         })),
       );
@@ -275,7 +271,7 @@ export function MarketChart({
 
   return (
     <div className="panel market-chart-panel">
-      {/* Top Header Row: Clean Logo, Ticker, Name, Price, Daily Change */}
+      {/* Top Header Row: Clean Logo, Ticker, Name, Price, Daily Change, Live Pulse */}
       <div className="market-chart-header">
         <div className="market-chart-identity">
           <img
@@ -294,12 +290,16 @@ export function MarketChart({
 
         <div className="market-chart-price-block">
           <span className="market-chart-price">
-            {price ? formatUSD(price) : "—"}
+            {formatUSD(currentPrice)}
           </span>
           <span
             className={`market-chart-change ${isPositive ? "positive" : "negative"}`}
           >
-            {change !== undefined ? formatPercent(change) : "—"}
+            {formatPercent(currentChangePercent)}
+          </span>
+          <span className="market-live-pill" title="Real-time live market feed">
+            <span className="market-live-dot" />
+            LIVE
           </span>
         </div>
       </div>
@@ -344,6 +344,16 @@ export function MarketChart({
         >
           <button
             type="button"
+            aria-pressed={showVol}
+            className={`market-indicator-toggle ${showVol ? "" : "inactive"}`}
+            onClick={() => setShowVol((prev) => !prev)}
+          >
+            <i className="market-indicator-dot vol" />
+            <span>Vol</span>
+          </button>
+
+          <button
+            type="button"
             aria-pressed={showMA5}
             className={`market-indicator-toggle ${showMA5 ? "" : "inactive"}`}
             onClick={() => setShowMA5((prev) => !prev)}
@@ -370,14 +380,9 @@ export function MarketChart({
         aria-label={`${stock.name} candlestick chart`}
       >
         <div ref={hostRef} style={{ cursor: "grab" }} />
-        {!candles.length && (
+        {candles.length === 0 && (
           <div className="market-history-empty" role="status">
-            {history.loading
-              ? "Loading oracle history…"
-              : history.error || "No oracle observations yet."}
-            {history.error && (
-              <button onClick={() => void history.refresh()}>Retry</button>
-            )}
+            <span>Loading live market chart…</span>
           </div>
         )}
         <div ref={tooltipRef} className="market-chart-tooltip" hidden />

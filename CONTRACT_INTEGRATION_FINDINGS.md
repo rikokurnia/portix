@@ -1,0 +1,17 @@
+# Current live contract compatibility
+
+Verified against chain 420420777: protocol 0xb5f071B9e9b159C5Df573678400aB864d0Ec5415 has 2,476 bytes of runtime code. Local contracts/out/PortixProtocol.sol/PortixProtocol.json runtime matches live bytecode exactly. The five provided deployment/buy/deposit/withdraw/sell receipts succeeded at blocks 314291, 314308, 314312, 314316 and 314319.
+
+This replaces the previous isolated ERC-4626 protocol architecture. Successful sample transactions do not supply the missing account interfaces:
+
+- All eight stock entries and sixteen vault entries alias one address and one stock balanceOf(owner). No per-stock or per-strategy balance exists.
+- Vault receipt balances use internal vaultShares with no public getter. Frontend cannot read its vault holdings through balanceOf.
+- previewWithdrawCarry returns 4 values; the original integration ABI expects 5.
+- getPriceUSD always returns $300 and getVaultMetrics returns constants. These must not be presented as live independent stock prices or actual account health/yield.
+- withdrawWithYield accepts an arbitrary owner and receiver without checking msg.sender or allowance. Agent 3 must add owner authorization before enabling user deposits.
+- The contract credits a sale/withdrawal even if settlement liquidity is insufficient, silently skipping payout. Require payout liquidity and perform transfers atomically; do not report a successful token return as a paid settlement otherwise.
+- faucet on this protocol can mint its stock balance to any address; it is separate from the pUSDC faucet.
+
+Agent 1 only synced public addresses, verified receipts, kept connected-wallet pUSDC faucet functional and blocked incompatible Vault writes. No smart contract source was changed. Agent 3 should publish an ABI and address manifest for corrected accounting and authorization. Do not put signing keys in the frontend or Vercel.
+
+Historical read-only proof: at block 314312, an unrelated caller 0x0000000000000000000000000000000000000001 successfully simulated withdrawing 2.997 shares from owner 0x3528ea50B67236a31d6BC1Fb94f36cDcf0e71995 to the unrelated caller, returning 0.999 stock units. This was eth_call only; no withdrawal was broadcast.

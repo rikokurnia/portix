@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { parseUnits } from "viem";
 import type { StockId, VaultId } from "@/lib/assets";
 import {
+  isolatedAccounting,
   publicClient,
   contracts,
   stockAddress,
@@ -48,7 +49,7 @@ export function useQuote(
     !!stockAddress(stock) &&
     (mode === "Buy" || mode === "Sell"
       ? !!contracts.market && !!contracts.oracle
-      : !!vault && !!vaultAddress(vault, stock));
+      : isolatedAccounting && !!vault && !!vaultAddress(vault, stock));
   useEffect(() => {
     let active = true;
     if (

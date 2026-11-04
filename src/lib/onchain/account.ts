@@ -2,6 +2,7 @@ import { formatUnits, type Address } from "viem";
 import { stockIds, type StockId, type VaultId } from "@/lib/assets";
 import type { VaultPosition } from "@/lib/portfolio-store";
 import {
+  isolatedAccounting,
   contracts,
   publicClient,
   stockAddress,
@@ -58,6 +59,21 @@ export async function readAccount(owner: Address) {
     }),
     6,
   );
+  if (!isolatedAccounting)
+    return {
+      pUSDC,
+      stockReady: Object.fromEntries(
+        stockIds.map((id) => [id, false]),
+      ) as Record<StockId, boolean>,
+      positionsReady: false,
+      stockBalances: Object.fromEntries(
+        stockIds.map((id) => [id, 0]),
+      ) as Record<StockId, number>,
+      rawStockBalances: Object.fromEntries(
+        stockIds.map((id) => [id, "0"]),
+      ) as Record<StockId, string>,
+      positions: [] as VaultPosition[],
+    };
   const balances = await Promise.allSettled(
     stockIds.map(async (id) => {
       const token = stockAddress(id);
