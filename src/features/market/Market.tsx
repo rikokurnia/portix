@@ -3,8 +3,6 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { Portfolio } from "@/features/vault/Portfolio";
-import "@/features/vault/vault.css";
 import { MarketStockList } from "./MarketStockList";
 import { BuyModal } from "./BuyModal";
 import { SellModal } from "./SellModal";
@@ -58,13 +56,6 @@ export function Market() {
         />
       </div>
 
-      <Portfolio
-        onManage={(vault, stock, mode) =>
-          router.push(
-            `/vault/${vault}?stock=${stock}${mode === "Withdraw" ? "&mode=withdraw" : ""}`,
-          )
-        }
-      />
       {/* Buy Modal: Direct instant buy without popup review */}
       {isBuyOpen && (
         <BuyModal
