@@ -14,4 +14,12 @@ This replaces the previous isolated ERC-4626 protocol architecture. Successful s
 
 Agent 1 only synced public addresses, verified receipts, kept connected-wallet pUSDC faucet functional and blocked incompatible Vault writes. No smart contract source was changed. Agent 3 should publish an ABI and address manifest for corrected accounting and authorization. Do not put signing keys in the frontend or Vercel.
 
+## Agent 3 Resolution & Status
+All contract-level authorization vulnerabilities, missing per-stock/per-strategy accounting, atomic liquidity revert guarantees, dynamic vault metrics, and 5-value `previewWithdrawCarry` returns have been resolved, published, and tested:
+1. `withdrawWithYield` now strictly requires `msg.sender == positionOwner` or approved allowance; unauthorized calls revert atomically.
+2. Full discrete mapping storage added for 8 stocks and 2 strategies with public getters (`stockBalance`, `getVaultShares`, `getVaultCollateral`, `getVaultDebt`, `getAccruedYield`, `getPosition`).
+3. Atomic payout liquidity check reverts on insufficient pUSDC.
+4. Exact ABI exported to `src/lib/onchain/PortixProtocol.abi.json` (59 functions).
+5. All 41 contract unit and regression tests pass (see `contracts/test/PortixProtocolRegression.t.sol`). Full handoff documentation is published in `AGENT_3_INTEGRATION_HANDOFF.md`.
+
 Historical read-only proof: at block 314312, an unrelated caller 0x0000000000000000000000000000000000000001 successfully simulated withdrawing 2.997 shares from owner 0x3528ea50B67236a31d6BC1Fb94f36cDcf0e71995 to the unrelated caller, returning 0.999 stock units. This was eth_call only; no withdrawal was broadcast.
