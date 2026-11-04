@@ -14,9 +14,9 @@ async function main(){
  ] as const){
  const a=JSON.parse(readFileSync(`contracts/out/${name}.sol/${name}.json`,'utf8'));
  const data=encodeDeployData({abi:a.abi,bytecode:a.bytecode.object,args});
- try{const gas=await c.estimateGas({account:owner,data});const fee=gas*gasPrice;total+=fee*BigInt(count);rows.push({name,count,gas:String(gas),feeRaw:String(fee),feeTPOT:formatUnits(fee,14)});}catch{rows.push({name,count,error:'Estimate failed'});}
+ try{const gas=await c.estimateGas({account:owner,data});const fee=gas*gasPrice;total+=fee*BigInt(count);rows.push({name,count,gas:String(gas),feeRaw:String(fee),feeTPOT:formatUnits(fee,18)});}catch{rows.push({name,count,error:'Estimate failed'});}
  }
- const report={checkedAt:new Date().toISOString(),tokenDecimals:14,rows,estimatedDeploymentTotalRaw:String(total),estimatedDeploymentTotalTPOT:formatUnits(total,14),provisionalBudgetTPOT:formatUnits(total*120n/100n,14),note:'Unsigned creation estimates with reference addresses; factory-created vaults, configuration calls and storage refunds can differ. Budget includes 20% margin. No broadcasts.'};
+ const report={checkedAt:new Date().toISOString(),evmDecimals:18,substrateDecimals:14,rows,estimatedDeploymentTotalRaw:String(total),estimatedDeploymentTotalTPOT:formatUnits(total,18),provisionalBudgetTPOT:formatUnits(total*120n/100n,18),note:'Unsigned creation estimates with reference addresses; factory-created vaults, configuration calls and storage refunds can differ. Budget includes 20% margin. No broadcasts.'};
  writeFileSync('docs/qa/deployment-budget.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
 }
 main().catch(()=>{console.error('Estimation failed');process.exitCode=1;});

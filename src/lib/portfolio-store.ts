@@ -21,6 +21,7 @@ export type ActivityType =
   | "Faucet"
   | "Approve";
 export interface Activity {
+  legacy?: boolean;
   id: Hash;
   hash: Hash;
   type: ActivityType;
@@ -31,6 +32,8 @@ export interface Activity {
   status: "Pending" | "Completed" | "Failed";
 }
 export interface PortfolioState {
+  legacyStock: string;
+  legacyShares: string;
   observedAt: number;
   stockReady: Partial<Record<StockId, boolean>>;
   positionsReady: boolean;
@@ -50,6 +53,7 @@ export interface PortfolioState {
 const emptyBalances = () =>
   Object.fromEntries(stockIds.map((id) => [id, 0])) as Record<StockId, number>;
 export const initialState: PortfolioState = {
+  legacyStock: "0", legacyShares: "0",
   observedAt: 0,
   stockReady: {},
   positionsReady: false,
@@ -144,7 +148,7 @@ export function recordActivity(owner: Address, event: Activity) {
 export type ActionResult =
   | { ok: true; hash: Hash }
   | { ok: false; error: string };
-export type PortfolioCommand =
+export type PortfolioCommand = (
   | { type: "Buy"; stockId: StockId; amount: number; spend?: number }
   | { type: "Sell"; stockId: StockId; amount: number; rawAmount?: string }
   | {
@@ -154,7 +158,7 @@ export type PortfolioCommand =
       amount: number;
       rawAmount?: string;
     }
-  | { type: "Faucet"; stockId: "pUSDC"; amount: number };
+  | { type: "Faucet"; stockId: "pUSDC"; amount: number }) & { legacy?: boolean };
 let execute: ((command: PortfolioCommand) => Promise<ActionResult>) | undefined;
 export function registerPortfolioExecutor(fn: typeof execute) {
   execute = fn;
@@ -221,3 +225,6 @@ export function usePortfolio() {
     ...portfolioActions,
   };
 }
+
+// Explicit legacy demo commands never claim independent equity accounting.
+export const runLegacyCommand = (command: PortfolioCommand) => run({...command, legacy: true});

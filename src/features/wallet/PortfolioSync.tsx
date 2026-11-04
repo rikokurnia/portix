@@ -1,4 +1,5 @@
 "use client";
+import { legacyAbi, legacyAddress, isLegacyRuntime } from "@/lib/onchain/legacy";
 import { useEffect, useRef } from "react";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import {
@@ -144,10 +145,13 @@ export function PortfolioSync() {
         updatePortfolio({ pending: "Confirm the network in your wallet…" });
         try {
           if (
-            command.type !== "Faucet" &&
+            command.type !== "Faucet" && !command.legacy &&
             !isolatedAccounting
           )
             return { ok: false, error: vaultIntegrationIssue };
+          if (command.legacy && (isolatedAccounting || command.stockId !== "AAPL" ||
+              ((command.type === "Deposit" || command.type === "Withdraw") && command.vaultId !== "pxPrime")))
+            throw new Error("Invalid legacy demo route.");
           const signer = walletRef.current;
           if (!signer || signer.address.toLowerCase() !== owner.toLowerCase())
             throw new Error("Wallet changed.");
@@ -290,6 +294,25 @@ export function PortfolioSync() {
               [owner, 5_000_000_000n],
               command,
             );
+          } else if (command.legacy) {
+            if (!isLegacyRuntime(await publicClient.getCode({address:legacyAddress}))) throw new Error("Legacy runtime changed");
+            if (command.type === "Buy") {
+              const spend = parseUnits((command.spend ?? 0).toFixed(6),6);
+              await approve(settlement,legacyAddress,spend,"pUSDC",6);
+              hash = await send(legacyAddress,marketAbi,"buyStockWithExactUSDC",[legacyAddress,spend],command);
+            } else if (command.type === "Sell") {
+              const quote = await publicClient.readContract({address:legacyAddress,abi:marketAbi,functionName:"quoteSell",args:[legacyAddress,raw]}) as readonly bigint[];
+              const liquidity = await publicClient.readContract({address:settlement,abi:tokenAbi,functionName:"balanceOf",args:[legacyAddress]});
+              if (liquidity < quote[2]) throw new Error("Insufficient settlement liquidity");
+              hash = await send(legacyAddress,marketAbi,"sellStock",[legacyAddress,raw],command);
+            } else if (command.type === "Deposit") {
+              hash = await send(legacyAddress,legacyAbi,"depositAndInvest",[raw,owner],command);
+            } else {
+              const quote = await publicClient.readContract({address:legacyAddress,abi:legacyAbi,functionName:"previewWithdrawCarry",args:[raw]});
+              const liquidity = await publicClient.readContract({address:settlement,abi:tokenAbi,functionName:"balanceOf",args:[legacyAddress]});
+              if (liquidity < quote[3]) throw new Error("Insufficient settlement liquidity");
+              hash = await send(legacyAddress,legacyAbi,"withdrawWithYield",[raw,owner,owner],command);
+            }
           } else {
             const token = requireAddress(
               stockAddress(command.stockId),

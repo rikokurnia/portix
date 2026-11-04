@@ -1,3 +1,4 @@
+import { legacyAddress, legacyAbi, legacySharesSlot, isLegacyRuntime } from "./legacy";
 import { formatUnits, type Address } from "viem";
 import { stockIds, type StockId, type VaultId } from "@/lib/assets";
 import type { VaultPosition } from "@/lib/portfolio-store";
@@ -60,8 +61,14 @@ export async function readAccount(owner: Address) {
     }),
     6,
   );
-  if (!isolatedAccounting)
+  if (!isolatedAccounting) {
+    if (!isLegacyRuntime(await publicClient.getCode({address:legacyAddress}))) throw new Error("Legacy runtime changed");
+    const [legacyStock, legacyShares] = await Promise.all([
+      publicClient.readContract({address:legacyAddress,abi:legacyAbi,functionName:"balanceOf",args:[owner]}),
+      publicClient.getStorageAt({address:legacyAddress,slot:legacySharesSlot(owner)}),
+    ]);
     return {
+      legacyStock:formatUnits(legacyStock,18), legacyShares:formatUnits(BigInt(legacyShares ?? "0x0"),18),
       pUSDC,
       stockReady: Object.fromEntries(
         stockIds.map((id) => [id, false]),
@@ -75,6 +82,7 @@ export async function readAccount(owner: Address) {
       ) as Record<StockId, string>,
       positions: [] as VaultPosition[],
     };
+  }
   const balances = await Promise.allSettled(
     stockIds.map(async (id) => {
       const token = stockAddress(id);

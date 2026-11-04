@@ -4,6 +4,7 @@ const methods = new Set([
   "eth_blockNumber",
   "eth_call",
   "eth_getBalance",
+  "eth_getStorageAt",
   "eth_getCode",
   "eth_getLogs",
   "eth_getBlockByNumber",

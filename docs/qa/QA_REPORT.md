@@ -61,3 +61,11 @@ The user-referenced report was located at `/home/cokoo/.gemini/antigravity-cli/b
 ## Deployment follow-up
 
 The replacement isolated stack was deployed with signed transactions on local Anvil, then an independent wallet completed 113 signed lifecycle transactions covering all eight stocks and sixteen vaults. See [local receipts](local-lifecycle.json), [deployment log](local-deployment-output.txt), and [runbook](DEPLOYMENT_RUNBOOK.md). This validates the deployment tool and contract flows locally; live Portaldot deployment awaits funding of the fresh deployment wallet. Unsigned live RPC estimates are in [deployment-budget.json](deployment-budget.json).
+
+## Existing-deployment mode and wallet correction
+
+At the user’s request the replacement deployment was cancelled. `/testnet` now provides explicit legacy single-stock/single-vault actions against the existing address, with real approvals, simulated calls, receipts and refreshed balances. It does not claim eight independent assets or two independent strategies. Users acknowledge the legacy withdrawal authorization and payout limitations before vault/trade actions. The existing multi-equity routes stay blocked. The adapter pins the exact runtime hash before reading private shares from verified mapping slot 2 or writing. A signed local fork test passed faucet → buy → deposit → withdraw → sell, including actual pUSDC payout: [legacy-fork-proof.json](legacy-fork-proof.json). No live testnet gas was spent.
+
+Privy requires an EVM `0x` account; a Substrate `5…` signer cannot log in to this integration. Talisman users can create/select an Ethereum account, or use an email-created embedded EVM wallet. The testnet page shows the selected EVM wallet’s corresponding SS58 funding destination (H160 plus twelve EE bytes, prefix 42); verified against the published deployer pair and live Substrate account storage. It is a funding destination, not a converted signer.
+
+The EVM RPC represents native balances with 18 decimals although Substrate storage uses 14. Earlier deployment totals were overstated by 10,000×. The EVM chain definition, estimation script and budget documentation now use the correct EVM scale. A regression test covers the known address pair, invalid-address rejection, and EVM decimals.

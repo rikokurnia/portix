@@ -18,7 +18,7 @@ async function main() {
    receipts.push({action:entry.action,hash,status:receipt.status,block:String(receipt.blockNumber)});
   } catch { receipts.push({action:entry.action,hash,status:'READ FAILED'}); }
  }
- const report = {checkedAt:new Date().toISOString(),chainId:await publicClient.getChainId(),runtimeBytes:code ? (code.length-2)/2:0,isolatedGetter,deployerBalanceTPOT:formatUnits(await publicClient.getBalance({address:owner}),14),receipts,note:'Read-only verification of existing receipts. No new signed transaction broadcast.'};
+ const report = {checkedAt:new Date().toISOString(),chainId:await publicClient.getChainId(),runtimeBytes:code ? (code.length-2)/2:0,isolatedGetter,deployerBalanceTPOT:formatUnits(await publicClient.getBalance({address:owner}),18),receipts,note:'Read-only verification of existing receipts. No new signed transaction broadcast.'};
  writeFileSync('docs/qa/live-audit.json',JSON.stringify(report,null,2)+'\n');
  console.log(JSON.stringify(report,null,2));
 }

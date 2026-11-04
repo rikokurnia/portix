@@ -1,9 +1,10 @@
 import { defineChain } from "viem";
+// The Substrate node uses 14 decimals, but its EVM RPC scales native balances to 18.
 // Network parameters from the PORTIX Portaldot V3 handoff. No signing material.
 export const portaldot = defineChain({
   id: 420420777,
   name: "Portaldot V3",
-  nativeCurrency: { name: "Portaldot", symbol: "tPOT", decimals: 14 },
+  nativeCurrency: { name: "Portaldot", symbol: "tPOT", decimals: 18 },
   rpcUrls: { default: { http: ["https://test-evm-rpc-v3.portaldot.dev"] } },
   blockExplorers: {
     default: {

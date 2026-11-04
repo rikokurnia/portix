@@ -45,7 +45,7 @@ function ConnectedWalletControl() {
     onComplete: () => setError(""),
     onError: (code) => {
       if (/exited|cancel/i.test(String(code))) return;
-      setError("Unable to sign in. Please try again.");
+      setError("Use an Ethereum/EVM account starting with 0x. A Substrate account starting with 5 cannot sign in here. See Testnet for wallet setup.");
     },
   });
   async function switchNetwork() {

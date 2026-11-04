@@ -15,7 +15,7 @@ export function Navbar() {
           <span>PORTIX</span>
         </Link>
         <nav className="segmented" aria-label="Primary navigation">
-          {["Vault", "Market"].map((label) => (
+          {["Vault", "Market", "Testnet"].map((label) => (
             <Link
               key={label}
               aria-current={

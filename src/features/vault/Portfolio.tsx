@@ -244,7 +244,7 @@ export function Portfolio({
                     <TransactionLink hash={a.hash} />
                   </td>
                   <td>
-                    {units(a.amount)} {a.stockId}
+                    {units(a.amount)} {a.legacy ? (a.stockId === "pUSDC" ? "pUSDC" : "legacy demo units") : a.stockId}
                   </td>
                   <td>
                     <time dateTime={a.timestamp}>

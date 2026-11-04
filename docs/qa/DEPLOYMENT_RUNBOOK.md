@@ -1,3 +1,5 @@
+> **Cancelled:** User elected to keep the existing deployment. Do not fund or broadcast this replacement stack. Use `/testnet` for the explicit legacy demo.
+
 # Compatible testnet deployment
 
 The immutable legacy deployment remains incompatible. This runbook deploys the isolated ERC-20/ERC-4626 stack. The adapters model lending/AMM strategies and require physically funded yield; real cross-chain routing is outside this prototype.
@@ -8,7 +10,7 @@ Fresh deployment signer: `0x58D699b37e2bc14003A53965cC3289CFd02DB3e0`.
 
 The private key is generated locally in ignored `.env.testnet-deployment` with owner-only permissions. It is not in Git or Vercel. Never fund this testnet wallet with mainnet assets.
 
-The live node reports 14 native-token decimals (`system_properties`). Unsigned RPC estimates are in deployment-budget.json. Creation estimates total approximately 262.3 million tPOT; a provisional 20% margin produces approximately 315 million tPOT. In a wallet configured for 18 decimals, the same raw amount displays as 31,500. First pUSDC deployment alone needs approximately 2.29 million tPOT available. These estimates include the chain's storage deposit reservation; factory creation and configuration can differ.
+The native Substrate node reports 14 decimals, but the EVM RPC scales balances and fees to 18 decimals. The earlier budget incorrectly interpreted EVM values as 14-decimal amounts. Corrected creation estimates total approximately 26,231 tPOT, with a provisional 31,500 tPOT budget including 20% margin; the first pUSDC deployment estimates approximately 228.6 tPOT. These unsigned estimates include storage reservation and are not funds spent. The replacement stack remains cancelled.
 
 ## Commands
 

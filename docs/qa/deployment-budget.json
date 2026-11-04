@@ -1,73 +1,74 @@
 {
   "checkedAt": "2026-11-04T11:39:34.887Z",
-  "tokenDecimals": 14,
   "rows": [
     {
       "name": "MockPUSDC",
       "count": 1,
       "gas": "10170760833071672",
       "feeRaw": "228587849723285828200",
-      "feeTPOT": "2285878.497232858282"
+      "feeTPOT": "228.5878497232858282"
     },
     {
       "name": "PortixPriceOracle",
       "count": 1,
       "gas": "9207356321945649",
       "feeRaw": "206935333335728461275",
-      "feeTPOT": "2069353.33335728461275"
+      "feeTPOT": "206.935333335728461275"
     },
     {
       "name": "MockStockToken",
       "count": 8,
       "gas": "10034371096618153",
       "feeRaw": "225522490396492988675",
-      "feeTPOT": "2255224.90396492988675"
+      "feeTPOT": "225.522490396492988675"
     },
     {
       "name": "StockMarket",
       "count": 1,
       "gas": "17521427593264912",
       "feeRaw": "393794085158628897200",
-      "feeTPOT": "3937940.851586288972"
+      "feeTPOT": "393.7940851586288972"
     },
     {
       "name": "PortixDebtPool",
       "count": 1,
       "gas": "14633744783458809",
       "feeRaw": "328893414008236732275",
-      "feeTPOT": "3288934.14008236732275"
+      "feeTPOT": "328.893414008236732275"
     },
     {
       "name": "PortixVaultFactory",
       "count": 1,
       "gas": "86297889646173959",
       "feeRaw": "1939545069797759728525",
-      "feeTPOT": "19395450.69797759728525"
+      "feeTPOT": "1939.545069797759728525"
     },
     {
       "name": "MockLendingStrategyAdapter",
       "count": 8,
       "gas": "9613529501874701",
       "feeRaw": "216064075554633904975",
-      "feeTPOT": "2160640.75554633904975"
+      "feeTPOT": "216.064075554633904975"
     },
     {
       "name": "MockAmmStrategyAdapter",
       "count": 8,
       "gas": "9599412427324607",
       "feeRaw": "215746794304120542325",
-      "feeTPOT": "2157467.94304120542325"
+      "feeTPOT": "215.746794304120542325"
     },
     {
       "name": "PortixVault",
       "count": 16,
       "gas": "49706586390897658",
       "feeRaw": "1117155529135424863550",
-      "feeTPOT": "11171555.2913542486355"
+      "feeTPOT": "1117.15552913542486355"
     }
   ],
   "estimatedDeploymentTotalRaw": "26230911100232416952075",
-  "estimatedDeploymentTotalTPOT": "262309111.00232416952075",
-  "provisionalBudgetTPOT": "314770933.2027890034249",
-  "note": "Unsigned creation estimates with reference addresses; factory-created vaults, configuration calls and storage refunds can differ. Budget includes 20% margin. No broadcasts."
+  "estimatedDeploymentTotalTPOT": "26230.911100232416952075",
+  "provisionalBudgetTPOT": "31477.09332027890034249",
+  "note": "Unsigned creation estimates with reference addresses; factory-created vaults, configuration calls and storage refunds can differ. Budget includes 20% margin. No broadcasts. Corrected units: EVM RPC uses 18 decimals; Substrate native storage uses 14. Replacement deployment cancelled by user.",
+  "evmDecimals": 18,
+  "substrateDecimals": 14
 }
