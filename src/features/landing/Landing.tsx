@@ -13,6 +13,7 @@ import styles from "./landing.module.css";
 
 export function Landing() {
   const [active, setActive] = useState("hero");
+  const [pinReleased, setPinReleased] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const market = useVaultMarketData();
   useEffect(() => {
@@ -39,11 +40,11 @@ export function Landing() {
           <a href="#find-your-vault" className={styles.cta}>Explore Vault</a>
         </div>
       </section>
-      <Walkthrough market={market} active={active === "how-it-works"} />
+      <Walkthrough market={market} active={active === "how-it-works" && !pinReleased} onReleaseChange={setPinReleased} />
       <section id="find-your-vault" className={styles.closing} aria-label="Compare Portix vaults">
-        <Reveal className={styles.closingDialogue}><div style={{ height: "100%", visibility: active === "find-your-vault" ? "visible" : "hidden" }} aria-hidden={active !== "find-your-vault"}><CloudDialogue speaker="seated" changeKey="closing">Which vault fits your strategy?</CloudDialogue></div></Reveal>
-        <div className={styles.cards}><Reveal delay={120}><LandingVaultCard vaultId="pxPrime" market={market} /></Reveal><Reveal delay={220}><LandingVaultCard vaultId="pxBoost" market={market} /></Reveal></div>
-        <Reveal delay={320} className={styles.closingAction}><Link href="/vault" className={styles.cta}>Find Your Vault →</Link></Reveal>
+        <Reveal enabled={pinReleased} className={styles.closingDialogue}><div style={{ height: "100%", visibility: pinReleased ? "visible" : "hidden" }} aria-hidden={!pinReleased}><CloudDialogue speaker="seated" changeKey="closing">Which vault fits your strategy?</CloudDialogue></div></Reveal>
+        <div className={styles.cards}><Reveal enabled={pinReleased} delay={120}><LandingVaultCard vaultId="pxPrime" market={market} /></Reveal><Reveal enabled={pinReleased} delay={220}><LandingVaultCard vaultId="pxBoost" market={market} /></Reveal></div>
+        <Reveal enabled={pinReleased} delay={320} className={styles.closingAction}><Link href="/vault" className={styles.cta}>Find Your Vault →</Link></Reveal>
         <p className={styles.credit}>Protocol benchmarks, not PORTIX returns. Charts by <a href="https://www.tradingview.com/" target="_blank" rel="noreferrer">TradingView Lightweight Charts™</a>.</p>
       </section>
     </main>
