@@ -1,0 +1,117 @@
+{
+  "checkedAt": "2026-11-04T12:44:42.260Z",
+  "genesisHash": "0xd4f9acbcf7f52388d8b095abe3c198d19fc510e0343e643e87cfbccb155283bd",
+  "specVersion": "3002",
+  "autoMap": true,
+  "nativeAddress": "5D8KLRtTW9SxCzzKh3QbcvDfVYF8G5mJ6ZAmQkwaHvaoqCtT",
+  "evmAddress": "0x4761b9441732D6d1d1680Ca240760B9DD4ed680d",
+  "mappingVerified": true,
+  "callArgs": {
+    "name": "call",
+    "fields": [
+      {
+        "name": "dest",
+        "type": 344,
+        "typeName": "H160",
+        "docs": []
+      },
+      {
+        "name": "value",
+        "type": 42,
+        "typeName": "BalanceOf<T>",
+        "docs": []
+      },
+      {
+        "name": "weight_limit",
+        "type": 23,
+        "typeName": "Weight",
+        "docs": []
+      },
+      {
+        "name": "storage_deposit_limit",
+        "type": 42,
+        "typeName": "BalanceOf<T>",
+        "docs": []
+      },
+      {
+        "name": "data",
+        "type": 6,
+        "typeName": "Vec<u8>",
+        "docs": []
+      }
+    ],
+    "index": 1,
+    "docs": [
+      "Makes a call to an account, optionally transferring some balance.",
+      "",
+      "# Parameters",
+      "",
+      "* `dest`: Address of the contract to call.",
+      "* `value`: The balance to transfer from the `origin` to `dest`.",
+      "* `weight_limit`: The weight limit enforced when executing the constructor.",
+      "* `storage_deposit_limit`: The maximum amount of balance that can be charged from the",
+      "  caller to pay for the storage consumed.",
+      "* `data`: The input data to pass to the contract.",
+      "",
+      "* If the account is a smart-contract account, the associated code will be",
+      "executed and any value will be transferred.",
+      "* If the account is a regular account, any value will be transferred.",
+      "* If no account exists and the call value is not less than `existential_deposit`,",
+      "a regular account will be created and any value will be transferred."
+    ],
+    "args": [
+      {
+        "name": "dest",
+        "type": "H160",
+        "typeName": "H160"
+      },
+      {
+        "name": "value",
+        "type": "Compact<u128>",
+        "typeName": "BalanceOf"
+      },
+      {
+        "name": "weightLimit",
+        "type": "SpWeightsWeightV2Weight",
+        "typeName": "Weight"
+      },
+      {
+        "name": "storageDepositLimit",
+        "type": "Compact<u128>",
+        "typeName": "BalanceOf"
+      },
+      {
+        "name": "data",
+        "type": "Bytes",
+        "typeName": "Bytes"
+      }
+    ]
+  },
+  "simulation": {
+    "weightConsumed": {
+      "refTime": 360407772,
+      "proofSize": 22861
+    },
+    "weightRequired": {
+      "refTime": 360407772,
+      "proofSize": 23277
+    },
+    "storageDeposit": {
+      "charge": 384150000000000
+    },
+    "maxStorageDeposit": {
+      "charge": 384150000000000
+    },
+    "gasConsumed": 171173183753379,
+    "result": {
+      "ok": {
+        "flags": {
+          "bits": 0
+        },
+        "data": "0x"
+      }
+    }
+  },
+  "estimatedNativeFee": "2090718324806",
+  "note": "Read-only simulation of a genuine funded Substrate account. No signature, transfer or broadcast."
+}

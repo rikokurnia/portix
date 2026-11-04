@@ -1,5 +1,6 @@
 "use client";
 
+import { isolatedAccounting } from "@/lib/onchain/contracts";
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -36,7 +37,7 @@ export function Market() {
       {/* Centered Minimal Header matching market-dashboard.png */}
       <div className="market-hero">
         <h1>Market</h1>
-        <p>Trade stocks. Put them to work.</p>
+        <p>{isolatedAccounting?"Trade stocks. Put them to work.":"Equity benchmarks. Trade the shared testnet asset with pUSDC."}</p>
       </div>
 
       {/* Main 2-Column Layout */}

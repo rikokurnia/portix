@@ -1,0 +1,21 @@
+"use client";
+import {useState} from 'react';
+import {ArrowDownLeft,ArrowUpRight,Wallet,Layers,ArrowRight} from 'lucide-react';
+import {usePortfolio} from '@/lib/portfolio-store';
+import {units} from '@/lib/assets';
+import {useNativeWallet} from '@/features/wallet/NativeWalletProvider';
+import {TransactionLink} from '@/components/shared/TransactionLink';
+import {CarryOrder,type CarryAction} from './CarryOrder';
+import './carry.css';
+export function LiveVault(){const a=usePortfolio();const native=useNativeWallet();const [action,setAction]=useState<CarryAction>();const [busy,setBusy]=useState(false);const [error,setError]=useState('');
+ async function faucet(){if(!a.address){native.setOpen(true);return;}setBusy(true);setError('');try{const r=await a.claimFaucet();if(!r.ok)setError(r.error);}finally{setBusy(false);}}
+ return <main className="page carry-page"><header className="carry-heading"><div><p className="carry-network"><i/>Portaldot V3 testnet</p><h1>Your stock. Put to work.</h1><p>Buy demo stock, deposit into the carry vault, and manage it here.</p></div><button className="button secondary" disabled={busy||!!a.pending} onClick={()=>void faucet()}>{busy?a.pending||'Confirm in wallet…':'Get test pUSDC'}</button></header>
+ <section className="carry-balances" aria-label="Your balances">{[['pUSDC balance',a.pUSDC,'pUSDC'],['Available stock',Number(a.legacyStock),'stock'],['Vault position',Number(a.legacyShares),'shares']].map(([label,value,suffix])=><div key={label}><span>{label}</span><strong>{a.ready?units(Number(value)):'—'}<small>{suffix}</small></strong></div>)}</section>
+ <section className="carry-layout"><article className="panel carry-vault"><div className="carry-vault-top"><img src="/assets/vault-prime.png" alt="" width={54} height={54}/><span>Shared testnet vault</span></div><h2>Portix Carry</h2><p>Keep your demo stock exposure while trying the full on-chain vault flow.</p><dl><div><dt>Initial LTV</dt><dd>40%</dd></div><div><dt>Collateral</dt><dd>Demo stock</dd></div><div><dt>Settlement</dt><dd>pUSDC</dd></div></dl><div className="carry-primary-actions"><button className="button" onClick={()=>setAction('Deposit')}><ArrowDownLeft size={18}/>Deposit</button><button className="button secondary" onClick={()=>setAction('Withdraw')}><ArrowUpRight size={18}/>Withdraw</button></div></article>
+ <aside className="panel carry-wallet"><Wallet size={25}/><h2>Stock in your wallet</h2><strong>{a.ready?units(Number(a.legacyStock)):'—'}<small>demo stock</small></strong><p>Use pUSDC to buy stock, or sell your available stock back to pUSDC.</p><div className="carry-primary-actions"><button className="button secondary" onClick={()=>setAction('Buy')}>Buy stock</button><button className="button secondary" onClick={()=>setAction('Sell')}>Sell stock</button></div></aside></section>
+ {error&&<p className="error" role="alert">{error}</p>}
+ {!a.address&&<div className="carry-connect"><Layers size={21}/><div><strong>Bring your Talisman account</strong><p>Connect your existing account. Use the tPOT already in your wallet.</p></div><button onClick={()=>native.setOpen(true)}>Connect wallet<ArrowRight size={16}/></button></div>}
+ <section className="panel carry-activity"><h2>Activity</h2>{a.activity.length?<div className="table-scroll"><table><thead><tr><th>Action</th><th>Amount</th><th>Status</th><th>Transaction</th></tr></thead><tbody>{a.activity.slice(0,12).map(item=><tr key={item.id}><td>{item.type}</td><td>{units(item.amount)} {item.stockId==='pUSDC'?'pUSDC':item.type==='Withdraw'?'shares':'stock'}</td><td className={item.status==='Completed'?'positive':'muted'}>{item.status}</td><td><TransactionLink hash={item.hash}/></td></tr>)}</tbody></table></div>:<div className="carry-empty"><p>Your confirmed actions appear here.</p><span>Start with test pUSDC, then buy your first demo stock.</span></div>}</section>
+ <details className="carry-contract-note"><summary>Testnet contract limitations</summary><p>This deployment has one shared stock and vault balance. Equity charts are benchmarks, not separate tradable assets. The existing contract has weak withdrawal authorization and incomplete payout enforcement. Use test tokens only; this is not a secure production vault.</p></details>
+ {action&&<CarryOrder mode={action} onClose={()=>setAction(undefined)}/>}</main>;
+}

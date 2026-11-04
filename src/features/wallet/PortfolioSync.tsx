@@ -11,6 +11,8 @@ import {
   type Abi,
   type Address,
 } from "viem";
+import { useNativeWallet } from "./NativeWalletProvider";
+import { nativeEvmAddress } from "./native-address";
 import { useWalletSelection } from "./selection";
 import { portaldot } from "./chain";
 import { readAccount, readMarket } from "@/lib/onchain/account";
@@ -38,7 +40,7 @@ import {
   type PortfolioCommand,
 } from "@/lib/portfolio-store";
 
-export function PortfolioSync() {
+function EvmSync() {
   const { authenticated, user } = usePrivy();
   const { wallets, ready } = useWallets();
   const { selected: preferred } = useWalletSelection();
@@ -53,8 +55,16 @@ export function PortfolioSync() {
         ) ??
         wallets[0])
       : undefined;
+  return <Sync selected={selected}/>;
+}
+export function PortfolioSync({nativeOnly=false}:{nativeOnly?:boolean}){return nativeOnly?<Sync/>:<EvmSync/>;}
+function Sync({selected}:{selected?:ReturnType<typeof useWallets>["wallets"][number]}){
+  const native=useNativeWallet();
   const walletRef = useRef(selected);
-  const ownerAddress = selected?.address;
+  const nativeRef=useRef(native);
+  useEffect(()=>{nativeRef.current=native;},[native]);
+  const nativeAddress=native.selected?.address;
+  const ownerAddress = nativeAddress ? nativeEvmAddress(nativeAddress) : selected?.address;
   useEffect(() => {
     walletRef.current = selected;
   }, [selected]);
@@ -101,6 +111,12 @@ export function PortfolioSync() {
               .activity.filter((a) => a.status === "Pending")
               .map(async (event) => {
                 try {
+                  if(event.transport === "substrate") {
+                    const {recoverNative}=await import("./native-client");
+                    const status=await recoverNative(event.hash,event.fromBlock??0,event.blockHash);
+                    if(status)recordActivity(owner,{...event,status});
+                    return;
+                  }
                   const receipt = await publicClient.getTransactionReceipt({
                     hash: event.hash,
                   });
@@ -152,22 +168,27 @@ export function PortfolioSync() {
           if (command.legacy && (isolatedAccounting || command.stockId !== "AAPL" ||
               ((command.type === "Deposit" || command.type === "Withdraw") && command.vaultId !== "pxPrime")))
             throw new Error("Invalid legacy demo route.");
+          const nativeSigner = nativeAddress ? nativeRef.current : undefined;
           const signer = walletRef.current;
-          if (!signer || signer.address.toLowerCase() !== owner.toLowerCase())
+          if (!nativeSigner && (!signer || signer.address.toLowerCase() !== owner.toLowerCase()))
             throw new Error("Wallet changed.");
-          await signer.switchChain(portaldot.id);
-          const provider = await signer.getEthereumProvider();
-          const wallet = createWalletClient({
+          if(signer && !nativeSigner) await signer.switchChain(portaldot.id);
+          const provider = signer && !nativeSigner ? await signer.getEthereumProvider() : undefined;
+          const wallet = provider ? createWalletClient({
             account: owner,
             chain: portaldot,
             transport: custom(provider),
-          });
+          }) : undefined;
           const assertOwner = async () => {
             if (!current()) throw new Error("Wallet changed.");
-            const accounts = await wallet.getAddresses();
+            if(nativeSigner){
+              if(nativeRef.current.selected?.address!==nativeAddress||!nativeRef.current.signer)throw new Error("Wallet changed.");
+              return;
+            }
+            const accounts = await wallet!.getAddresses();
             if (!accounts.some((a) => a.toLowerCase() === owner.toLowerCase()))
               throw new Error("Wallet changed.");
-            if ((await wallet.getChainId()) !== portaldot.id)
+            if ((await wallet!.getChainId()) !== portaldot.id)
               throw new Error("Wrong network.");
           };
           async function send(
@@ -186,6 +207,16 @@ export function PortfolioSync() {
                   ? "Approve token access in your wallet…"
                   : "Confirm the transaction in your wallet…",
             });
+            if(nativeSigner?.selected && nativeSigner.signer){
+              const {sendNative}=await import("./native-client");
+              let entry:Activity|undefined;
+              const hash=await sendNative(nativeSigner.selected.address,nativeSigner.signer,target,abi,functionName,args,stage=>{
+                entry={...event,id:stage.hash,hash:stage.hash,timestamp:entry?.timestamp??new Date().toISOString(),status:stage.status,transport:"substrate",fromBlock:stage.fromBlock,blockHash:stage.blockHash,legacy:command.legacy};
+                recordActivity(owner!,entry);
+                if(current())updatePortfolio({pending:stage.status==="Pending"?"Waiting for Portaldot confirmation…":"Refreshing balances…"});
+              },()=>{if(!current()||nativeRef.current.selected?.address!==nativeAddress)throw new Error("Wallet changed.");});
+              return hash;
+            }
             const { request } = await publicClient.simulateContract({
               address: target,
               abi,
@@ -194,7 +225,7 @@ export function PortfolioSync() {
               account: owner,
             });
             await assertOwner();
-            let hash = await wallet.writeContract(request);
+            let hash = await wallet!.writeContract(request);
             let cancelled = false;
             let entry: Activity = {
               ...event,
@@ -299,7 +330,12 @@ export function PortfolioSync() {
             if (command.type === "Buy") {
               const spend = parseUnits((command.spend ?? 0).toFixed(6),6);
               await approve(settlement,legacyAddress,spend,"pUSDC",6);
-              hash = await send(legacyAddress,marketAbi,"buyStockWithExactUSDC",[legacyAddress,spend],command);
+              const fee = (spend * 10n) / 10000n;
+              const netSpend = spend - fee;
+              const stockAmount = (netSpend * 10n**18n) / 300_000_000n;
+              const buyAmount = Number(formatUnits(stockAmount, 18));
+              const buyEvent = { ...command, amount: buyAmount > 0 ? buyAmount : command.amount };
+              hash = await send(legacyAddress,marketAbi,"buyStockWithExactUSDC",[legacyAddress,spend],buyEvent);
             } else if (command.type === "Sell") {
               const quote = await publicClient.readContract({address:legacyAddress,abi:marketAbi,functionName:"quoteSell",args:[legacyAddress,raw]}) as readonly bigint[];
               const liquidity = await publicClient.readContract({address:settlement,abi:tokenAbi,functionName:"balanceOf",args:[legacyAddress]});
@@ -421,6 +457,6 @@ export function PortfolioSync() {
       registerPortfolioExecutor(undefined);
       window.removeEventListener("portix:refresh", retry);
     };
-  }, [ownerAddress]);
+  }, [ownerAddress,nativeAddress]);
   return null;
 }

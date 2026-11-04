@@ -3,10 +3,11 @@ import { createContext, useContext, useState, type ReactNode } from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { WalletSelection } from "./selection";
 import { PortfolioSync } from "./PortfolioSync";
+import { NativeWalletProvider } from "./NativeWalletProvider";
 import { portaldot } from "./chain";
 const WalletConfigured = createContext(false);
 export const useWalletConfigured = () => useContext(WalletConfigured);
-export function WalletProvider({
+function EvmProvider({
   appId,
   children,
 }: {
@@ -17,7 +18,7 @@ export function WalletProvider({
   if (!appId)
     return (
       <WalletConfigured.Provider value={false}>
-        {children}
+        <PortfolioSync nativeOnly />{children}
       </WalletConfigured.Provider>
     );
   return (
@@ -47,3 +48,5 @@ export function WalletProvider({
     </WalletConfigured.Provider>
   );
 }
+
+export function WalletProvider(props:{appId:string;children:ReactNode}) { return <NativeWalletProvider><EvmProvider {...props}/></NativeWalletProvider>; }

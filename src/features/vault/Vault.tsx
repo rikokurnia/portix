@@ -1,5 +1,7 @@
 "use client";
 import "./vault.css";
+import { isolatedAccounting } from "@/lib/onchain/contracts";
+import { LiveVault } from "@/features/carry/LiveVault";
 import { useRouter } from "next/navigation";
 import { StrategyCard } from "./StrategyCard";
 import { Portfolio } from "./Portfolio";
@@ -7,6 +9,7 @@ import { useVaultMarketData } from "./useVaultMarketData";
 export function Vault() {
   const router = useRouter(),
     market = useVaultMarketData();
+  if(!isolatedAccounting)return <LiveVault/>;
   return (
     <main className="page vault-page">
       <div className="hero">

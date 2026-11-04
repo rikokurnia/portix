@@ -1,267 +1,29 @@
 "use client";
-import { useState } from "react";
-import {
-  useCreateWallet,
-  useLogin,
-  usePrivy,
-  useWallets,
-} from "@privy-io/react-auth";
-import { Check, Copy, LogOut, Plus, Wallet } from "lucide-react";
-import { Button } from "@/components/shared/Button";
-import { Modal } from "@/components/shared/Modal";
-import { useWalletConfigured } from "./WalletProvider";
-import { useWalletSelection } from "./selection";
-import { isPortaldotChain, portaldot, shortAddress } from "./chain";
-import "./wallet.css";
-export function WalletControl() {
-  const configured = useWalletConfigured();
-  if (!configured)
-    return (
-      <Button
-        variant="secondary"
-        disabled
-        title="Wallet connection is unavailable"
-      >
-        <Wallet size={16} />
-        <span>Connect wallet</span>
-      </Button>
-    );
-  return <ConnectedWalletControl />;
-}
-function ConnectedWalletControl() {
-  const { ready, authenticated, user, logout, linkWallet } = usePrivy(),
-    { wallets, ready: walletsReady } = useWallets(),
-    { createWallet } = useCreateWallet();
-  const [open, setOpen] = useState(false),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState(""),
-    [copied, setCopied] = useState("");
-  const { selected, setSelected } = useWalletSelection();
-  const active =
-    wallets.find((wallet) => wallet.address === selected) ??
-    wallets.find((wallet) => wallet.address === user?.wallet?.address) ??
-    wallets[0];
-  const { login } = useLogin({
-    onComplete: () => setError(""),
-    onError: (code) => {
-      if (/exited|cancel/i.test(String(code))) return;
-      setError("Use an Ethereum/EVM account starting with 0x. A Substrate account starting with 5 cannot sign in here. See Testnet for wallet setup.");
-    },
-  });
-  async function switchNetwork() {
-    if (!active) return;
-    setError("");
-    setBusy(true);
-    setOpen(false);
-    try {
-      await active.switchChain(portaldot.id);
-    } catch {
-      setError("Network switch was not completed. Try again in your wallet.");
-    } finally {
-      setBusy(false);
-      setOpen(true);
-    }
-  }
-  async function createEmbeddedWallet() {
-    setError("");
-    setBusy(true);
-    setOpen(false);
-    try {
-      const wallet = await createWallet();
-      setSelected(wallet.address);
-    } catch {
-      setError("Unable to create your wallet. Please try again.");
-    } finally {
-      setBusy(false);
-      setOpen(true);
-    }
-  }
-  async function signOut() {
-    setError("");
-    setBusy(true);
-    try {
-      await logout();
-      setOpen(false);
-      setSelected("");
-      setCopied("");
-    } catch {
-      setError("Unable to sign out. Please try again.");
-    } finally {
-      setBusy(false);
-    }
-  }
-  async function copyAddress() {
-    if (!active) return;
-    try {
-      await navigator.clipboard.writeText(active.address);
-      setCopied(active.address);
-    } catch {
-      setError("Select the address below to copy it.");
-    }
-  }
-  function connect() {
-    setError("");
-    if (authenticated) setOpen(true);
-    else login();
-  }
-  return (
-    <>
-      <Button
-        variant="secondary"
-        disabled={!ready || busy}
-        aria-label={authenticated ? "Open wallet account" : "Connect wallet"}
-        onClick={connect}
-      >
-        <Wallet size={16} />
-        <span>
-          {!ready
-            ? "Loading wallet…"
-            : authenticated
-              ? active
-                ? shortAddress(active.address)
-                : "My account"
-              : "Connect wallet"}
-        </span>
-      </Button>
-      {error && !open && (
-        <div className="wallet-notice" role="alert">
-          {error}
-          <button
-            type="button"
-            aria-label="Dismiss wallet error"
-            onClick={() => setError("")}
-          >
-            ×
-          </button>
-        </div>
-      )}
-      {open && authenticated && (
-        <Modal title="Your wallet" onClose={() => setOpen(false)}>
-          {user?.email?.address && (
-            <p className="wallet-email">{user.email.address}</p>
-          )}
-          {!walletsReady ? (
-            <p className="muted">Loading your wallets…</p>
-          ) : active ? (
-            <>
-              <div className="wallet-account-heading">
-                <Wallet size={25} />
-                <div>
-                  <strong>
-                    {active.walletClientType === "privy"
-                      ? "PORTIX wallet"
-                      : active.meta.name || "Connected wallet"}
-                  </strong>
-                  <span>
-                    {active.walletClientType === "privy"
-                      ? "Embedded wallet"
-                      : "External wallet"}
-                  </span>
-                </div>
-              </div>
-              {wallets.length > 1 && (
-                <label className="wallet-select-label">
-                  Active wallet
-                  <select
-                    value={active.address}
-                    onChange={(event) => {
-                      setSelected(event.target.value);
-                      setCopied("");
-                      setError("");
-                    }}
-                  >
-                    {wallets.map((wallet) => (
-                      <option key={wallet.address} value={wallet.address}>
-                        {shortAddress(wallet.address)} ·{" "}
-                        {wallet.walletClientType === "privy"
-                          ? "PORTIX"
-                          : wallet.meta.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-              <div className="wallet-address">
-                <code>{active.address}</code>
-                <button
-                  type="button"
-                  onClick={copyAddress}
-                  aria-label={
-                    copied === active.address
-                      ? "Address copied"
-                      : "Copy wallet address"
-                  }
-                >
-                  {copied === active.address ? (
-                    <Check size={17} />
-                  ) : (
-                    <Copy size={17} />
-                  )}
-                </button>
-              </div>
-              <div className="wallet-network">
-                <span>Network</span>
-                <strong>
-                  {isPortaldotChain(active.chainId)
-                    ? portaldot.name
-                    : "Another network"}
-                </strong>
-              </div>
-              {!isPortaldotChain(active.chainId) && (
-                <Button
-                  className="full-width"
-                  disabled={busy}
-                  onClick={() => void switchNetwork()}
-                >
-                  Switch to Portaldot
-                </Button>
-              )}
-            </>
-          ) : (
-            <div className="wallet-empty">
-              <Wallet size={34} />
-              <h3>Create your wallet</h3>
-              <p>Keep a wallet with your PORTIX account.</p>
-              <Button
-                className="full-width"
-                disabled={busy || !walletsReady}
-                onClick={() => void createEmbeddedWallet()}
-              >
-                Create wallet
-              </Button>
-            </div>
-          )}
-          {error && (
-            <p className="wallet-error" role="alert">
-              {error}
-            </p>
-          )}
-          <div className="wallet-account-actions">
-            <Button
-              variant="secondary"
-              className="full-width"
-              disabled={busy}
-              onClick={() => {
-                setOpen(false);
-                setError("");
-                linkWallet();
-              }}
-            >
-              <Plus size={16} />
-              Link another wallet
-            </Button>
-            <Button
-              variant="ghost"
-              className="full-width"
-              disabled={busy}
-              onClick={() => void signOut()}
-            >
-              <LogOut size={16} />
-              Sign out
-            </Button>
-          </div>
-        </Modal>
-      )}
-    </>
-  );
+import {useEffect,useState} from 'react';
+import {Wallet,Copy,LogOut,Check} from 'lucide-react';
+import {Button} from '@/components/shared/Button';
+import {Modal} from '@/components/shared/Modal';
+import {usePortfolio} from '@/lib/portfolio-store';
+import {useNativeWallet} from './NativeWalletProvider';
+import {EvmWalletControl} from './EvmWalletControl';
+import {useWalletConfigured} from './WalletProvider';
+import {shortAddress} from './chain';
+import {formatUnits} from 'viem';
+import './wallet.css';
+export function WalletControl(){
+ const account=usePortfolio();const native=useNativeWallet();const configured=useWalletConfigured();const [copied,setCopied]=useState(false);const [balance,setBalance]=useState<string>();const [mapped,setMapped]=useState(true);const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [evm,setEvm]=useState(false);
+ useEffect(()=>{let active=true;if(native.selected)void import('./native-client').then(async({nativeApi,nativeBalance})=>{const api=await nativeApi();const b=await nativeBalance(native.selected!.address);const {nativeEvmAddress}=await import('./native-address');const mapping=await api.query.revive.originalAccount(nativeEvmAddress(native.selected!.address));if(active){setBalance(formatUnits(b.free-b.frozen,14));setMapped(!mapping.isEmpty);}}).catch(()=>{if(active)setBalance(undefined);});return()=>{active=false;};},[native.selected,native.open]);
+ async function activate(){if(!native.selected||!native.signer)return;setBusy(true);setError('');try{const {activateNative}=await import('./native-client');await activateNative(native.selected.address,native.signer,()=>{});setMapped(true);}catch(e){setError(e instanceof Error?e.message:'Account activation failed.');}finally{setBusy(false);}}
+ return <><Button variant="secondary" disabled={native.connecting} onClick={()=>native.setOpen(true)}><Wallet size={16}/>{native.selected?shortAddress(native.selected.address):account.address?shortAddress(account.address):'Connect wallet'}</Button>
+ {native.open&&<Modal title={native.selected?'Your wallet':'Connect wallet'} onClose={()=>native.setOpen(false)}>
+ {native.selected?<><div className="wallet-account-heading"><Wallet size={25}/><div><strong>{native.selected.name||'Talisman'}</strong><span>Portaldot V3 · Substrate</span></div></div>
+ {native.accounts.length>1&&<label className="wallet-select-label">Account<select value={native.selected.address} onChange={e=>native.select(e.target.value)}>{native.accounts.map(a=><option key={a.address} value={a.address}>{a.name||'Account'} · {shortAddress(a.address)}</option>)}</select></label>}
+ <div className="wallet-address"><code>{native.selected.address}</code><button aria-label="Copy address" onClick={()=>void navigator.clipboard.writeText(native.selected!.address).then(()=>setCopied(true))}>{copied?<Check size={17}/>:<Copy size={17}/>}</button></div>
+ <div className="wallet-network"><span>Available tPOT</span><strong>{balance??'—'}</strong></div>
+ {!mapped&&<><p className="muted">Activate this account once to use contracts. Talisman will show the network fee.</p><Button disabled={busy} className="full-width" onClick={()=>void activate()}>{busy?'Confirm in Talisman…':'Activate account'}</Button></>}
+ <Button variant="ghost" className="full-width" disabled={busy} onClick={native.disconnect}><LogOut size={16}/>Disconnect</Button>
+ </>:<><p className="muted" style={{margin:'16px 0 24px'}}>Use your existing Talisman account and tPOT balance.</p><Button className="full-width" disabled={native.connecting} onClick={()=>void native.connect()}><Wallet size={19}/>{native.connecting?'Approve in Talisman…':'Connect Talisman'}</Button>
+ {configured&&<div className="wallet-account-actions"><button className="wallet-alternative" onClick={()=>setEvm(!evm)}>Use an Ethereum wallet or email</button>{(evm||!!account.address)&&<EvmWalletControl/>}</div>}</>}
+ {(native.error||error)&&<p className="wallet-error" role="alert">{error||native.error}</p>}
+ </Modal>}</>;
 }

@@ -21,6 +21,9 @@ export type ActivityType =
   | "Faucet"
   | "Approve";
 export interface Activity {
+  transport?: "substrate";
+  fromBlock?:number;
+  blockHash?:Hash;
   legacy?: boolean;
   id: Hash;
   hash: Hash;
