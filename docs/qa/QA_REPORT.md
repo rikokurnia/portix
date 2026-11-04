@@ -57,3 +57,7 @@ The user-referenced report was located at `/home/cokoo/.gemini/antigravity-cli/b
 2. Supply compatible deployed isolated stock/vault contracts and seeded test liquidity (or explicitly implement a reviewed adapter for a corrected unified protocol).
 3. In an authenticated test wallet, sign faucet, buy, both vault deposits, partial/full withdrawal and sell; verify each new receipt and final portfolio against chain balances.
 4. Implement TSLA and real external protocol/bridge routing if those original PRD requirements remain in scope.
+
+## Deployment follow-up
+
+The replacement isolated stack was deployed with signed transactions on local Anvil, then an independent wallet completed 113 signed lifecycle transactions covering all eight stocks and sixteen vaults. See [local receipts](local-lifecycle.json), [deployment log](local-deployment-output.txt), and [runbook](DEPLOYMENT_RUNBOOK.md). This validates the deployment tool and contract flows locally; live Portaldot deployment awaits funding of the fresh deployment wallet. Unsigned live RPC estimates are in [deployment-budget.json](deployment-budget.json).
