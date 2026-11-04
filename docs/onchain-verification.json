@@ -1,9 +1,9 @@
 {
   "isolatedAccounting": false,
   "compatibility": "BLOCKED: aliases one balance across all stocks/vaults; see CONTRACT_INTEGRATION_FINDINGS.md",
-  "checkedAt": "2026-11-04T02:42:13.321Z",
+  "checkedAt": "2026-11-04T11:13:59.544Z",
   "chainId": 420420777,
-  "block": "314484",
+  "block": "319558",
   "results": [
     {
       "contract": "pUSDC",
@@ -13,142 +13,170 @@
     {
       "contract": "Oracle",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "Market",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "Debt pool",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "Vault factory",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "AAPL",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "AAPL.primeVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "AAPL.boostVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "GOOGL",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "GOOGL.primeVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "GOOGL.boostVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "NFLX",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "NFLX.primeVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "NFLX.boostVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "MSFT",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "MSFT.primeVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "MSFT.boostVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "META",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "META.primeVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "META.boostVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "SPY",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "SPY.primeVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "SPY.boostVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "QQQ",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "QQQ.primeVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "QQQ.boostVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "NVDA",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "NVDA.primeVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     },
     {
       "contract": "NVDA.boostVault",
       "address": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-      "status": "VERIFIED"
+      "status": "INCOMPATIBLE",
+      "detail": "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances."
     }
   ]
 }

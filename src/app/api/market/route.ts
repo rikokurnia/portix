@@ -1,5 +1,4 @@
 import { stockIds, stocks } from "@/lib/assets";
-import { BASELINE_MARKET_STOCKS } from "@/features/market/fixtures";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +33,8 @@ async function fetchQuoteFromYahoo(ticker: string): Promise<StockQuoteSummary | 
     if (!result) return null;
 
     const meta = result.meta;
-    const price = Math.round((meta.regularMarketPrice ?? BASELINE_MARKET_STOCKS[ticker as keyof typeof BASELINE_MARKET_STOCKS]?.price ?? 100) * 100) / 100;
+    if (!Number.isFinite(meta?.regularMarketPrice) || meta.regularMarketPrice <= 0) return null;
+    const price = Math.round(meta.regularMarketPrice * 100) / 100;
     const prevClose = meta.chartPreviousClose ?? meta.previousClose ?? price;
     const change = Math.round((price - prevClose) * 100) / 100;
     const changePercent = prevClose > 0 ? Math.round(((price - prevClose) / prevClose) * 10000) / 100 : 0;
@@ -54,7 +54,7 @@ async function fetchQuoteFromYahoo(ticker: string): Promise<StockQuoteSummary | 
 export async function GET() {
   const now = Date.now();
   if (cachedQuotes && cachedQuotes.expiresAt > now) {
-    return Response.json({ stocks: cachedQuotes.data });
+    return Response.json({ stocks: cachedQuotes.data, source: "Yahoo Finance equity benchmark", available: Object.keys(cachedQuotes.data).length > 0 });
   }
 
   const results: Record<string, StockQuoteSummary> = {};
@@ -64,18 +64,6 @@ export async function GET() {
       const live = await fetchQuoteFromYahoo(id);
       if (live) {
         results[id] = live;
-      } else {
-        const base = BASELINE_MARKET_STOCKS[id];
-        // micro tick drift for live feel
-        const tickSec = Math.floor(now / 4000);
-        const microNoise = ((tickSec % 5) - 2) * 0.04;
-        results[id] = {
-          ticker: id,
-          name: base.name,
-          price: Math.round((base.price + microNoise) * 100) / 100,
-          change: base.change,
-          changePercent: base.changePercent,
-        };
       }
     }),
   );
@@ -85,5 +73,5 @@ export async function GET() {
     data: results,
   };
 
-  return Response.json({ stocks: results });
+  return Response.json({ stocks: results, source: "Yahoo Finance equity benchmark", available: Object.keys(results).length > 0 });
 }

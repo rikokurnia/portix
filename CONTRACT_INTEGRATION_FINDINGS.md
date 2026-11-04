@@ -1,3 +1,5 @@
+> **2026-11-04 QA update:** Local fixes and 44 passing contract tests do not establish live deployment compatibility. The referenced deployment report uses the same 2,476-byte legacy protocol, which lacks readable isolated positions. Market/vault writes are blocked; pUSDC faucet remains independent. See [QA evidence and remaining acceptance work](docs/qa/QA_REPORT.md).
+
 # Current live contract compatibility
 
 Verified against chain 420420777: protocol 0xb5f071B9e9b159C5Df573678400aB864d0Ec5415 has 2,476 bytes of runtime code. Local contracts/out/PortixProtocol.sol/PortixProtocol.json runtime matches live bytecode exactly. The five provided deployment/buy/deposit/withdraw/sell receipts succeeded at blocks 314291, 314308, 314312, 314316 and 314319.

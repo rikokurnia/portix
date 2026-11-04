@@ -144,7 +144,7 @@ export function PortfolioSync() {
         updatePortfolio({ pending: "Confirm the network in your wallet…" });
         try {
           if (
-            (command.type === "Deposit" || command.type === "Withdraw") &&
+            command.type !== "Faucet" &&
             !isolatedAccounting
           )
             return { ok: false, error: vaultIntegrationIssue };

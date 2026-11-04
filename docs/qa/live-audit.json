@@ -1,0 +1,58 @@
+{
+  "checkedAt": "2026-11-04T11:18:26.304Z",
+  "chainId": 420420777,
+  "runtimeBytes": 2476,
+  "isolatedGetter": false,
+  "deployerBalanceTPOT": "196879.2808279773145",
+  "receipts": [
+    {
+      "action": "pUSDCTransactionHash",
+      "hash": "0x4176438019459235afbf118272713f11aee9edbaf16e187a9e81ddf610da7b11",
+      "status": "success",
+      "block": "313660"
+    },
+    {
+      "action": "protocolTransactionHash",
+      "hash": "0x1694f1db6cd471a4ea13fd9d3c5d14d21de5ab8f0c4032888b342544f2036f5e",
+      "status": "success",
+      "block": "314291"
+    },
+    {
+      "action": "testBuyHash",
+      "hash": "0x0b8891f8e964cbae36ca37e1fad29083897d7268d1023866a5e26eeb9400470c",
+      "status": "success",
+      "block": "314308"
+    },
+    {
+      "action": "testDepositHash",
+      "hash": "0x17246f8a431da4d18d874e27d114b9d4c155836f10a928025643ab9c3f24a8f7",
+      "status": "success",
+      "block": "314312"
+    },
+    {
+      "action": "testWithdrawHash",
+      "hash": "0x1e62d6475ef28d627b237f1268e2e7aebfbbecf058a205682e20dcdb45d5cc55",
+      "status": "success",
+      "block": "314316"
+    },
+    {
+      "action": "testSellHash",
+      "hash": "0x10d6990001e8c312ae6adba5a33b5137c8ec6ee749888975d7bb354e6595882a",
+      "status": "success",
+      "block": "314319"
+    },
+    {
+      "action": "faucetClaim",
+      "hash": "0x3ca2a9730f11615e50b1221b4b835a9f727601f49a72ebb2d7fa6a1c76cc0fbc",
+      "status": "success",
+      "block": "313665"
+    },
+    {
+      "action": "settlementApproval",
+      "hash": "0xa5ca471ad3a06dbb03892f78372975a7e7777be5c6428899ecc016587ad3aed9",
+      "status": "success",
+      "block": "314307"
+    }
+  ],
+  "note": "Read-only verification of existing receipts. No new signed transaction broadcast."
+}

@@ -1,3 +1,5 @@
+> **2026-11-04 QA update:** Local fixes and 44 passing contract tests do not establish live deployment compatibility. The referenced deployment report uses the same 2,476-byte legacy protocol, which lacks readable isolated positions. Market/vault writes are blocked; pUSDC faucet remains independent. See [QA evidence and remaining acceptance work](docs/qa/QA_REPORT.md).
+
 > Latest: see CONTRACT_INTEGRATION_FINDINGS.md. The unified protocol now has live code and confirmed receipts, but its withdrawal authorization and share-accounting interfaces block complete Vault integration.
 
 # PORTIX frontend integration

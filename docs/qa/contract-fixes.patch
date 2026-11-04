@@ -1,0 +1,94 @@
+--- a/contracts/src/PortixProtocol.sol
++++ b/contracts/src/PortixProtocol.sol
+@@ -54,0 +55 @@
++    mapping(address => mapping(uint8 => mapping(address => uint256))) private storedYieldUSD;
+@@ -228 +229,2 @@
+-        uint256 timeYield = (debt * apyBps * elapsed) / (BPS_DENOMINATOR * 365 days);
++        uint256 timeYield = storedYieldUSD[stock][strategy][user]
++            + (debt * apyBps * elapsed) / (BPS_DENOMINATOR * 365 days);
+@@ -441,0 +444,2 @@
++        // Checkpoint earnings before changing debt or its accrual timestamp.
++        storedYieldUSD[targetStock][strategy][receiver] = getAccruedYield(targetStock, strategy, receiver);
+@@ -494 +498,2 @@
+-        stockReturned = shares / 3;
++        // Allocate remaining collateral proportionally so the final redemption clears dust.
++        stockReturned = (shares * vaultCollateralOf[targetStock][strategy][positionOwner]) / currentShares;
+@@ -496 +501,4 @@
+-        netYieldUSD = (shares * getAccruedYield(targetStock, strategy, positionOwner)) / currentShares;
++        uint256 accruedYield = getAccruedYield(targetStock, strategy, positionOwner);
++        netYieldUSD = (shares * accruedYield) / currentShares;
++        storedYieldUSD[targetStock][strategy][positionOwner] = accruedYield - netYieldUSD;
++        vaultDepositTimeOf[targetStock][strategy][positionOwner] = block.timestamp;
+--- a/contracts/test/PortixProtocolRegression.t.sol
++++ b/contracts/test/PortixProtocolRegression.t.sol
+@@ -236,0 +237,21 @@
++    function test_PartialWithdrawalsReturnEveryCollateralWei() public {
++        vm.startPrank(alice);
++        uint256 initialStock = protocol.stockBalance(stockAAPL, alice);
++        uint256 shares = protocol.depositAndInvest(stockAAPL, 0, initialStock, alice);
++        protocol.withdrawWithYield(stockAAPL, 0, 1, alice, alice);
++        protocol.withdrawWithYield(stockAAPL, 0, shares - 1, alice, alice);
++        assertEq(protocol.stockBalance(stockAAPL, alice), initialStock);
++        assertEq(protocol.getVaultCollateral(stockAAPL, 0, alice), 0);
++        assertEq(protocol.totalStockCollateral(stockAAPL, 0), 0);
++        vm.stopPrank();
++    }
++
++    function test_TopUpCannotEraseAccruedYield() public {
++        vm.startPrank(alice);
++        protocol.depositAndInvest(stockAAPL, 0, 1 ether, alice);
++        vm.warp(block.timestamp + 30 days);
++        uint256 earned = protocol.getAccruedYield(stockAAPL, 0, alice);
++        protocol.depositAndInvest(stockAAPL, 0, 1, alice);
++        assertGe(protocol.getAccruedYield(stockAAPL, 0, alice), earned);
++        vm.stopPrank();
++    }
+--- a/contracts/test/PortixVault.t.sol
++++ b/contracts/test/PortixVault.t.sol
+@@ -4,0 +5 @@
++import "../src/market/StockMarket.sol";
+@@ -337,0 +339,44 @@
++    function test_FaucetBuyBothVaultsWithdrawAndSell() public {
++        address user = address(0x4444);
++        vm.startPrank(owner);
++        StockMarket market = new StockMarket(address(pUSDC), address(oracle), 10, owner);
++        market.setStockSupported(address(aapl), true);
++        aapl.mint(address(market), 100 ether);
++        pUSDC.mint(address(market), 10_000e6);
++        vm.stopPrank();
++        vm.startPrank(user);
++        pUSDC.faucet(user, 5_000e6);
++        assertEq(pUSDC.balanceOf(user), 5_000e6);
++        pUSDC.approve(address(market), 1_000e6);
++        uint256 bought = market.buyStockWithExactUSDC(address(aapl), 1_000e6);
++        assertEq(pUSDC.balanceOf(user), 4_000e6);
++        assertEq(aapl.balanceOf(user), bought);
++        aapl.approve(address(primeVault), bought / 2);
++        aapl.approve(address(boostVault), bought - bought / 2);
++        (uint256 primeShares, ) = primeVault.depositAndInvest(bought / 2, user);
++        (uint256 boostShares, ) = boostVault.depositAndInvest(bought - bought / 2, user);
++        assertEq(aapl.balanceOf(user), 0);
++        assertGt(lendingStrategy.totalAssets(), 0);
++        assertGt(ammStrategy.totalAssets(), 0);
++        vm.stopPrank();
++        vm.startPrank(owner);
++        pUSDC.mint(owner, 20e6);
++        pUSDC.approve(address(lendingStrategy), 10e6);
++        lendingStrategy.fundYield(10e6);
++        pUSDC.approve(address(ammStrategy), 10e6);
++        ammStrategy.fundYield(10e6);
++        vm.stopPrank();
++        vm.startPrank(user);
++        primeVault.withdrawWithYield(primeShares, user, user);
++        boostVault.withdrawWithYield(boostShares, user, user);
++        assertEq(aapl.balanceOf(user), bought);
++        assertEq(primeVault.balanceOf(user), 0);
++        assertEq(boostVault.balanceOf(user), 0);
++        assertEq(pUSDC.balanceOf(user), 4_020e6);
++        aapl.approve(address(market), bought);
++        (, , uint256 expectedPayout) = market.quoteSell(address(aapl), bought);
++        market.sellStock(address(aapl), bought);
++        assertEq(aapl.balanceOf(user), 0);
++        assertEq(pUSDC.balanceOf(user), 4_020e6 + expectedPayout);
++        vm.stopPrank();
++    }

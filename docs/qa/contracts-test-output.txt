@@ -1,0 +1,91 @@
+Compiling 60 files with Solc 0.8.28
+Solc 0.8.28 finished in 45.79s
+Compiler run successful!
+
+Ran 7 tests for test/PortixPriceOracle.t.sol:PortixPriceOracleTest
+[PASS] test_FreshPriceReporting() (gas: 37638)
+[PASS] test_PauseOracle() (gas: 116136)
+[PASS] test_PriceUpdateRefreshesStaleness() (gas: 99491)
+[PASS] test_RevertWhen_OutOfBounds() (gas: 81876)
+[PASS] test_RevertWhen_PriceStale() (gas: 27378)
+[PASS] test_RevertWhen_UnauthorizedCaller() (gas: 37258)
+[PASS] test_RevertWhen_ZeroPrice() (gas: 42016)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 1.34ms (576.84µs CPU time)
+
+Ran 5 tests for test/PortixDebtPool.t.sol:PortixDebtPoolTest
+[PASS] test_BorrowAndRepayBasic() (gas: 266639)
+[PASS] test_InterestAccrualOverTime() (gas: 187644)
+[PASS] test_RevertWhen_InsufficientLiquidity() (gas: 48731)
+[PASS] test_RevertWhen_UnauthorizedBorrower() (gas: 40473)
+[PASS] test_SupplyAndWithdrawLiquidity() (gas: 244738)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 1.66ms (825.27µs CPU time)
+
+Ran 4 tests for test/PortixProtocol.t.sol:PortixProtocolTest
+[PASS] testBasicViews() (gas: 24627)
+[PASS] testBuyWithExactUSDC() (gas: 192786)
+[PASS] testDepositAndWithdraw() (gas: 515546)
+[PASS] testQuotes() (gas: 15739)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 4.14ms (756.20µs CPU time)
+
+Ran 2 tests for test/PortixVaultFactory.t.sol:PortixVaultFactoryTest
+[PASS] test_DeployAllSixteenVaults() (gas: 58666319)
+[PASS] test_RevertWhen_DuplicateVault() (gas: 3702206)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 9.41ms (6.90ms CPU time)
+
+Ran 10 tests for test/PortixVault.t.sol:PortixVaultTest
+[PASS] test_BoostAmmVaultFlow() (gas: 626599)
+[PASS] test_CollateralPriceShockAndDeleverage() (gas: 684670)
+[PASS] test_DepositAndInvestBasic() (gas: 374581)
+[PASS] test_FaucetBuyBothVaultsWithdrawAndSell() (gas: 1880005)
+[PASS] test_PartialWithdrawalAndMultipleDepositors() (gas: 645752)
+[PASS] test_PreviewDepositAndWithdrawQuotes() (gas: 349163)
+[PASS] test_RevertWhen_InsufficientDebtPoolLiquidity() (gas: 259008)
+[PASS] test_RevertWhen_StaleOraclePrice() (gas: 166295)
+[PASS] test_WithdrawalWithStrategyLoss() (gas: 564100)
+[PASS] test_WithdrawalWithYieldGain() (gas: 570337)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 10.15ms (9.04ms CPU time)
+
+Ran 8 tests for test/PortixProtocolRegression.t.sol:PortixProtocolRegressionTest
+[PASS] test_AssetAndStrategyIsolation() (gas: 505077)
+[PASS] test_AuthorizedWithdrawalWithAllowanceSucceeds() (gas: 443967)
+[PASS] test_FullDepositAndWithdrawFlow() (gas: 387890)
+[PASS] test_InsufficientLiquidityRevertsAtomically() (gas: 135199)
+[PASS] test_PartialWithdrawalsReturnEveryCollateralWei() (gas: 414973)
+[PASS] test_TopUpCannotEraseAccruedYield() (gas: 325235)
+[PASS] test_UnauthorizedWithdrawalReverts() (gas: 323190)
+[PASS] test_VaultMetricsAndOraclePricing() (gas: 287227)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 63.14ms (2.84ms CPU time)
+
+Ran 6 tests for test/StockMarket.t.sol:StockMarketTest
+[PASS] test_BuyAllEightStocks() (gas: 1000905)
+[PASS] test_BuyWithExactUSDC() (gas: 145961)
+[PASS] test_FeeCollection() (gas: 226816)
+[PASS] test_RevertWhen_InsufficientStockLiquidity() (gas: 71591)
+[PASS] test_RevertWhen_UnsupportedStock() (gas: 47079)
+[PASS] test_SellAllEightStocks() (gas: 1598444)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 62.34ms (3.78ms CPU time)
+
+Ran 2 tests for test/AccountingInvariant.t.sol:AccountingInvariantTest
+[PASS] testFuzz_DepositAndWithdrawParSolvency(uint256) (runs: 256, μ: 470136, ~: 470156)
+[PASS] test_FirstDepositorDonationResistance() (gas: 358120)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 65.13ms (62.00ms CPU time)
+
+╭------------------------------+--------+--------+---------╮
+| Test Suite                   | Passed | Failed | Skipped |
++==========================================================+
+| AccountingInvariantTest      | 2      | 0      | 0       |
+|------------------------------+--------+--------+---------|
+| PortixDebtPoolTest           | 5      | 0      | 0       |
+|------------------------------+--------+--------+---------|
+| PortixPriceOracleTest        | 7      | 0      | 0       |
+|------------------------------+--------+--------+---------|
+| PortixProtocolTest           | 4      | 0      | 0       |
+|------------------------------+--------+--------+---------|
+| PortixProtocolRegressionTest | 8      | 0      | 0       |
+|------------------------------+--------+--------+---------|
+| PortixVaultTest              | 10     | 0      | 0       |
+|------------------------------+--------+--------+---------|
+| PortixVaultFactoryTest       | 2      | 0      | 0       |
+|------------------------------+--------+--------+---------|
+| StockMarketTest              | 6      | 0      | 0       |
+╰------------------------------+--------+--------+---------╯

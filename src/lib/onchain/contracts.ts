@@ -69,7 +69,7 @@ export const isolatedAccounting =
   new Set(vaultTargets).size === vaultTargets.length;
 export const vaultIntegrationIssue = isolatedAccounting
   ? ""
-  : "This deployment needs compatible vault balance accounting before deposits can open.";
+  : "Stock trading and vaults are unavailable: this deployment cannot separate stock and vault balances.";
 export const explorerTransaction = (hash: string) =>
   `${portaldot.blockExplorers.default.url}#/extrinsics/${hash}`;
 export const explorerContract = (value: string) =>

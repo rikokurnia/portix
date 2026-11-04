@@ -67,8 +67,8 @@ export function MarketStockList({
           const isSelected = selectedStockId === id;
           const quote = quotes[id];
 
-          const displayPrice = quote?.price ?? stock.price;
-          const displayChangePercent = quote?.changePercent ?? stock.changePercent;
+          const displayPrice = quote?.price ?? 0;
+          const displayChangePercent = quote?.changePercent ?? 0;
           const isPositive = displayChangePercent >= 0;
 
           return (
@@ -101,14 +101,14 @@ export function MarketStockList({
               </div>
               <div className="market-stock-right">
                 <span className="market-stock-price">
-                  {formatUSD(displayPrice)}
+                  {quote ? formatUSD(displayPrice) : "—"}
                 </span>
                 <span
                   className={`market-stock-change ${
                     isPositive ? "positive" : "negative"
                   }`}
                 >
-                  {formatPercent(displayChangePercent)}
+                  {quote ? formatPercent(displayChangePercent) : "—"}
                 </span>
               </div>
             </button>

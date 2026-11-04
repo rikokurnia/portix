@@ -21,6 +21,10 @@ async function verify(
   value: string,
   checks?: () => Promise<void>,
 ) {
+  if (!isolatedAccounting && value.toLowerCase() !== manifest.contracts.pUSDC.toLowerCase()) {
+    results.push({ contract: label, address: value, status: "INCOMPATIBLE", detail: "Aliased legacy deployment cannot provide isolated ERC-20 stock and ERC-4626 vault balances." });
+    return;
+  }
   if (!value) {
     results.push({ contract: label, address: "", status: "MISSING" });
     return;

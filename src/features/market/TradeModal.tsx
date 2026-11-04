@@ -5,6 +5,7 @@ import { ArrowUpDown, CheckCircle2 } from "lucide-react";
 import { Modal } from "@/components/shared/Modal";
 import { TransactionLink } from "@/components/shared/TransactionLink";
 import { usePortfolio } from "@/lib/portfolio-store";
+import { vaultIntegrationIssue } from "@/lib/onchain/contracts";
 import { useQuote } from "@/lib/onchain/useQuote";
 import { stocks, money, units, type StockId } from "@/lib/assets";
 export function TradeModal({
@@ -165,7 +166,7 @@ export function TradeModal({
             <p className="muted">Connect your wallet to trade.</p>
           ) : !configured ? (
             <p className="muted">
-              Trading opens when this stock’s deployment is available.
+              {vaultIntegrationIssue || "Trading opens when this stock’s deployment is available."}
             </p>
           ) : null}
           {(error || quoteError || n > limit) && (

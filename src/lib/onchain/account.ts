@@ -15,6 +15,7 @@ import {
 export const human = (value: bigint, decimals: number) =>
   Number(formatUnits(value, decimals));
 export async function readMarket() {
+  if (!isolatedAccounting) return { prices: {}, feeBps: undefined, priceError: true };
   const prices: Partial<Record<StockId, number>> = {};
   const tasks = stockIds.map(async (id) => {
     const token = stockAddress(id);

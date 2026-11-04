@@ -1,9 +1,5 @@
 import { stockIds, type StockId, stocks } from "@/lib/assets";
 import type { UTCTimestamp } from "lightweight-charts";
-import {
-  generateFallbackCandles,
-  BASELINE_MARKET_STOCKS,
-} from "@/features/market/fixtures";
 import type { CandleData, Timeframe } from "@/features/market/types";
 
 export const dynamic = "force-dynamic";
@@ -142,11 +138,10 @@ export async function GET(
   }
 
   const stockMeta = stocks[stockId];
-  const base = BASELINE_MARKET_STOCKS[stockId];
 
-  let price = base.price;
-  let change = base.change;
-  let changePercent = base.changePercent;
+  let price = 0;
+  let change = 0;
+  let changePercent = 0;
   let candles: CandleData[] = [];
 
   try {
@@ -156,23 +151,9 @@ export async function GET(
       change = live.change;
       changePercent = live.changePercent;
       candles = live.candles;
-    } else {
-      candles = generateFallbackCandles(stockId, validTimeframe, base.price);
     }
   } catch {
-    candles = generateFallbackCandles(stockId, validTimeframe, base.price);
-  }
-
-  // Micro-tick drift to keep prices and charts feeling alive in real time
-  const tickSec = Math.floor(now / 4000);
-  const microNoise = ((tickSec % 7) - 3) * 0.05;
-  const currentPrice = Math.round((price + microNoise) * 100) / 100;
-
-  if (candles.length > 0 && validTimeframe === "1D") {
-    const last = candles[candles.length - 1];
-    last.close = currentPrice;
-    if (currentPrice > last.high) last.high = currentPrice;
-    if (currentPrice < last.low) last.low = currentPrice;
+    // Missing upstream observations must remain unavailable.
   }
 
   const observations = candles.map((c) => ({
@@ -182,14 +163,15 @@ export async function GET(
 
   const payload = {
     ticker: stockId,
-    name: stockMeta?.name ?? base.name,
-    price: currentPrice,
+    name: stockMeta.name,
+    price,
     change,
     changePercent,
     timeframe: validTimeframe,
     candles,
     observations,
-    available: true,
+    available: candles.length > 0,
+    source: "Yahoo Finance equity benchmark",
   };
 
   // Cache for 4 seconds so polling is efficient yet completely responsive

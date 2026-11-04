@@ -3,8 +3,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import type { StockId } from "@/lib/assets";
 import type { CandleData, Timeframe } from "./types";
-import { BASELINE_MARKET_STOCKS, generateFallbackCandles } from "./fixtures";
-import { updatePortfolio, getPortfolioSnapshot } from "@/lib/portfolio-store";
 
 export interface StockHistoryState {
   ticker: StockId;
@@ -28,29 +26,9 @@ const subscribe = (fn: () => void) => {
   };
 };
 
-function getInitialState(id: StockId, timeframe: Timeframe): StockHistoryState {
-  const base = BASELINE_MARKET_STOCKS[id] ?? {
-    id,
-    name: id,
-    price: 100,
-    change: 0,
-    changePercent: 0,
-    logo: "",
-  };
-  const fallbackCandles = generateFallbackCandles(id, timeframe, base.price);
-  return {
-    ticker: id,
-    price: base.price,
-    change: base.change,
-    changePercent: base.changePercent,
-    candles: fallbackCandles,
-    observations: fallbackCandles.map((c) => ({
-      timestamp: typeof c.time === "number" ? c.time : Math.floor(Date.now() / 1000),
-      price: c.close,
-    })),
-    loading: false,
-    error: "",
-  };
+function getInitialState(id: StockId): StockHistoryState {
+  return { ticker: id, price: 0, change: 0, changePercent: 0,
+    candles: [], observations: [], loading: true, error: "" };
 }
 
 async function refresh(id: StockId, timeframe: Timeframe) {
@@ -77,15 +55,15 @@ async function refresh(id: StockId, timeframe: Timeframe) {
 
     const price = Number.isFinite(data.price)
       ? data.price
-      : (candles[candles.length - 1]?.close ?? BASELINE_MARKET_STOCKS[id]?.price ?? 100);
+      : (candles[candles.length - 1]?.close ?? 0);
 
     const change = Number.isFinite(data.change)
       ? data.change
-      : (BASELINE_MARKET_STOCKS[id]?.change ?? 0);
+      : 0;
 
     const changePercent = Number.isFinite(data.changePercent)
       ? data.changePercent
-      : (BASELINE_MARKET_STOCKS[id]?.changePercent ?? 0);
+      : 0;
 
     const observations = Array.isArray(data.observations)
       ? data.observations
@@ -99,28 +77,18 @@ async function refresh(id: StockId, timeframe: Timeframe) {
       price,
       change,
       changePercent,
-      candles: candles.length > 0 ? candles : generateFallbackCandles(id, timeframe, price),
+      candles,
       observations,
       loading: false,
-      error: "",
+      error: data.available === false ? "Market benchmark unavailable." : "",
     });
 
-    // Synchronize price with shared portfolio store
-    const currentPrices = getPortfolioSnapshot().prices;
-    if (currentPrices[id] !== price) {
-      updatePortfolio({
-        prices: {
-          ...currentPrices,
-          [id]: price,
-        },
-      });
-    }
   } catch {
-    const existing = cache.get(key) ?? getInitialState(id, timeframe);
+    const existing = cache.get(key) ?? getInitialState(id);
     cache.set(key, {
       ...existing,
       loading: false,
-      error: "",
+      error: "Market benchmark unavailable.",
     });
   } finally {
     inFlight.delete(key);
@@ -144,7 +112,7 @@ export function useStockHistory(id: StockId, timeframe: Timeframe = "1D") {
     return () => clearInterval(timer);
   }, [id, timeframe]);
 
-  const snap = cache.get(key) ?? getInitialState(id, timeframe);
+  const snap = cache.get(key) ?? getInitialState(id);
 
   return {
     ...useSyncExternalStore(

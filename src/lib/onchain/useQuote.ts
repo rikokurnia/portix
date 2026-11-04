@@ -46,6 +46,7 @@ export function useQuote(
     account.observedAt,
   ].join(":");
   const configured =
+    isolatedAccounting &&
     !!stockAddress(stock) &&
     (mode === "Buy" || mode === "Sell"
       ? !!contracts.market && !!contracts.oracle

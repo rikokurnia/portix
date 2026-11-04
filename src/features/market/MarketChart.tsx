@@ -44,7 +44,7 @@ export function MarketChart({
   const history = useStockHistory(stockId, timeframe);
   const candles = history.candles;
 
-  const currentPrice = history.price || stock.price;
+  const currentPrice = history.price;
   const currentChangePercent = history.changePercent;
   const isPositive = currentChangePercent >= 0;
 
@@ -290,16 +290,16 @@ export function MarketChart({
 
         <div className="market-chart-price-block">
           <span className="market-chart-price">
-            {formatUSD(currentPrice)}
+            {currentPrice > 0 ? formatUSD(currentPrice) : "—"}
           </span>
           <span
             className={`market-chart-change ${isPositive ? "positive" : "negative"}`}
           >
-            {formatPercent(currentChangePercent)}
+            {currentPrice > 0 ? formatPercent(currentChangePercent) : "—"}
           </span>
-          <span className="market-live-pill" title="Real-time live market feed">
+          <span className="market-live-pill" title="Yahoo Finance equity benchmark; trades settle at the on-chain oracle price">
             <span className="market-live-dot" />
-            LIVE
+            {history.error ? "UNAVAILABLE" : "BENCHMARK"}
           </span>
         </div>
       </div>
@@ -382,7 +382,7 @@ export function MarketChart({
         <div ref={hostRef} style={{ cursor: "grab" }} />
         {candles.length === 0 && (
           <div className="market-history-empty" role="status">
-            <span>Loading live market chart…</span>
+            <span>{history.error || "Loading market benchmark…"}</span>
           </div>
         )}
         <div ref={tooltipRef} className="market-chart-tooltip" hidden />
