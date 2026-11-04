@@ -121,6 +121,7 @@ async function main() {
     "docs/onchain-verification.json",
     JSON.stringify(report, null, 2) + "\n",
   );
+  if (!isolatedAccounting) console.error("BLOCKED: live code aliases all stock/vault balances. Vault accounting and withdrawal authorization require correction; see CONTRACT_INTEGRATION_FINDINGS.md.");
   console.table(results.map(({ contract, status }) => ({ contract, status })));
   console.log(
     `Checked chain ${chainId} at block ${block}. Report: docs/onchain-verification.json`,
