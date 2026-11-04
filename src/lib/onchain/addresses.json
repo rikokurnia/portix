@@ -8,66 +8,66 @@
   "contracts": {
     "pUSDC": "0x9df05e926a3860a3ccaffa85bb0776c47a9238f4",
     "priceOracle": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
-    "stockMarket": "0x17DAdC0B417499136c223f8C6763F730F6B5CB15",
-    "debtPool": "0x1D8f370aa3508ce48A3fE9393285Db3793945Fd1",
-    "vaultFactory": "0xccF3917134e3a4D470E5E53b194ef11919a8A08E"
+    "stockMarket": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
+    "debtPool": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
+    "vaultFactory": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415"
   },
   "stocks": {
     "AAPL": {
       "name": "Apple Inc.",
-      "token": "0xE9907AA2Aad877f0e80dCBCCc3617f3d2F16f0fd",
+      "token": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
       "decimals": 18,
-      "primeVault": "0xf833412Dc3c04535CFCc9f27BB48495D22A363b2",
-      "boostVault": "0x0A2964BAA85A6BEedE4F2CF3675206ea0EC5b029"
+      "primeVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
+      "boostVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415"
     },
     "GOOGL": {
       "name": "Alphabet Inc.",
-      "token": "0xCd8D785Ab352389555F43552e265D3E29972C3aA",
+      "token": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
       "decimals": 18,
-      "primeVault": "0x5af558B40105D9Db74e3c7C2d206c048f91e3710",
-      "boostVault": "0x5C09a5f3ED064e5409e79204A70451B2D98a2057"
+      "primeVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
+      "boostVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415"
     },
     "NFLX": {
       "name": "Netflix Inc.",
-      "token": "0xC5D273AFA603CD083370A9A59101f65B19a0B8E0",
+      "token": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
       "decimals": 18,
-      "primeVault": "0xDA1877Ed80c2121bAdc23807311FA4687D1f56a4",
-      "boostVault": "0x4b5628be1A1339a3Ab69301B4C93bbf9F247EAB8"
+      "primeVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
+      "boostVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415"
     },
     "MSFT": {
       "name": "Microsoft Corp.",
-      "token": "0xa7EdCEE64e31c8589b17B4F209C3A3bCCF4Ff441",
+      "token": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
       "decimals": 18,
-      "primeVault": "0x13c19872b55650980C2E70c2A2439CEA073e7b34",
-      "boostVault": "0xdc30E2760D568a70462250201ea9fd7e701bb189"
+      "primeVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
+      "boostVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415"
     },
     "META": {
       "name": "Meta Platforms Inc.",
-      "token": "0x9eb6B8CcAb6bCeD1a6010735Cc14852556b5261c",
+      "token": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
       "decimals": 18,
-      "primeVault": "0x90269B7957f0A33C9eadFda98334740a902e3007",
-      "boostVault": "0x717aC9Ea87698DA0831e4507B716F27DC7B6Cb35"
+      "primeVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
+      "boostVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415"
     },
     "SPY": {
       "name": "SPDR S&P 500 ETF",
-      "token": "0x9BE324a56DBB84E292D67B5Bd4dD46C794a74F09",
+      "token": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
       "decimals": 18,
-      "primeVault": "0xe60ec9E1A516b51881B00c49021AE8A82Dbf046f",
-      "boostVault": "0x529B0789aD265EE23c8D9C673780b941fe8cBD4d"
+      "primeVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
+      "boostVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415"
     },
     "QQQ": {
       "name": "Invesco QQQ Trust",
-      "token": "0x3fEEf658F83B1fa6CaC92D9509dE56CC429AA315",
+      "token": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
       "decimals": 18,
-      "primeVault": "0xE5049d9996D42Cae653D59053d8944d4CfD5B389",
-      "boostVault": "0x332c7cbC62E2544DED46100127272050bEbde0f1"
+      "primeVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
+      "boostVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415"
     },
     "NVDA": {
       "name": "NVIDIA Corp.",
-      "token": "0x520258209be5a4D2218ba2bCdD4E9D4F4b2A6B5B",
+      "token": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
       "decimals": 18,
-      "primeVault": "0x1E2B061C1b16113b3664d6a24A2Bf0182465ffec",
-      "boostVault": "0x46388845149ca2fB3f1515db6e18dCf97f5A373a"
+      "primeVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415",
+      "boostVault": "0xb5f071B9e9b159C5Df573678400aB864d0Ec5415"
     }
   },
   "deploymentBlock": 313660
