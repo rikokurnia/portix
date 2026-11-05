@@ -8,6 +8,7 @@ import { Button } from "@/components/shared/Button";
 import { TransactionLink } from "@/components/shared/TransactionLink";
 import {
   stockIds,
+  assets,
   stocks,
   money,
   units,
@@ -55,8 +56,7 @@ export function VaultForm({
 
   const position = account.positions.find(
       (p) => p.vaultId === vaultId && p.stockId === selectedStockId,
-    ),
-    limit = deposit ? (account.stockBalances[selectedStockId] ?? 0) : (position?.shares ?? 0);
+    );
   const rawLimit = deposit
     ? (account.rawStockBalances[selectedStockId] ?? "0")
     : (position?.rawShares ?? "0");
@@ -70,7 +70,6 @@ export function VaultForm({
   const usdLimit=rawAmountUsd(parseUnits(rawLimit,18),mode,marketPrice,rawShares,rawCollateral);
   const n=Number(amount);
   const {configured,quote,error:quoteError}=useQuote(mode,selectedStockId,rawInput,vaultId);
-  const receiveValue=quote ? (deposit?Number(formatUnits(rawUnits,18))*(valuationPrice??0):quote.receive*(valuationPrice??0)) : undefined;
   const valid =
     !!account.address &&
     account.ready &&
@@ -224,7 +223,6 @@ export function VaultForm({
         </span>
       </div>
       {!account.prices[selectedStockId] && valuationPrice && <small className="vault-unit-note">Live benchmark unavailable; valuation uses the contract settlement price.</small>}
-      <small className="vault-token-detail">{deposit?"Stock balance":"Position collateral"}: {account.ready?`${units(deposit?limit:position?.collateral??0)} ${selectedStockId}`:"—"}. {deposit?"Deposits use your stock balance; no pUSDC is spent.":"Withdrawals return stock plus the contract’s pUSDC bonus."}</small>
       <div className="shortcuts">
         {[25, 50, 75, 100].map((p) => (
           <button
@@ -253,8 +251,10 @@ export function VaultForm({
         )}
       <div className="receipt">
         <span>Estimated receive</span>
-        <strong className="vault-denomination"><img src="/assets/usdc.png" alt="" width={20} height={20}/>{receiveValue!==undefined?units(receiveValue):"—"} pUSDC value</strong>
-        {quote&&<small className="vault-token-detail">{units(quote.receive)} {deposit?vaultId:selectedStockId}{deposit?" receipt tokens":" stock returned"}</small>}
+        <strong className="vault-denomination">
+          <img src={deposit ? assets[vaultId] : stocks[selectedStockId].logo} alt="" width={26} height={26}/>
+          {quote ? units(quote.receive) : "—"} {deposit ? vaultId : selectedStockId}
+        </strong>
         {!deposit && quote && (
           <small className="positive" style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
             + {units(quote.yield)} testnet bonus{" "}
