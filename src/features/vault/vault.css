@@ -815,6 +815,90 @@
   text-align: center;
 }
 
+/* Portfolio pUSDC Row */
+.portfolio-pusdc-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.portfolio-pusdc-logo {
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+  box-shadow: 0 0 10px rgba(39, 117, 202, 0.45);
+}
+
+/* History Badges & Proof */
+.history-action-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.history-action-cell small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.action-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  width: fit-content;
+}
+.action-badge-buy {
+  background: rgba(155, 255, 120, 0.15);
+  color: #9bff78;
+  border: 1px solid rgba(155, 255, 120, 0.3);
+}
+.action-badge-sell {
+  background: rgba(255, 180, 100, 0.15);
+  color: #ffb464;
+  border: 1px solid rgba(255, 180, 100, 0.3);
+}
+.action-badge-deposit {
+  background: rgba(190, 138, 245, 0.18);
+  color: #be8af5;
+  border: 1px solid rgba(190, 138, 245, 0.35);
+}
+.action-badge-withdraw {
+  background: rgba(100, 200, 255, 0.15);
+  color: #64c8ff;
+  border: 1px solid rgba(100, 200, 255, 0.3);
+}
+.action-badge-faucet {
+  background: rgba(80, 150, 255, 0.18);
+  color: #8cc3ff;
+  border: 1px solid rgba(80, 150, 255, 0.35);
+}
+.action-badge-approve {
+  background: rgba(180, 180, 200, 0.15);
+  color: #d0d0e0;
+  border: 1px solid rgba(180, 180, 200, 0.25);
+}
+.action-badge-default {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+.table-proof-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.onchain-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #9bff78;
+  background: rgba(155, 255, 120, 0.1);
+  border: 1px solid rgba(155, 255, 120, 0.25);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
 /* Receipt-driven transaction progress; no simulated protocol/bridge stages. */
 .vault-process-identity { display: flex; align-items: center; gap: 12px; }
 .vault-process-identity p { display: flex; align-items: center; gap: 6px; }

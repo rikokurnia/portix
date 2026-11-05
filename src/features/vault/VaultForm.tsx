@@ -28,7 +28,7 @@ export function VaultForm({
   initialStock: StockId;
   initialMode: "Deposit" | "Withdraw";
   onProcess: (event: VaultProcessEvent) => void;
-  onStockChange: (id: StockId) => void;
+  onStockChange?: (id: StockId) => void;
 }) {
   const account = usePortfolio();
   const [mode, setMode] = useState(initialMode),
@@ -172,7 +172,7 @@ export function VaultForm({
             onChange={(e) => {
               const id = e.target.value as StockId;
               setStock(id);
-              onStockChange(id);
+              onStockChange?.(id);
               clear();
             }}
           >

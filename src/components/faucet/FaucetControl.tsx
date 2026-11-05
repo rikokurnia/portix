@@ -1,21 +1,29 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import {useNativeWallet} from "@/features/wallet/NativeWalletProvider";
+import { useNativeWallet } from "@/features/wallet/NativeWalletProvider";
 import { Droplets, CheckCircle2 } from "lucide-react";
 import { Modal } from "@/components/shared/Modal";
 import { TransactionLink } from "@/components/shared/TransactionLink";
 import { usePortfolio } from "@/lib/portfolio-store";
 import { shortAddress } from "@/features/wallet/chain";
 import "./faucet.css";
+
 export function FaucetControl() {
   const account = usePortfolio();
   const [open, setOpen] = useState(false),
     [error, setError] = useState(""),
     [hash, setHash] = useState(""),
     [working, setWorking] = useState(false);
-  const wallet=useNativeWallet();
-  const requested=useRef(false);
-  useEffect(()=>{if(requested.current&&account.address){requested.current=false;setOpen(true);}},[account.address]);
+  const wallet = useNativeWallet();
+  const requested = useRef(false);
+
+  useEffect(() => {
+    if (requested.current && account.address) {
+      requested.current = false;
+      setOpen(true);
+    }
+  }, [account.address]);
+
   async function claim() {
     if (working || !account.address) return;
     setWorking(true);
@@ -28,6 +36,7 @@ export function FaucetControl() {
       setWorking(false);
     }
   }
+
   return (
     <>
       <button
@@ -87,7 +96,16 @@ export function FaucetControl() {
                   </div>
                   <div className="faucet-amount-display">
                     <strong className="faucet-amount-num">5,000</strong>
-                    <span>pUSDC</span>
+                    <span className="faucet-amount-symbol">
+                      <img
+                        src="/assets/usdc.png"
+                        alt="pUSDC"
+                        width={20}
+                        height={20}
+                        style={{ borderRadius: "50%" }}
+                      />
+                      <span>pUSDC</span>
+                    </span>
                   </div>
                 </div>
                 <p className="muted">

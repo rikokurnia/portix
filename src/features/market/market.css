@@ -151,6 +151,30 @@
   margin-bottom: 18px;
 }
 
+.market-contract-badge {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #171326;
+  border: 1px solid rgba(139, 101, 158, 0.4);
+  padding: 6px 12px;
+  border-radius: 9px;
+  color: #cbb6eb;
+  font-family: monospace;
+  font-size: 12px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.market-contract-badge:hover {
+  background: #251c3d;
+  border-color: #be8af5;
+  color: #ffffff;
+}
+.market-contract-badge img {
+  border-radius: 50%;
+}
+
 .market-chart-identity {
   display: flex;
   align-items: center;

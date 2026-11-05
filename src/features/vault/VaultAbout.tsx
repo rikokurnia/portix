@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Copy, Check, ExternalLink, ArrowRight } from "lucide-react";
+import { BrandIcon } from "@/components/shared/BrandIcon";
 import {
   protocols,
   vaultProtocols,
@@ -9,9 +10,11 @@ import {
 } from "@/lib/vault-market-data";
 import {
   contracts,
+  vaultAddress,
   explorerContract,
 } from "@/lib/onchain/contracts";
 import { money, type VaultId } from "@/lib/assets";
+
 function ContractAddress({
   address,
   chain,
@@ -50,6 +53,7 @@ function ContractAddress({
     </div>
   );
 }
+
 export function VaultAbout({
   vaultId,
   histories,
@@ -58,6 +62,9 @@ export function VaultAbout({
   histories: Partial<Record<ProtocolId, YieldPoint[]>>;
 }) {
   const prime = vaultId === "pxPrime";
+  const primeAddr = vaultAddress("pxPrime", "AAPL");
+  const boostAddr = vaultAddress("pxBoost", "AAPL");
+
   return (
     <div className="vault-about">
       <section className="about-intro">
@@ -166,28 +173,93 @@ export function VaultAbout({
           Chain ID <b>420420777</b>
         </p>
         <div className="deployment-table">
-          {Object.entries({
-            pUSDC: contracts.pUSDC,
-            Market: contracts.market,
-          }).map(([label, value]) => (
-            <div key={label}>
-              <span>{label}</span>
-              {value ? (
-                <a
-                  href={explorerContract(value)}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={value}
-                >
-                  {value.slice(0, 8)}…{value.slice(-6)}{" "}
-                  <ExternalLink size={12} />
-                </a>
-              ) : (
-                <b>Awaiting deployment</b>
-              )}
-            </div>
-          ))}
-
+          <div>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              <img
+                src="/assets/usdc.png"
+                alt="pUSDC"
+                width={18}
+                height={18}
+                style={{ borderRadius: "50%" }}
+              />
+              pUSDC
+            </span>
+            {contracts.pUSDC ? (
+              <a
+                href={explorerContract(contracts.pUSDC)}
+                target="_blank"
+                rel="noreferrer"
+                title={contracts.pUSDC}
+              >
+                {contracts.pUSDC.slice(0, 8)}…{contracts.pUSDC.slice(-6)}{" "}
+                <ExternalLink size={12} />
+              </a>
+            ) : (
+              <b>Awaiting deployment</b>
+            )}
+          </div>
+          <div>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              <img
+                src="/assets/portaldot.png"
+                alt="Stock Market"
+                width={18}
+                height={18}
+              />
+              Stock Market
+            </span>
+            {contracts.market ? (
+              <a
+                href={explorerContract(contracts.market)}
+                target="_blank"
+                rel="noreferrer"
+                title={contracts.market}
+              >
+                {contracts.market.slice(0, 8)}…{contracts.market.slice(-6)}{" "}
+                <ExternalLink size={12} />
+              </a>
+            ) : (
+              <b>Awaiting deployment</b>
+            )}
+          </div>
+          <div>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              <BrandIcon brand="pxPrime" size={18} />
+              pxPrime Vault
+            </span>
+            {primeAddr ? (
+              <a
+                href={explorerContract(primeAddr)}
+                target="_blank"
+                rel="noreferrer"
+                title={primeAddr}
+              >
+                {primeAddr.slice(0, 8)}…{primeAddr.slice(-6)}{" "}
+                <ExternalLink size={12} />
+              </a>
+            ) : (
+              <b>Awaiting deployment</b>
+            )}
+          </div>
+          <div>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              <BrandIcon brand="pxBoost" size={18} />
+              pxBoost Vault
+            </span>
+            {boostAddr ? (
+              <a
+                href={explorerContract(boostAddr)}
+                target="_blank"
+                rel="noreferrer"
+                title={boostAddr}
+              >
+                {boostAddr.slice(0, 8)}…{boostAddr.slice(-6)}{" "}
+                <ExternalLink size={12} />
+              </a>
+            ) : (
+              <b>Awaiting deployment</b>
+            )}
+          </div>
         </div>
       </section>
       <section className="about-sources">

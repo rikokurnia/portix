@@ -11,9 +11,10 @@ import {
   type IChartApi,
   type ISeriesApi,
 } from "lightweight-charts";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, ExternalLink } from "lucide-react";
 import { useStockHistory } from "./useStockHistory";
 import { assets } from "@/lib/assets";
+import { explorerContract, stockAddress } from "@/lib/onchain/contracts";
 import { MARKET_STOCKS } from "./stocks";
 import { calculateSMA, formatUSD, formatPercent } from "./calculations";
 import type { MarketStockId, Timeframe } from "./types";
@@ -297,11 +298,23 @@ export function MarketChart({
           >
             {currentPrice > 0 ? formatPercent(currentChangePercent) : "—"}
           </span>
-          <span className="market-live-pill" title="Yahoo Finance equity benchmark; trades settle at the on-chain oracle price">
-            <span className="market-live-dot" />
-            {history.error ? "UNAVAILABLE" : "BENCHMARK"}
-          </span>
         </div>
+
+        {stockAddress(stock.id) && (
+          <a
+            href={explorerContract(stockAddress(stock.id)!)}
+            target="_blank"
+            rel="noreferrer"
+            className="market-contract-badge"
+            title={`On-chain stock contract: ${stockAddress(stock.id)}`}
+          >
+            <img src="/assets/portaldot.png" alt="Portaldot" width={16} height={16} />
+            <span>
+              {stockAddress(stock.id)!.slice(0, 6)}…{stockAddress(stock.id)!.slice(-4)}
+            </span>
+            <ExternalLink size={12} />
+          </a>
+        )}
       </div>
 
       {/* Controls Row: Timeframe Pills, Reset Button & Indicator Toggles */}

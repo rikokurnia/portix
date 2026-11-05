@@ -43,7 +43,6 @@ export function VaultDetail({ vaultId }: { vaultId: VaultId }) {
   const market = useVaultMarketData(),
     [tab, setTab] = useState<"Chart" | "About" | "History">("Chart"),
     [days, setDays] = useState(7),
-    [, setStock] = useState<StockId>(initialStock),
     [process, setProcess] = useState<VaultProcess | null>(null);
   const summary = summarizeVault(vaultId, market.histories),
     ids = vaultProtocols[vaultId],
@@ -225,7 +224,6 @@ export function VaultDetail({ vaultId }: { vaultId: VaultId }) {
           vaultId={vaultId}
           initialStock={initialStock}
           initialMode={initialMode}
-          onStockChange={setStock}
           onProcess={(event) => {
             if(event.type === 'start') setProcess(event.process);
             else {

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { TransactionLink } from "@/components/shared/TransactionLink";
 import { Panel } from "@/components/shared/Panel";
 import { Button } from "@/components/shared/Button";
@@ -14,7 +14,54 @@ import {
   type StockId,
   type VaultId,
 } from "@/lib/assets";
-import { usePortfolio } from "@/lib/portfolio-store";
+import { usePortfolio, type Activity } from "@/lib/portfolio-store";
+
+function getHistoryActionDetails(a: Activity) {
+  switch (a.type) {
+    case "Buy":
+      return {
+        title: `Buy Stock (${a.stockId})`,
+        category: "Stock Market",
+        badge: "action-badge-buy",
+      };
+    case "Sell":
+      return {
+        title: `Sell Stock (${a.stockId})`,
+        category: "Stock Market",
+        badge: "action-badge-sell",
+      };
+    case "Deposit":
+      return {
+        title: `Vault Deposit (${a.vaultId ?? "pxPrime"})`,
+        category: "Carry Vault",
+        badge: "action-badge-deposit",
+      };
+    case "Withdraw":
+      return {
+        title: `Vault Withdraw (${a.vaultId ?? "pxPrime"})`,
+        category: "Carry Vault",
+        badge: "action-badge-withdraw",
+      };
+    case "Faucet":
+      return {
+        title: "Portaldot Faucet",
+        category: "Testnet Funding",
+        badge: "action-badge-faucet",
+      };
+    case "Approve":
+      return {
+        title: `Token Approval (${a.stockId})`,
+        category: "Authorization",
+        badge: "action-badge-approve",
+      };
+    default:
+      return {
+        title: String(a.type),
+        category: "On-chain",
+        badge: "action-badge-default",
+      };
+  }
+}
 export function Portfolio({
   onManage,
 }: {
@@ -38,7 +85,8 @@ export function Portfolio({
       pending,
     } = usePortfolio(),
     [tab, setTab] = useState("Vault positions");
-  const vaultDeposits = activity.filter(a => a.type === "Deposit");
+
+  const historyItems = activity;
   const earned = positions.reduce((sum, p) => sum + p.earnedYield, 0),
     value =
       stockIds.reduce(
@@ -98,7 +146,16 @@ export function Portfolio({
         </div>
         <div>
           <span>Available pUSDC</span>
-          <strong>{ready ? units(pUSDC) : "—"}</strong>
+          <div className="portfolio-pusdc-row">
+            <strong>{ready ? units(pUSDC) : "—"}</strong>
+            <img
+              src="/assets/usdc.png"
+              alt="pUSDC"
+              width={24}
+              height={24}
+              className="portfolio-pusdc-logo"
+            />
+          </div>
         </div>
       </div>
       <div
@@ -257,49 +314,73 @@ export function Portfolio({
           <table>
             <thead>
               <tr>
-                <th>Type</th>
-                <th>Asset / amount</th>
+                <th>Action / Type</th>
+                <th>Asset / Amount</th>
+                <th>On-chain proof</th>
                 <th>Time</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              {vaultDeposits.map((a) => (
-                <tr key={a.id}>
-                  <td>
-                    {a.type}
-                    {a.vaultId && <small>{a.vaultId}</small>}
-                    <TransactionLink hash={a.hash} />
-                  </td>
-                  <td>
-                    {units(a.amount)} {a.legacy ? (a.stockId === "pUSDC" ? "pUSDC" : "legacy demo units") : a.stockId}
-                  </td>
-                  <td>
-                    <time dateTime={a.timestamp}>
-                      {new Date(a.timestamp).toLocaleString()}
-                    </time>
-                  </td>
-                  <td
-                    className={
-                      a.status === "Completed"
-                        ? "positive"
-                        : a.status === "Failed"
-                          ? "negative"
-                          : "muted"
-                    }
-                  >
-                    {a.status}
-                  </td>
-                </tr>
-              ))}
+              {historyItems.map((a) => {
+                const info = getHistoryActionDetails(a);
+                return (
+                  <tr key={a.id}>
+                    <td>
+                      <div className="history-action-cell">
+                        <span className={`action-badge ${info.badge}`}>
+                          {info.title}
+                        </span>
+                        <small>{info.category}</small>
+                      </div>
+                    </td>
+                    <td>
+                      <b>{units(a.amount)}</b>{" "}
+                      <span>
+                        {a.legacy
+                          ? a.stockId === "pUSDC"
+                            ? "pUSDC"
+                            : "demo stock"
+                          : a.stockId}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="table-proof-cell">
+                        <TransactionLink hash={a.hash} />
+                        {a.status === "Completed" && (
+                          <span className="onchain-pill" title="Verified on Portaldot block scanner">
+                            <Check size={11} /> On-chain
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <time dateTime={a.timestamp}>
+                        {new Date(a.timestamp).toLocaleString()}
+                      </time>
+                    </td>
+                    <td
+                      className={
+                        a.status === "Completed"
+                          ? "positive"
+                          : a.status === "Failed"
+                            ? "negative"
+                            : "muted"
+                      }
+                    >
+                      {a.status}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
         {((tab === "Vault positions" && !positions.length) ||
-          (tab === "History" && !vaultDeposits.length)) && (
+          (tab === "History" && !historyItems.length)) && (
           <div className="empty-state">
             {tab === "History"
-              ? "Your vault deposits will appear here."
+              ? "Your transaction history will appear here."
               : ready && !positionsReady
                 ? "Vault positions are currently unavailable."
                 : "No vault positions yet. Choose a strategy above to start earning."}

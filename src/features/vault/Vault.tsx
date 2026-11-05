@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import { StrategyCard } from "./StrategyCard";
 import { Portfolio } from "./Portfolio";
 import { useVaultMarketData } from "./useVaultMarketData";
+
 export function Vault() {
   const router = useRouter(),
     market = useVaultMarketData();
+
   return (
     <main className="page vault-page">
       <div className="hero">
