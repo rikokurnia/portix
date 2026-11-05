@@ -1,6 +1,8 @@
+import { encodeAddress } from "@polkadot/util-crypto";
 import {
   createPublicClient,
   http,
+  hexToBytes,
   isAddress,
   zeroAddress,
   parseAbi,
@@ -59,8 +61,11 @@ export const isolatedAccounting = true;
 export const vaultIntegrationIssue = "";
 export const explorerTransaction = (hash: string) =>
   `${portaldot.blockExplorers.default.url}#/extrinsics/${hash}`;
-export const explorerContract = (value: string) =>
-  `${portaldot.blockExplorers.default.url}#/contracts/${value}`;
+export const explorerContract = (value: string) => {
+  const accountId = new Uint8Array(32).fill(0xee);
+  accountId.set(hexToBytes(value as Address));
+  return `${portaldot.blockExplorers.default.url}#/accounts/${encodeAddress(accountId, 42)}`;
+};
 export function requireAddress(
   value: Address | undefined,
   label: string,

@@ -9,10 +9,9 @@ import {
 } from "@/lib/vault-market-data";
 import {
   contracts,
-  vaultAddress,
   explorerContract,
 } from "@/lib/onchain/contracts";
-import { money, stockIds, type VaultId } from "@/lib/assets";
+import { money, type VaultId } from "@/lib/assets";
 function ContractAddress({
   address,
   chain,
@@ -170,9 +169,6 @@ export function VaultAbout({
           {Object.entries({
             pUSDC: contracts.pUSDC,
             Market: contracts.market,
-            Oracle: contracts.oracle,
-            "Debt pool": contracts.debtPool,
-            "Vault factory": contracts.factory,
           }).map(([label, value]) => (
             <div key={label}>
               <span>{label}</span>
@@ -191,29 +187,7 @@ export function VaultAbout({
               )}
             </div>
           ))}
-          {stockIds.map((stock) => {
-            const target = vaultAddress(vaultId, stock);
-            return (
-              <div key={stock}>
-                <span>
-                  {stock} / {vaultId}
-                </span>
-                {target ? (
-                  <a
-                    href={explorerContract(target)}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={target}
-                  >
-                    {target.slice(0, 8)}…{target.slice(-6)}{" "}
-                    <ExternalLink size={12} />
-                  </a>
-                ) : (
-                  <b>Awaiting deployment</b>
-                )}
-              </div>
-            );
-          })}
+
         </div>
       </section>
       <section className="about-sources">
