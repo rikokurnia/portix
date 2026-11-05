@@ -1,143 +1,123 @@
 "use client";
-import { useEffect, useState } from "react";
-import { ArrowLeftRight, Pause, Play, RotateCcw } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Check, CheckCircle2, Circle, Loader2, XCircle } from "lucide-react";
 import { BrandIcon } from "@/components/shared/BrandIcon";
-import { protocols, vaultProtocols } from "@/lib/vault-market-data";
-import { stocks, type StockId, type VaultId } from "@/lib/assets";
+import { TransactionLink } from "@/components/shared/TransactionLink";
+import { usePortfolio } from "@/lib/portfolio-store";
+import { stocks } from "@/lib/assets";
+import { getVaultProcessState, type VaultProcess } from "./process-state";
+
 export function CarryFlow({
-  vaultId,
-  stockId,
+  process,
+  onHistory,
 }: {
-  vaultId: VaultId;
-  stockId: StockId;
-  run: number;
+  process: VaultProcess;
+  onHistory: () => void;
 }) {
-  const [stage, setStage] = useState(0),
-    [playing, setPlaying] = useState(false);
-  const descriptions = [
-    "Stock collateral keeps your equity exposure.",
-    "A 40% LTV sets the pUSDC borrowing allocation.",
-    vaultId === "pxPrime"
-      ? "The planned bridge route connects Portaldot to Base and Ethereum."
-      : "The planned bridge route connects Portaldot to Ethereum.",
-    "Borrowed liquidity is allocated to the destination strategy.",
-    "Vault shares represent your position and its proportional collateral.",
-  ];
+  const account = usePortfolio();
+  const ref = useRef<HTMLElement>(null);
   useEffect(() => {
-    if (!playing) return;
-    const timer = setInterval(() => setStage((s) => (s + 1) % 5), 2000);
-    return () => clearInterval(timer);
-  }, [playing]);
-  useEffect(() => {
-    const media = matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setPlaying(!media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
+    ref.current?.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
   }, []);
-  // The caller can restart this educational route when an account action begins.
+  if (account.address?.toLowerCase() !== process.owner.toLowerCase())
+    return null;
+  const { phase, hash, error } = getVaultProcessState(
+    process,
+    account.activity,
+  );
+  const terminal = phase === "confirmed" || phase === "failed";
+  const active = phase === "signing" ? 0 : phase === "confirming" ? 1 : 2;
   return (
     <section
-      className={`carry-flow panel ${playing ? "is-playing" : ""}`}
-      aria-label="How vault carry works"
+      ref={ref}
+      className="carry-flow panel vault-process"
+      aria-label="Vault transaction progress"
     >
       <div className="carry-flow-header">
-        <div>
-          <h3>One position. A multichain strategy.</h3>
-          <p>Explore the planned carry route.</p>
+        <div className="vault-process-identity">
+          <BrandIcon brand={process.vaultId} size={38} />
+          <div>
+            <h3>
+              {process.type === "Deposit"
+                ? "Depositing into"
+                : "Withdrawing from"}{" "}
+              {process.vaultId}
+            </h3>
+            <p>
+              <img
+                src={stocks[process.stockId].logo}
+                width={16}
+                height={16}
+                alt=""
+              />
+              {process.stockId} · Portaldot
+            </p>
+          </div>
         </div>
-        <div className="flow-controls">
-          <button
-            type="button"
-            aria-label={
-              playing ? "Pause route animation" : "Play route animation"
-            }
-            onClick={() => setPlaying((p) => !p)}
-          >
-            {playing ? <Pause size={16} /> : <Play size={16} />}
-          </button>
-          <button
-            type="button"
-            aria-label="Restart route animation"
-            onClick={() => {
-              setStage(0);
-              setPlaying(true);
-            }}
-          >
-            <RotateCcw size={16} />
-          </button>
-        </div>
+        <button
+          type="button"
+          className="vault-process-history"
+          onClick={onHistory}
+        >
+          View history
+        </button>
       </div>
-      <div className="flow-track">
-        {[
-          "Stock collateral",
-          "Borrow pUSDC",
-          "Portaldot bridge",
-          vaultId === "pxPrime" ? "Lending pools" : "Uniswap pool",
-          vaultId,
-        ].map((title, i) => (
-          <button
-            key={title}
-            type="button"
-            className={`flow-node ${stage === i ? "active" : ""}`}
-            aria-pressed={stage === i}
-            onClick={() => {
-              setStage(i);
-              setPlaying(false);
-            }}
-          >
-            <span className="flow-node-art">
-              {i === 0 ? (
-                <img src={stocks[stockId].logo} width="34" height="34" alt="" />
-              ) : i === 1 ? (
-                <img src="/assets/usdc.png" width="38" height="38" alt="USDC" />
-              ) : i === 2 ? (
-                <>
-                  <ArrowLeftRight size={24} />
-                  <img
-                    src="/assets/portaldot.png"
-                    width="29"
-                    height="29"
-                    alt="Portaldot"
-                  />
-                </>
-              ) : i === 3 ? (
-                <span className="flow-protocols">
-                  {vaultProtocols[vaultId].map((id) => (
-                    <img
-                      src={protocols[id].logo}
-                      key={id}
-                      width="30"
-                      height="30"
-                      alt={protocols[id].name}
-                    />
-                  ))}
-                </span>
-              ) : (
-                <BrandIcon brand={vaultId} size={42} />
-              )}
-            </span>
-            <strong>{title}</strong>
-            <small>
-              {
-                [
-                  "Keep exposure",
-                  "40% initial LTV",
-                  vaultId === "pxPrime" ? "Base / Ethereum" : "Ethereum",
-                  vaultId === "pxPrime"
-                    ? "Morpho · Aave · Compound"
-                    : "USDC / WETH",
-                  "Vault receipt",
-                ][i]
+      <ol className="vault-process-steps" aria-label="Transaction stages">
+        {["Wallet signature", "Network confirmation", "Complete"].map(
+          (label, index) => (
+            <li
+              key={label}
+              className={
+                index < active || phase === "confirmed"
+                  ? "complete"
+                  : index === active
+                    ? "current"
+                    : ""
               }
-            </small>
-          </button>
-        ))}
+              aria-current={index === active && !terminal ? "step" : undefined}
+            >
+              <span>
+                {phase === "failed" && index === active ? (
+                  <XCircle size={19} />
+                ) : index < active || phase === "confirmed" ? (
+                  <Check size={18} />
+                ) : index === active ? (
+                  <Loader2 size={18} className="process-spinner" />
+                ) : (
+                  <Circle size={18} />
+                )}
+              </span>
+              {label}
+            </li>
+          ),
+        )}
+      </ol>
+      <div className="vault-process-result" role="status" aria-live="polite">
+        {phase === "confirmed" ? (
+          <>
+            <CheckCircle2 size={18} />
+            <span>{process.type} confirmed</span>
+          </>
+        ) : phase === "failed" ? (
+          <>
+            <XCircle size={18} />
+            <span>{error || "Transaction failed."}</span>
+          </>
+        ) : (
+          <span>
+            {account.pending ||
+              (phase === "confirming"
+                ? "Waiting for network confirmation…"
+                : "Continue in your wallet…")}
+          </span>
+        )}
       </div>
-      <p className="flow-caption">
-        {descriptions[stage]}{" "}
-        <span>Bridge execution is not connected.</span>
-      </p>
+      {hash && (
+        <div className="vault-process-proof">
+          <span>Transaction</span>
+          <TransactionLink hash={hash} />
+        </div>
+      )}
     </section>
   );
 }

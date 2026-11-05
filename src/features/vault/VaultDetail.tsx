@@ -20,6 +20,8 @@ import {
 import { useVaultMarketData } from "./useVaultMarketData";
 import { VaultForm } from "./VaultForm";
 import { VaultAbout } from "./VaultAbout";
+import { VaultHistory } from "./VaultHistory";
+import type { VaultProcess } from "./process-state";
 import { CarryFlow } from "./CarryFlow";
 import "./vault.css";
 const Chart = dynamic(
@@ -39,10 +41,10 @@ export function VaultDetail({ vaultId }: { vaultId: VaultId }) {
       : "GOOGL",
     initialMode = search.get("mode") === "withdraw" ? "Withdraw" : "Deposit";
   const market = useVaultMarketData(),
-    [tab, setTab] = useState<"Chart" | "About">("Chart"),
+    [tab, setTab] = useState<"Chart" | "About" | "History">("Chart"),
     [days, setDays] = useState(7),
-    [stock, setStock] = useState<StockId>(initialStock),
-    [run, setRun] = useState(0);
+    [, setStock] = useState<StockId>(initialStock),
+    [process, setProcess] = useState<VaultProcess | null>(null);
   const summary = summarizeVault(vaultId, market.histories),
     ids = vaultProtocols[vaultId],
     hasData = ids.every((id) => market.histories[id]?.length);
@@ -118,7 +120,7 @@ export function VaultDetail({ vaultId }: { vaultId: VaultId }) {
             role="tablist"
             aria-label="Vault information"
           >
-            {(["Chart", "About"] as const).map((t) => (
+            {(["Chart", "About", "History"] as const).map((t) => (
               <button
                 type="button"
                 key={t}
@@ -126,7 +128,7 @@ export function VaultDetail({ vaultId }: { vaultId: VaultId }) {
                 id={`vault-tab-${t}`}
                 aria-controls="vault-information-content"
                 aria-selected={tab === t}
-                onClick={() => setTab(t)}
+                onClick={() => {setTab(t); if(t === "History") setProcess(null);}}
               >
                 {t}
               </button>
@@ -205,7 +207,7 @@ export function VaultDetail({ vaultId }: { vaultId: VaultId }) {
                   <span>Auto-refresh 60s</span>
                 </div>
               </>
-            ) : (
+            ) : tab === "History" ? <VaultHistory vaultId={vaultId} /> : (
               <VaultAbout vaultId={vaultId} histories={market.histories} />
             )}
           </div>
@@ -224,15 +226,16 @@ export function VaultDetail({ vaultId }: { vaultId: VaultId }) {
           initialStock={initialStock}
           initialMode={initialMode}
           onStockChange={setStock}
-          onProcess={() => setRun((r) => r + 1)}
+          onProcess={(event) => {
+            if(event.type === 'start') setProcess(event.process);
+            else {
+              setProcess(current => current?.id === event.id ? null : current);
+              if (event.result.ok) {setTab('History');document.getElementById('vault-tab-History')?.focus();}
+            }
+          }}
         />
       </div>
-      <CarryFlow
-        key={`${vaultId}-${run}`}
-        vaultId={vaultId}
-        stockId={stock}
-        run={run}
-      />
+      {process && tab !== 'History' && <CarryFlow process={process} onHistory={() => {setTab('History');setProcess(null);document.getElementById('vault-tab-History')?.focus();}} />}
     </main>
   );
 }

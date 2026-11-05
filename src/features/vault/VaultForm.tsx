@@ -15,6 +15,7 @@ import {
 } from "@/lib/assets";
 import { usePortfolio } from "@/lib/portfolio-store";
 import { vaultIntegrationIssue } from "@/lib/onchain/contracts";
+import type { VaultProcessEvent } from "./process-state";
 import { useQuote } from "@/lib/onchain/useQuote";
 export function VaultForm({
   vaultId,
@@ -26,7 +27,7 @@ export function VaultForm({
   vaultId: VaultId;
   initialStock: StockId;
   initialMode: "Deposit" | "Withdraw";
-  onProcess: () => void;
+  onProcess: (event: VaultProcessEvent) => void;
   onStockChange: (id: StockId) => void;
 }) {
   const account = usePortfolio();
@@ -86,15 +87,21 @@ export function VaultForm({
     lock.current = true;
     setWorking(true);
     setError("");
-    onProcess();
+    const processId = `${Date.now()}:${mode}:${selectedStockId}`;
+    onProcess({type:'start',process:{id:processId,owner:account.address!,stockId:selectedStockId,vaultId,type:mode,existingHashes:account.activity.map(a=>a.hash)}});
     try {
       const result = deposit
         ? await account.depositToVault(vaultId, selectedStockId, amount)
         : await account.withdrawFromVault(vaultId, selectedStockId, amount);
+      onProcess({type:"settled",id:processId,result});
       if (result.ok) {
         setHash(result.hash);
         setAmount("");
       } else setError(result.error);
+    } catch {
+      const error = 'The request could not be completed. Check History before retrying.';
+      setError(error);
+      onProcess({type:'settled',id:processId,result:{ok:false,error}});
     } finally {
       lock.current = false;
       setWorking(false);

@@ -38,6 +38,7 @@ export function Portfolio({
       pending,
     } = usePortfolio(),
     [tab, setTab] = useState("Vault positions");
+  const vaultDeposits = activity.filter(a => a.type === "Deposit");
   const earned = positions.reduce((sum, p) => sum + p.earnedYield, 0),
     value =
       stockIds.reduce(
@@ -105,7 +106,7 @@ export function Portfolio({
         role="tablist"
         aria-label="Portfolio views"
       >
-        {["Vault positions", "Wallet stocks", "Activity"].map((t) => (
+        {["Vault positions", "Wallet stocks", "History"].map((t) => (
           <button
             key={t}
             role="tab"
@@ -263,7 +264,7 @@ export function Portfolio({
               </tr>
             </thead>
             <tbody>
-              {activity.map((a) => (
+              {vaultDeposits.map((a) => (
                 <tr key={a.id}>
                   <td>
                     {a.type}
@@ -295,10 +296,10 @@ export function Portfolio({
           </table>
         )}
         {((tab === "Vault positions" && !positions.length) ||
-          (tab === "Activity" && !activity.length)) && (
+          (tab === "History" && !vaultDeposits.length)) && (
           <div className="empty-state">
-            {tab === "Activity"
-              ? "Your activity will appear here after your first trade or vault action."
+            {tab === "History"
+              ? "Your vault deposits will appear here."
               : ready && !positionsReady
                 ? "Vault positions are currently unavailable."
                 : "No vault positions yet. Choose a strategy above to start earning."}

@@ -814,3 +814,32 @@
   font-size: 12px;
   text-align: center;
 }
+
+/* Receipt-driven transaction progress; no simulated protocol/bridge stages. */
+.vault-process-identity { display: flex; align-items: center; gap: 12px; }
+.vault-process-identity p { display: flex; align-items: center; gap: 6px; }
+.vault-process-history { color: var(--accent, #be8af5); font-size: 13px; white-space: nowrap; }
+.vault-process-steps { display: grid; grid-template-columns: repeat(3, 1fr); list-style: none; padding: 0; margin: 26px 0; gap: 16px; }
+.vault-process-steps li { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; border-top: 2px solid #be8af526; padding-top: 14px; }
+.vault-process-steps li.current { color: #f4b64f; border-color: #f4b64f; }
+.vault-process-steps li.complete { color: #75e2c1; border-color: #75e2c1; }
+.vault-process-steps li > span { display: inline-flex; flex-shrink: 0; }
+.vault-process-result { display: flex; align-items: center; gap: 8px; font-size: 14px; overflow-wrap: anywhere; }
+.vault-process-proof { display: flex; align-items: center; gap: 16px; margin-top: 16px; color: var(--muted); font-size: 12px; }
+.vault-process-proof .transaction-link { margin: 0; }
+.process-spinner { animation: process-spin 1s linear infinite; }
+@keyframes process-spin { to { transform: rotate(360deg); } }
+.vault-detail-history { padding-top: 20px; }
+.vault-detail-history h2 { font-size: 19px; }
+.vault-history-list { padding: 0; list-style: none; margin: 16px 0 0; }
+.vault-history-list li { padding: 18px 0; border-bottom: 1px solid #be8af526; }
+.vault-history-main, .vault-history-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.vault-history-asset { display: flex; align-items: center; gap: 10px; }
+.vault-history-asset small { display: block; color: var(--muted); margin-top: 4px; }
+.vault-history-meta { margin-top: 10px; color: var(--muted); font-size: 11px; flex-wrap: wrap; }
+@media (max-width: 600px) {
+  .vault-process .carry-flow-header { align-items: flex-start; gap: 12px; }
+  .vault-process-steps { gap: 8px; }
+  .vault-process-steps li { flex-direction: column; align-items: flex-start; font-size: 12px; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .process-spinner { animation: none; } }
