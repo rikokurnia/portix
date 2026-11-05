@@ -17,6 +17,7 @@ import {
   summarizeVault,
   formatBenchmarkTVL,
 } from "@/lib/vault-market-data";
+import { PoolVolume } from "./PoolVolume";
 import { useVaultMarketData } from "./useVaultMarketData";
 import { VaultForm } from "./VaultForm";
 import { VaultAbout } from "./VaultAbout";
@@ -108,6 +109,7 @@ export function VaultDetail({ vaultId }: { vaultId: VaultId }) {
             <div>
               <span>Benchmark TVL</span>
               <b>{summary ? formatBenchmarkTVL(summary.tvl) : "—"}</b>
+          <PoolVolume vaultId={vaultId} benchmarkTVL={summary?.tvl}/>
             </div>
             <div>
               <span>Initial LTV</span>
@@ -164,7 +166,7 @@ export function VaultDetail({ vaultId }: { vaultId: VaultId }) {
                     <p>
                       {vaultId === "pxPrime"
                         ? "Morpho · Aave V3 · Compound III"
-                        : "USDC / WETH · 0.05% pool"}
+                        : "Uniswap V3 · USDC / WETH · 0.05% fee"}
                     </p>
                   </div>
                   <button

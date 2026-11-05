@@ -24,6 +24,7 @@ export type ActivityType =
   | "Approve";
 export interface Activity {
   usdcAmount?:number;
+  spend?:number;
   rawAmount?:string;
   sharesMinted?:string;
   stockReturned?:string;

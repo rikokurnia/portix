@@ -1,11 +1,11 @@
 "use client";
 import { TransactionLink } from "@/components/shared/TransactionLink";
 import { usePortfolio } from "@/lib/portfolio-store";
-import { stocks, units, type VaultId, type StockId } from "@/lib/assets";
+import { stocks, units, money, type VaultId, type StockId } from "@/lib/assets";
 import { Check } from "lucide-react";
 
 export function VaultHistory({ vaultId }: { vaultId: VaultId }) {
-  const { address, activity } = usePortfolio();
+  const { address, activity, prices } = usePortfolio();
   const entries = activity.filter(
     (a) => a.type === "Deposit" && a.vaultId === vaultId,
   );
@@ -45,6 +45,7 @@ export function VaultHistory({ vaultId }: { vaultId: VaultId }) {
                     <small>
                       {units(a.amount)} {a.stockId}
                     </small>
+                    {a.stockId!=="pUSDC"&&prices[a.stockId]&&<small>≈ {money(a.amount*prices[a.stockId]!)} pUSDC</small>}
                   </div>
                 </div>
                 <div className="vault-history-status-block">

@@ -4,11 +4,12 @@ import { parseUnits } from "viem";
 import { ArrowUpDown, CheckCircle2 } from "lucide-react";
 import { Modal } from "@/components/shared/Modal";
 import { TransactionLink } from "@/components/shared/TransactionLink";
+import { getPortfolioSnapshot } from "@/lib/portfolio-store";
 import { usePortfolio } from "@/lib/portfolio-store";
 import { vaultIntegrationIssue } from "@/lib/onchain/contracts";
+import { useStockHistory } from "./useStockHistory";
 import { useQuote } from "@/lib/onchain/useQuote";
 import { stocks, money, units, type StockId } from "@/lib/assets";
-import { BASELINE_MARKET_STOCKS } from "./fixtures";
 export function TradeModal({
   stockId,
   mode,
@@ -18,12 +19,14 @@ export function TradeModal({
   mode: "Buy" | "Sell";
   onClose: () => void;
 }) {
+  const history=useStockHistory(stockId);
   const account = usePortfolio(),
     stock = stocks[stockId],
     buy = mode === "Buy";
   const [input, setInput] = useState(""),
     [error, setError] = useState(""),
     [hash, setHash] = useState(""),
+    [confirmed,setConfirmed]=useState<{amount:number;usdcAmount?:number}>(),
     [working, setWorking] = useState(false);
   const lock = useRef(false);
   const {
@@ -33,8 +36,7 @@ export function TradeModal({
   } = useQuote(mode, stockId, input);
   const n = Number(input),
     limit = buy ? account.pUSDC : account.stockBalances[stockId],
-    oraclePrice =
-      account.prices[stockId] ?? BASELINE_MARKET_STOCKS[stockId]?.price ?? 300;
+    oraclePrice = history.price > 0 ? history.price : account.prices[stockId];
   const valid =
     !!account.address &&
     account.ready &&
@@ -57,7 +59,7 @@ export function TradeModal({
       const result = buy
         ? await account.buyStock(stockId, quote.receive, n)
         : await account.sellStock(stockId, input);
-      if (result.ok) setHash(result.hash);
+      if (result.ok) {const event=getPortfolioSnapshot().activity.find(a=>a.hash===result.hash);if(event)setConfirmed({amount:event.amount,usdcAmount:event.usdcAmount});setHash(result.hash); }
       else setError(result.error);
     } finally {
       lock.current = false;
@@ -80,10 +82,10 @@ export function TradeModal({
         <div className="trade-success" role="status">
           <CheckCircle2 size={40} className="positive" />
           <h3>{buy ? "Purchase" : "Sale"} confirmed</h3>
-          {quote && (
+          {confirmed && (
             <p className="trade-receipt-amount" style={{ fontSize: "15px", fontWeight: 600, margin: "6px 0 12px", display: "inline-flex", alignItems: "center", gap: "6px" }}>
               <span className="muted" style={{ fontWeight: 400 }}>Received:</span>
-              <b>{units(quote.receive)}</b>
+              <b>{buy?units(confirmed.amount):confirmed.usdcAmount!==undefined?units(confirmed.usdcAmount):"—"}</b>
               {buy ? (
                 <span>{stockId}</span>
               ) : (
@@ -94,6 +96,7 @@ export function TradeModal({
               )}
             </p>
           )}
+          {buy&&confirmed?.usdcAmount!==undefined&&<p className="muted">Spent {units(confirmed.usdcAmount)} pUSDC</p>}
           <TransactionLink hash={hash} />
           <p className="muted">Saved to your portfolio Activity.</p>
           <button className="button" onClick={onClose}>
@@ -204,13 +207,14 @@ export function TradeModal({
           <div className="trade-review-box">
             <dl style={{ margin: 0 }}>
               <div className="trade-review-row">
-                <dt>Oracle price</dt>
+                <dt>Live equity price</dt>
                 <dd>
                   {oraclePrice
                     ? money(oraclePrice)
                     : "—"}
                 </dd>
               </div>
+              <div className="trade-review-row"><dt>Testnet settlement price</dt><dd>{account.settlementPrices[stockId]?money(account.settlementPrices[stockId]!):"—"}</dd></div>
               <div className="trade-review-row">
                 <dt>
                   Trading fee

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { TransactionLink } from "@/components/shared/TransactionLink";
@@ -14,6 +14,9 @@ import {
   type StockId,
   type VaultId,
 } from "@/lib/assets";
+import { useVaultMarketData } from "./useVaultMarketData";
+import { summarizeVault } from "@/lib/vault-market-data";
+import { projectedYield } from "@/lib/yield-projection";
 import { usePortfolio, type Activity } from "@/lib/portfolio-store";
 
 function getHistoryActionDetails(a: Activity) {
@@ -77,6 +80,7 @@ export function Portfolio({
       positions,
       activity,
       prices,
+      settlementPrices,
       ready,
       stockReady,
       positionsReady,
@@ -86,8 +90,12 @@ export function Portfolio({
     } = usePortfolio(),
     [tab, setTab] = useState("Vault positions");
 
+  const market=useVaultMarketData();
+  const [now,setNow]=useState(0);
+  useEffect(()=>{const id=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(id);},[]);
+  const projection=(p:typeof positions[number])=>projectedYield(p,activity,summarizeVault(p.vaultId,market.histories)?.apy,settlementPrices[p.stockId],now);
   const historyItems = activity;
-  const earned = positions.reduce((sum, p) => sum + p.earnedYield, 0),
+  const earned = positions.reduce((sum, p) => sum + (projection(p)??0), 0),
     value =
       stockIds.reduce(
         (sum, id) => sum + stockBalances[id] * (prices[id] ?? 0),
@@ -97,7 +105,6 @@ export function Portfolio({
         (sum, p) => sum + p.collateral * (prices[p.stockId] ?? 0),
         0,
       ) +
-      earned +
       pUSDC;
   return (
     <Panel className="portfolio">
@@ -139,9 +146,9 @@ export function Portfolio({
           </strong>
         </div>
         <div>
-          <span>Earned yield</span>
+          <span>Projected gross yield</span>
           <strong className="positive">
-            {ready && positionsReady ? money(earned) : "—"}
+            {ready && positionsReady && positions.every(p=>projection(p)!==undefined) ? money(earned) : "—"}
           </strong>
         </div>
         <div>
@@ -192,7 +199,7 @@ export function Portfolio({
                 <th>Vault</th>
                 <th>Collateral / shares</th>
                 <th>Value</th>
-                <th>Earned</th>
+                <th title="Time-based estimate using the latest benchmark APY on 40% borrowed allocation; not a claimable balance.">Projected yield</th>
                 <th>Health</th>
                 <th>Action</th>
               </tr>
@@ -227,7 +234,7 @@ export function Portfolio({
                       ? money(p.collateral * prices[p.stockId]!)
                       : "—"}
                   </td>
-                  <td className="positive">+{money(p.earnedYield)}</td>
+                  <td className="positive" title="Benchmark projection, not earned or claimable funds">{projection(p)===undefined?"—":`+${money(projection(p)!)}`}</td>
                   <td>
                     <span className={p.healthy ? "positive" : "negative"}>
                       {p.healthy ? "Healthy" : "At risk"}
@@ -365,7 +372,7 @@ export function Portfolio({
                             />
                           )
                         )}
-                        <b>{units(a.amount)}</b>{" "}
+                        <b>{units(a.type==="Withdraw"?Number(a.stockReturned??a.amount/3):a.amount)}</b>{" "}
                         <span>
                           {a.legacy
                             ? a.stockId === "pUSDC"
@@ -374,6 +381,7 @@ export function Portfolio({
                             : a.stockId}
                         </span>
                       </div>
+                      {a.stockId!=="pUSDC"&&<small>{(a.usdcAmount??a.spend)!==undefined?`${units((a.usdcAmount??a.spend)!)} pUSDC ${a.type==="Buy"?(a.status==="Completed"?"spent":"to spend"):"received"}`:prices[a.stockId]?`≈ ${money((a.type==="Withdraw"?Number(a.stockReturned??a.amount/3):a.amount)*prices[a.stockId]!)} pUSDC`:"— pUSDC"}</small>}
                     </td>
                     <td>
                       <div className="table-proof-cell">

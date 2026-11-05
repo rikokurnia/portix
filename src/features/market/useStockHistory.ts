@@ -1,5 +1,6 @@
 "use client";
 
+import { publishBenchmarkPrice } from "@/lib/portfolio-store";
 import { useEffect, useSyncExternalStore } from "react";
 import type { StockId } from "@/lib/assets";
 import type { CandleData, Timeframe } from "./types";
@@ -72,6 +73,7 @@ async function refresh(id: StockId, timeframe: Timeframe) {
           price: c.close,
         }));
 
+    if(data.available !== false && price>0)publishBenchmarkPrice(id,price);
     cache.set(key, {
       ticker: id,
       price,

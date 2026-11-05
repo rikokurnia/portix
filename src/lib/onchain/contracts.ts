@@ -93,6 +93,7 @@ export function transactionError(error: unknown): string {
   if (/timeout|timed out/i.test(text))
     return "Confirmation is taking longer than expected. Check Activity before trying again.";
   if (/awaiting its deployment address/.test(text)) return text;
+  if (/^(Not enough spendable tPOT|Contract simulation failed\.|Account mapping is not active\.|Settlement price unavailable)/.test(text)) return text;
   if (/liquidity/i.test(text))
     return "The pool does not have enough liquidity for this amount.";
   if (/chain|network/i.test(text))

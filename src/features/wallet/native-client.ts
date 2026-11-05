@@ -3,7 +3,7 @@ import type { Signer, SubmittableExtrinsic } from '@polkadot/api/types';
 import type { EventRecord } from "@polkadot/types/interfaces";
 import type { Vec } from "@polkadot/types";
 import type { ISubmittableResult } from '@polkadot/types/types';
-import { encodeFunctionData, type Abi, type Address, type Hash } from 'viem';
+import { encodeFunctionData, type Abi, type Address, type Hash, type Hex } from 'viem';
 import { nativeEvmAddress } from './native-address';
 export const nativeGenesis='0xd4f9acbcf7f52388d8b095abe3c198d19fc510e0343e643e87cfbccb155283bd';
 let pending:Promise<ApiPromise>|undefined;
@@ -14,7 +14,7 @@ export function nativeApi(){
  }).catch(error=>{pending=undefined;throw error;});
  return pending;
 }
-export type NativeStage={hash:Hash;status:'Pending'|'Completed'|'Failed';fromBlock:number;blockHash?:Hash};
+export type NativeStage={logs?:{address:string;data:Hex;topics:Hex[]}[];hash:Hash;status:'Pending'|'Completed'|'Failed';fromBlock:number;blockHash?:Hash};
 function failed(api:ApiPromise,result:ISubmittableResult){
  if(result.dispatchError){const e=result.dispatchError;if(e.isModule){const meta=api.registry.findMetaError(e.asModule);return `${meta.section}.${meta.name}`;}return e.toString();}
  const reverted=result.events.some(({event})=>event.section==='revive'&&event.method==='EthExtrinsicRevert');
@@ -31,7 +31,8 @@ export async function submitNative(api:ApiPromise,tx:SubmittableExtrinsic<'promi
    if(result.status.isInvalid||result.status.isDropped||result.status.isUsurped){onStage({hash,status:'Failed',fromBlock});finish(new Error('Transaction was not included.'));return;}
    if(result.status.isInBlock||result.status.isFinalized){
     const error=failed(api,result);const blockHash=(result.status.isFinalized?result.status.asFinalized:result.status.asInBlock).toHex() as Hash;
-    onStage({hash,status:error?'Failed':'Completed',fromBlock,blockHash});
+    const logs=result.events.filter(({event})=>event.section==='revive'&&event.method==='ContractEmitted').map(({event})=>({address:event.data[0].toString(),data:event.data[1].toString() as Hex,topics:Array.from(event.data[2] as unknown as Iterable<{toHex:()=>Hex}>,x=>x.toHex())}));
+    onStage({logs,hash,status:error?'Failed':'Completed',fromBlock,blockHash});
     if(error)finish(new Error(error));else finish(undefined,hash);
    }else onStage({hash,status:'Pending',fromBlock});
   }).then(unsub=>{stop=unsub;if(settled)unsub();}).catch(error=>finish(error instanceof Error?error:new Error('Wallet request failed.')));

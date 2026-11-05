@@ -12,6 +12,7 @@ import {
   summarizeVault,
   formatBenchmarkTVL,
 } from "@/lib/vault-market-data";
+import { PoolVolume } from "./PoolVolume";
 import { useVaultMarketData } from "./useVaultMarketData";
 const Chart = dynamic(
   () => import("@/components/shared/Chart").then((module) => module.Chart),
@@ -99,6 +100,7 @@ export function StrategyCard({
         <div>
           <span>Benchmark TVL</span>
           <b>{summary ? formatBenchmarkTVL(summary.tvl) : "—"}</b>
+          <PoolVolume vaultId={vaultId} benchmarkTVL={summary?.tvl}/>
         </div>
         <div>
           <span>Initial LTV</span>

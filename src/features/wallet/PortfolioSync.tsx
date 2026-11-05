@@ -6,7 +6,6 @@ import {
   createWalletClient,
   custom,
   parseUnits,
-  decodeEventLog,
   formatUnits,
   type Abi,
   type Address,
@@ -15,6 +14,7 @@ import { useNativeWallet } from "./NativeWalletProvider";
 import { nativeEvmAddress } from "./native-address";
 import { useWalletSelection } from "./selection";
 import { portaldot } from "./chain";
+import { confirmedAmounts } from "@/lib/onchain/activity-amounts";
 import { readAccount, readMarket } from "@/lib/onchain/account";
 import {
   isolatedAccounting,
@@ -23,7 +23,6 @@ import {
   publicClient,
   tokenAbi,
   marketAbi,
-  stockBoughtAbi,
   vaultAbi,
   stockAddress,
   vaultAddress,
@@ -86,7 +85,8 @@ function Sync({selected}:{selected?:ReturnType<typeof useWallets>["wallets"][num
       if (current()) {
         if (market.status === "fulfilled")
           updatePortfolio({
-            prices: market.value.prices,
+            prices: {...getPortfolioSnapshot().prices,...market.value.prices},
+            settlementPrices:market.value.settlementPrices,
             feeBps: market.value.feeBps,
           });
         if (account.status === "fulfilled" && account.value)
@@ -196,8 +196,17 @@ function Sync({selected}:{selected?:ReturnType<typeof useWallets>["wallets"][num
             abi: Abi,
             functionName: string,
             args: readonly unknown[],
-            event: Pick<Activity, "type" | "stockId" | "amount" | "vaultId">,
+            event: Pick<Activity, "type" | "stockId" | "amount" | "vaultId"> & Partial<Pick<Activity,"usdcAmount"|"rawAmount"|"stockReturned"|"sharesMinted"|"settlementPrice">>,
           ) {
+            const settlementPrice=event.stockId === "pUSDC"?1:getPortfolioSnapshot().settlementPrices[event.stockId];
+            if(event.type === "Buy"&&event.usdcAmount===undefined&&"spend" in command)event={...event,usdcAmount:command.spend};
+            if((event.type === "Deposit"||event.type === "Withdraw")&&"rawAmount" in command){
+              const input=parseUnits(command.rawAmount??String(command.amount),18);
+              if(target.toLowerCase()===legacyAddress.toLowerCase()){
+                const result=await publicClient.readContract({address:target,abi:legacyAbi,functionName:event.type==="Deposit"?"previewDepositCarry":"previewWithdrawCarry",args:[input]});
+                event={...event,rawAmount:formatUnits(input,18),settlementPrice,...(event.type==="Deposit"?{sharesMinted:formatUnits(result[0],18)}:{stockReturned:formatUnits(result[0],18)})};
+              }
+            }
             await assertOwner();
             if (!(await publicClient.getCode({ address: target })))
               throw new Error("Contract is not available on this network.");
@@ -210,11 +219,19 @@ function Sync({selected}:{selected?:ReturnType<typeof useWallets>["wallets"][num
             if(nativeSigner?.selected && nativeSigner.signer){
               const {sendNative}=await import("./native-client");
               let entry:Activity|undefined;
+              let includedBlock: `0x${string}` | undefined;
               const hash=await sendNative(nativeSigner.selected.address,nativeSigner.signer,target,abi,functionName,args,stage=>{
+                if(stage.blockHash)includedBlock=stage.blockHash;
                 entry={...event,id:stage.hash,hash:stage.hash,timestamp:entry?.timestamp??new Date().toISOString(),status:stage.status,transport:"substrate",fromBlock:stage.fromBlock,blockHash:stage.blockHash,legacy:command.legacy};
+                if(stage.status === "Completed" && stage.logs)entry=confirmedAmounts(entry,stage.logs,owner!,contracts.pUSDC!,target);
                 recordActivity(owner!,entry);
                 if(current())updatePortfolio({pending:stage.status==="Pending"?"Waiting for Portaldot confirmation…":"Refreshing balances…"});
               },()=>{if(!current()||nativeRef.current.selected?.address!==nativeAddress)throw new Error("Wallet changed.");});
+              if(includedBlock){
+                try{const {nativeApi}=await import("./native-client");const api=await nativeApi();const height=(await api.rpc.chain.getHeader(includedBlock)).number.toBigInt();
+                  for(let attempt=0;attempt<20;attempt++){if(await publicClient.getBlockNumber()>=height)break;await new Promise(resolve=>setTimeout(resolve,1000));}
+                }catch{/* Confirmation stands; periodic refresh recovers delayed EVM indexing. */}
+              }
               return hash;
             }
             const { request } = await publicClient.simulateContract({
@@ -253,28 +270,7 @@ function Sync({selected}:{selected?:ReturnType<typeof useWallets>["wallets"][num
                 recordActivity(owner!, entry);
               },
             });
-            if (receipt.status === "success" && event.type === "Buy") {
-              for (const log of receipt.logs)
-                try {
-                  const decoded = decodeEventLog({
-                    abi: stockBoughtAbi,
-                    data: log.data,
-                    topics: log.topics,
-                  });
-                  if (
-                    decoded.eventName === "StockBought" &&
-                    log.address.toLowerCase() === target.toLowerCase()
-                  ) {
-                    const args = decoded.args;
-                    entry = {
-                      ...entry,
-                      amount: Number(formatUnits(args.stockAmount, 18)),
-                    };
-                  }
-                } catch {
-                  /* Other token and approval events share the receipt. */
-                }
-            }
+            if(receipt.status === "success")entry=confirmedAmounts(entry,receipt.logs,owner!,contracts.pUSDC!,target);
             recordActivity(owner!, {
               ...entry,
               status:
@@ -332,12 +328,13 @@ function Sync({selected}:{selected?:ReturnType<typeof useWallets>["wallets"][num
               await approve(settlement,legacyAddress,spend,"pUSDC",6);
               const fee = (spend * 10n) / 10000n;
               const netSpend = spend - fee;
-              const livePrice = getPortfolioSnapshot().prices[command.stockId];
-              const stockPrice = typeof livePrice === "number" && livePrice > 0 ? livePrice : 300;
+              const livePrice = getPortfolioSnapshot().settlementPrices[command.stockId];
+              if(!livePrice || livePrice<=0)throw new Error("Settlement price unavailable");
+              const stockPrice = livePrice;
               const priceUsd6 = parseUnits(stockPrice.toFixed(6), 6);
               const stockAmount = (netSpend * 10n**18n) / priceUsd6;
               const buyAmount = Number(formatUnits(stockAmount, 18));
-              const buyEvent = { ...command, amount: buyAmount > 0 ? buyAmount : command.amount };
+              const buyEvent = { ...command, amount: buyAmount > 0 ? buyAmount : command.amount,usdcAmount:Number(formatUnits(spend,6)) };
               hash = await send(legacyAddress,marketAbi,"buyStockWithExactUSDC",[legacyAddress,spend],buyEvent);
             } else if (command.type === "Sell") {
               const quote = await publicClient.readContract({address:legacyAddress,abi:marketAbi,functionName:"quoteSell",args:[legacyAddress,raw]}) as readonly bigint[];
@@ -377,7 +374,7 @@ function Sync({selected}:{selected?:ReturnType<typeof useWallets>["wallets"][num
                   marketAbi,
                   "buyStockWithExactUSDC",
                   [token, spend],
-                  command,
+                  {...command,usdcAmount:Number(formatUnits(spend,6))},
                 );
               } else {
                 const quote = (await publicClient.readContract({
@@ -424,6 +421,11 @@ function Sync({selected}:{selected?:ReturnType<typeof useWallets>["wallets"][num
                 vaultSettlement.toLowerCase() !== settlement.toLowerCase()
               )
                 throw new Error("Vault configuration mismatch.");
+              if(command.type === "Withdraw" && target.toLowerCase()===legacyAddress.toLowerCase()){
+                const quote=await publicClient.readContract({address:target,abi:legacyAbi,functionName:"previewWithdrawCarry",args:[raw]});
+                const liquidity=await publicClient.readContract({address:settlement,abi:tokenAbi,functionName:"balanceOf",args:[target]});
+                if(liquidity<quote[3])throw new Error("Insufficient settlement liquidity");
+              }
               if (
                 command.type === "Deposit" &&
                 token.toLowerCase() !== target.toLowerCase()
@@ -431,7 +433,7 @@ function Sync({selected}:{selected?:ReturnType<typeof useWallets>["wallets"][num
                 await approve(token, target, raw, command.stockId, 18);
               hash = await send(
                 target,
-                vaultAbi,
+                target.toLowerCase()===legacyAddress.toLowerCase()?legacyAbi:vaultAbi,
                 command.type === "Deposit"
                   ? "depositAndInvest"
                   : "withdrawWithYield",

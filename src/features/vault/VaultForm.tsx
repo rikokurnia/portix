@@ -1,7 +1,8 @@
 "use client";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { parseUnits } from "viem";
+import { price6,usdToStock,usdToShares,rawAmountUsd } from "@/lib/vault-amounts";
+import { formatUnits, parseUnits } from "viem";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/shared/Button";
 import { TransactionLink } from "@/components/shared/TransactionLink";
@@ -36,7 +37,8 @@ export function VaultForm({
     [amount, setAmount] = useState(""),
     [error, setError] = useState(""),
     [hash, setHash] = useState(""),
-    [working, setWorking] = useState(false);
+    [working, setWorking] = useState(false),
+    [exact,setExact]=useState<{key:string;raw:string}>();
   const lock = useRef(false),
     deposit = mode === "Deposit";
 
@@ -58,12 +60,17 @@ export function VaultForm({
   const rawLimit = deposit
     ? (account.rawStockBalances[selectedStockId] ?? "0")
     : (position?.rawShares ?? "0");
-  const n = Number(amount),
-    {
-      configured,
-      quote,
-      error: quoteError,
-    } = useQuote(mode, selectedStockId, amount, vaultId);
+  const valuationPrice=account.prices[selectedStockId]??account.settlementPrices[selectedStockId];
+  const marketPrice=price6(valuationPrice);
+  const rawShares=parseUnits(position?.rawShares??"0",18);
+  const rawCollateral=parseUnits(position?.rawCollateral??String(position?.collateral??0),18);
+  const inputValid=/^\d*\.?\d{0,6}$/.test(amount)&&Number(amount)>0;
+  const rawUnits=exact?.key===amount?parseUnits(exact.raw,18):inputValid?(deposit?usdToStock(amount,marketPrice):usdToShares(amount,rawShares,rawCollateral,marketPrice)):0n;
+  const rawInput=rawUnits>0n?formatUnits(rawUnits,18):"";
+  const usdLimit=rawAmountUsd(parseUnits(rawLimit,18),mode,marketPrice,rawShares,rawCollateral);
+  const n=Number(amount);
+  const {configured,quote,error:quoteError}=useQuote(mode,selectedStockId,rawInput,vaultId);
+  const receiveValue=quote ? (deposit?Number(formatUnits(rawUnits,18))*(valuationPrice??0):quote.receive*(valuationPrice??0)) : undefined;
   const valid =
     !!account.address &&
     account.ready &&
@@ -73,11 +80,12 @@ export function VaultForm({
     configured &&
     !!quote &&
     n > 0 &&
-    /^\d*\.?\d{0,18}$/.test(amount) &&
-    parseUnits(amount, 18) <= parseUnits(rawLimit, 18) &&
+    inputValid && marketPrice>0n &&
+    rawUnits <= parseUnits(rawLimit, 18) &&
     quote.receive > 0;
   function clear() {
     setAmount("");
+    setExact(undefined);
     setHash("");
     setError("");
   }
@@ -91,8 +99,8 @@ export function VaultForm({
     onProcess({type:'start',process:{id:processId,owner:account.address!,stockId:selectedStockId,vaultId,type:mode,existingHashes:account.activity.map(a=>a.hash)}});
     try {
       const result = deposit
-        ? await account.depositToVault(vaultId, selectedStockId, amount)
-        : await account.withdrawFromVault(vaultId, selectedStockId, amount);
+        ? await account.depositToVault(vaultId, selectedStockId, rawInput)
+        : await account.withdrawFromVault(vaultId, selectedStockId, rawInput);
       onProcess({type:"settled",id:processId,result});
       if (result.ok) {
         setHash(result.hash);
@@ -185,7 +193,7 @@ export function VaultForm({
         </div>
       )}
       <label className="input-label" htmlFor="vault-amount">
-        {deposit ? "You deposit" : "Shares to redeem"}
+        {deposit ? "Deposit value" : "Withdrawal value"}
       </label>
       <div className="amount-input">
         <input
@@ -198,22 +206,25 @@ export function VaultForm({
           aria-describedby="vault-balance"
           onChange={(e) => {
             setAmount(e.target.value);
+            setExact(undefined);
             setError("");
             setHash("");
           }}
         />
-        <span>{deposit ? selectedStockId : vaultId}</span>
+        <span className="vault-denomination"><img src="/assets/usdc.png" alt="" width={20} height={20}/>pUSDC</span>
       </div>
       <div className="balance-line" id="vault-balance">
-        <span>{quote ? `≈ ${money(quote.value)}` : "—"}</span>
+        <span>{rawInput ? `${units(Number(rawInput))} ${deposit?selectedStockId:vaultId}` : "Value of your stock"}</span>
         <span>
           Available{" "}
           {account.ready &&
           (deposit ? account.stockReady[selectedStockId] : account.positionsReady)
-            ? units(limit)
+            ? `${units(Number(usdLimit))} pUSDC`
             : "—"}
         </span>
       </div>
+      {!account.prices[selectedStockId] && valuationPrice && <small className="vault-unit-note">Live benchmark unavailable; valuation uses the contract settlement price.</small>}
+      <small className="vault-token-detail">{deposit?"Stock balance":"Position collateral"}: {account.ready?`${units(deposit?limit:position?.collateral??0)} ${selectedStockId}`:"—"}. {deposit?"Deposits use your stock balance; no pUSDC is spent.":"Withdrawals return stock plus the contract’s pUSDC bonus."}</small>
       <div className="shortcuts">
         {[25, 50, 75, 100].map((p) => (
           <button
@@ -221,11 +232,9 @@ export function VaultForm({
             type="button"
             disabled={working || !account.ready}
             onClick={() => {
-              setAmount(
-                p === 100
-                  ? rawLimit
-                  : String(Math.floor(((limit * p) / 100) * 1e6) / 1e6),
-              );
+              const raw=parseUnits(rawLimit,18)*BigInt(p)/100n;
+              const key=rawAmountUsd(raw,mode,marketPrice,rawShares,rawCollateral);
+              setAmount(key);setExact({key,raw:formatUnits(raw,18)});
               setError("");
               setHash("");
             }}
@@ -235,22 +244,20 @@ export function VaultForm({
         ))}
       </div>
       {amount &&
-        (!/^\d*\.?\d{0,18}$/.test(amount) || !(n > 0) || n > limit) && (
+        (!inputValid || rawUnits > parseUnits(rawLimit,18)) && (
           <p className="error" role="alert">
-            {n > limit
+            {rawUnits > parseUnits(rawLimit,18)
               ? "Insufficient balance."
-              : "Use a positive amount with up to 18 decimals."}
+              : "Use a positive pUSDC value with up to 6 decimals."}
           </p>
         )}
       <div className="receipt">
         <span>Estimated receive</span>
-        <strong>
-          {quote ? units(quote.receive) : "—"}{" "}
-          {deposit ? vaultId : selectedStockId}
-        </strong>
+        <strong className="vault-denomination"><img src="/assets/usdc.png" alt="" width={20} height={20}/>{receiveValue!==undefined?units(receiveValue):"—"} pUSDC value</strong>
+        {quote&&<small className="vault-token-detail">{units(quote.receive)} {deposit?vaultId:selectedStockId}{deposit?" receipt tokens":" stock returned"}</small>}
         {!deposit && quote && (
           <small className="positive" style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
-            + {units(quote.yield)} earned{" "}
+            + {units(quote.yield)} testnet bonus{" "}
             <img
               src="/assets/usdc.png"
               alt="pUSDC"
@@ -264,7 +271,7 @@ export function VaultForm({
       </div>
       <dl className="carry-summary">
         <div>
-          <dt>Collateral value</dt>
+          <dt>Contract collateral value</dt>
           <dd>{quote ? money(quote.value) : "—"}</dd>
         </div>
         <div>

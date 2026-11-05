@@ -67,6 +67,11 @@ export function useQuote(
           if (!price || feeBps === undefined)
             throw new Error("Price unavailable.");
           const calc = calculateBuy(Number(input), price, feeBps);
+          if(contracts.market?.toLowerCase()===legacyAddress.toLowerCase()){
+            const spend=parseUnits(input,6),fee=spend*BigInt(feeBps)/10000n;
+            calc.stockQuantity=human((spend-fee)*10n**18n/parseUnits(price.toFixed(6),6),18);
+            calc.fee=human(fee,6);
+          }
           quote = {
             receive: calc.stockQuantity,
             value: calc.totalPayment,
