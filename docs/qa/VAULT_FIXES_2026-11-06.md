@@ -26,3 +26,10 @@ No contract was deployed and no live transaction was broadcast for this pass.
 ## Existing deployment constraints
 
 The chain still uses its fixed $300 settlement price and three raw shares per stock. A frontend feed cannot update those immutable rules. pUSDC-denominated values are presentation units; raw share units remain contract-defined. The protocol still has shared asset/strategy balances and weak withdrawal authorization. Labels follow confirmed history in this browser, not independently isolated on-chain tokens. Real Morpho/Aave/Compound/Uniswap execution and yield settlement are not connected by this UI work.
+
+## Live-price flow follow-up
+
+- Buy/sell forms now calculate a live-price comparison using the same Yahoo Finance feed as the chart. The separate on-chain receive amount and settlement price remain visible, and signed transactions still use the actual contract quote.
+- Deposit/withdrawal forms poll the selected stock feed every four seconds. Dollar inputs, available value, and collateral valuation use that feed; missing initial live data does not fall back to $300.
+- Production-build browser check: META feed and form both displayed $605.08. For 300 pUSDC, the live-price estimate was 0.495306 META; the actual contract receive quote remained 0.999 META. No signature was requested.
+- All nine test files, lint, typecheck, and production build passed. Replayed the exact deployed bytecode locally through faucet, buy, deposit, partial withdrawal, remaining withdrawal, and sell; balance assertions passed. This was not a public testnet broadcast and spent no live tPOT. The fixed payout is still not verified external strategy earnings.

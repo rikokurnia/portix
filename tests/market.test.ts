@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { isReadRequest } from "../src/lib/onchain/rpc-policy";
 import { parseUnits } from "viem";
-import { calculateBuy, calculateSell } from "../src/lib/trade-calculations";
+import { calculateBuy, calculateSell, liveTradeEstimate } from "../src/lib/trade-calculations";
 import { calculateSMA } from "../src/features/market/calculations";
 import { aggregateObservations, dailyChange } from "../src/lib/onchain/history";
 const buy = calculateBuy(300, 300, 10);
@@ -102,3 +102,13 @@ assert.equal(
 console.log(
   "RPC proxy policy: public reads allowed; signing and broadcasting rejected.",
 );
+
+// Feed changes must change the comparison without changing contract settlement.
+assert.equal(liveTradeEstimate("Buy", "300", 600, 10, true), 0.4995);
+assert.equal(liveTradeEstimate("Buy", "300", 300, 10, true), 0.999);
+assert.equal(liveTradeEstimate("Sell", "0.5", 600, 10, true), 299.7);
+assert.equal(liveTradeEstimate("Sell", "0.5", 610, 10, true), 304.695);
+assert.equal(liveTradeEstimate("Buy", "300", undefined, 10, true), undefined);
+assert.equal(liveTradeEstimate("Sell", "-1", 600, 10, true), undefined);
+assert.equal(liveTradeEstimate("Buy", "1.1234567", 600, 10, true), undefined);
+console.log("PASS: live-price trade estimates update with the feed; missing data never falls back to $300.");

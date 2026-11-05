@@ -1,38 +1,38 @@
 {
-  "checkedAt": "2026-11-05T17:38:41.827Z",
+  "checkedAt": "2026-11-05T23:39:53.206Z",
   "environment": "Local replica of current live bytecode with local liquidity; no live transactions or gas spent",
-  "account": "0x22065a83b9eFE349233a38751d32E2831b506E09",
+  "account": "0x1E2B3b96D3534758AaCDD1c2b5c28434abA53304",
   "stockBought": "0.999",
   "sharesMinted": "2.997",
   "finalPUSDC": "5013.7859",
   "proofs": [
     {
       "label": "faucet",
-      "hash": "0x9ad068b8c9cb03cef6e6250297cbbe926fcaf32be59900df9dd021e834b802e0"
+      "hash": "0x94038214860d78748bce41615301ecb003a14752337544c77aca4d421d3dea56"
     },
     {
       "label": "approve",
-      "hash": "0xd192b92b09be672e6695b8c00b04397b2dffb5a28d417123eeb3441dc2b10192"
+      "hash": "0xedd0771737c0a6cd73cf2d13e7b5eebb0534e5af0eacd9dee823a2a9ea5c6633"
     },
     {
       "label": "buy",
-      "hash": "0x6535ef71fa0dd2c95823bdd5d9451935ca2219bb71e99c837be873b5d8458284"
+      "hash": "0xd68a9df9eb815a85d6357a8f6e54610f412b2ee2470e6206f4374c0098b01e0d"
     },
     {
       "label": "deposit",
-      "hash": "0x98edd8140a6d411345c2a661b282cb016fbdfb429a9b16d0ba7b5b795daeb4d4"
+      "hash": "0x71cfa2e1d5fdbfb8836fae5d728a4b6d8794c7782bc71917ee87a4f89e39682a"
     },
     {
       "label": "withdraw-half",
-      "hash": "0xc33056b57e36fba9a4c685e9bb1196074775db7cf7e897471351c18fb7abec5b"
+      "hash": "0x102eb33d70acbf7f0344ed98421c96b06646fe0c0ee8609dacb9ffede5239a01"
     },
     {
       "label": "withdraw-remainder",
-      "hash": "0x33caee6c27f00bda6208c08d62137b4c4bbe7227eab90a952e5747f99f0a73eb"
+      "hash": "0xf434ac37cee4a5d21c47c42f4c00acca7c4cc2f601c1dcdd0028beb25cc0fa4a"
     },
     {
       "label": "sell",
-      "hash": "0xf9b231ec63ba6ee24fab481d6411598ee97da9444600e8a141fa872347a3a63c"
+      "hash": "0x57433530aa5046ba65db1f33a0a2587b78665608c7065e2cf458e5e28da8cbd5"
     }
   ]
 }

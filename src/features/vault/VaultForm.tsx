@@ -19,6 +19,7 @@ import { usePortfolio } from "@/lib/portfolio-store";
 import { vaultIntegrationIssue } from "@/lib/onchain/contracts";
 import type { VaultProcessEvent } from "./process-state";
 import { useQuote } from "@/lib/onchain/useQuote";
+import { useStockHistory } from "@/features/market/useStockHistory";
 export function VaultForm({
   vaultId,
   initialStock,
@@ -60,7 +61,8 @@ export function VaultForm({
   const rawLimit = deposit
     ? (account.rawStockBalances[selectedStockId] ?? "0")
     : (position?.rawShares ?? "0");
-  const valuationPrice=account.prices[selectedStockId]??account.settlementPrices[selectedStockId];
+  const history = useStockHistory(selectedStockId);
+  const valuationPrice = history.price > 0 ? history.price : account.prices[selectedStockId];
   const marketPrice=price6(valuationPrice);
   const rawShares=parseUnits(position?.rawShares??"0",18);
   const rawCollateral=parseUnits(position?.rawCollateral??String(position?.collateral??0),18);
@@ -70,6 +72,7 @@ export function VaultForm({
   const usdLimit=rawAmountUsd(parseUnits(rawLimit,18),mode,marketPrice,rawShares,rawCollateral);
   const n=Number(amount);
   const {configured,quote,error:quoteError}=useQuote(mode,selectedStockId,rawInput,vaultId);
+  const collateralValue = quote && valuationPrice ? (deposit ? Number(rawInput) : quote.receive) * valuationPrice : undefined;
   const confirmedPayout=hash?account.activity.find(a=>a.hash===hash)?.usdcAmount:undefined;
   const valid =
     !!account.address &&
@@ -223,7 +226,7 @@ export function VaultForm({
             : "—"}
         </span>
       </div>
-      {!account.prices[selectedStockId] && valuationPrice && <small className="vault-unit-note">Live benchmark unavailable; valuation uses the contract settlement price.</small>}
+      {!valuationPrice && <small className="vault-unit-note">Live price unavailable. Retrying…</small>}
       <div className="shortcuts">
         {[25, 50, 75, 100].map((p) => (
           <button
@@ -260,8 +263,8 @@ export function VaultForm({
       </div>
       <dl className="carry-summary">
         <div>
-          <dt>Contract collateral value</dt>
-          <dd>{quote ? money(quote.value) : "—"}</dd>
+          <dt>Live collateral value</dt>
+          <dd>{collateralValue !== undefined ? money(collateralValue) : "—"}</dd>
         </div>
         <div>
           <dt>{deposit ? "Borrow allocation" : "Debt released"}</dt>
