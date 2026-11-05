@@ -219,7 +219,6 @@ export function TradeModal({
                     : "—"}
                 </dd>
               </div>
-              <div className="trade-review-row"><dt>Testnet settlement price</dt><dd>{account.settlementPrices[stockId]?money(account.settlementPrices[stockId]!):"—"}</dd></div>
               <div className="trade-review-row">
                 <dt>
                   Trading fee
