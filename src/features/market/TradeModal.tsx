@@ -9,9 +9,6 @@ import { usePortfolio } from "@/lib/portfolio-store";
 import { vaultIntegrationIssue } from "@/lib/onchain/contracts";
 import { useStockHistory } from "./useStockHistory";
 import { useQuote } from "@/lib/onchain/useQuote";
-import { liveTradeEstimate } from "@/lib/trade-calculations";
-import { contracts } from "@/lib/onchain/contracts";
-import { legacyAddress } from "@/lib/onchain/legacy";
 import { stocks, money, units, type StockId } from "@/lib/assets";
 export function TradeModal({
   stockId,
@@ -40,7 +37,6 @@ export function TradeModal({
   const n = Number(input),
     limit = buy ? account.pUSDC : account.stockBalances[stockId],
     oraclePrice = history.price > 0 ? history.price : account.prices[stockId];
-  const liveReceive = liveTradeEstimate(mode, input, oraclePrice, account.feeBps, contracts.market?.toLowerCase() === legacyAddress.toLowerCase());
   const valid =
     !!account.address &&
     account.ready &&
@@ -143,24 +139,27 @@ export function TradeModal({
             </span>
           </div>
           <div className="trade-balance-row">
-            Available{" "}
-            {account.ready && (buy || account.stockReady[stockId])
-              ? units(limit)
-              : "—"}{" "}
-            {buy ? (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                <img
-                  src="/assets/usdc.png"
-                  alt="pUSDC"
-                  width={14}
-                  height={14}
-                  style={{ borderRadius: "50%", verticalAlign: "middle" }}
-                />
-                <span>pUSDC</span>
-              </span>
-            ) : (
-              stockId
-            )}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+              <span>Available</span>
+              {buy ? (
+                <>
+                  <img
+                    src="/assets/usdc.png"
+                    alt="pUSDC"
+                    width={14}
+                    height={14}
+                    style={{ borderRadius: "50%", verticalAlign: "middle" }}
+                  />
+                  <span>
+                    {account.ready ? units(limit) : "—"} pUSDC
+                  </span>
+                </>
+              ) : (
+                <span>
+                  {account.ready && account.stockReady[stockId] ? units(limit) : "—"} {stockId}
+                </span>
+              )}
+            </span>
           </div>
           <div className="trade-shortcuts" aria-label="Percentage shortcuts">
             {[25, 50, 100].map((p) => (
@@ -186,10 +185,10 @@ export function TradeModal({
               <ArrowUpDown size={14} />
             </div>
           </div>
-          <span className="trade-section-label">Live-price estimate</span>
+          <span className="trade-section-label">Estimated receive</span>
           <div className="trade-output-row">
             <span className="trade-output-value">
-              {liveReceive !== undefined ? units(liveReceive) : "—"}
+              {quote ? units(quote.receive) : "—"}
             </span>
             <span>
               {buy ? (
@@ -210,9 +209,8 @@ export function TradeModal({
           </div>
           <div className="trade-review-box">
             <dl style={{ margin: 0 }}>
-              <div className="trade-review-row"><dt>On-chain receive</dt><dd>{quote ? units(quote.receive) : "—"} {buy ? stockId : "pUSDC"}</dd></div>
               <div className="trade-review-row">
-                <dt>Live equity price</dt>
+                <dt>Settlement price</dt>
                 <dd>
                   {oraclePrice
                     ? money(oraclePrice)

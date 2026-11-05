@@ -1,6 +1,7 @@
 "use client";
 import { useSyncExternalStore } from "react";
 import { stockIds, type StockId, type VaultId } from "./assets";
+import { BASELINE_MARKET_STOCKS } from "@/features/market/fixtures";
 import type { Address, Hash } from "viem";
 export interface VaultPosition {
   id: string;
@@ -64,6 +65,9 @@ export interface PortfolioState {
 }
 const emptyBalances = () =>
   Object.fromEntries(stockIds.map((id) => [id, 0])) as Record<StockId, number>;
+const initialPrices: Partial<Record<StockId, number>> = Object.fromEntries(
+  stockIds.map((id) => [id, BASELINE_MARKET_STOCKS[id]?.price ?? 300]),
+);
 export const initialState: PortfolioState = {
   legacyStock: "0", legacyShares: "0",
   observedAt: 0,
@@ -74,7 +78,7 @@ export const initialState: PortfolioState = {
   rawStockBalances: Object.fromEntries(
     stockIds.map((id) => [id, "0"]),
   ) as Record<StockId, string>,
-  prices: {}, settlementPrices: {},
+  prices: initialPrices, settlementPrices: initialPrices,
   positions: [],
   activity: [],
   ready: false,

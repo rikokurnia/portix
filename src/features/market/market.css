@@ -702,7 +702,8 @@
 .trade-balance-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 6px;
   font-size: 12px;
   color: var(--muted, #cbb6eb);
   margin-bottom: 12px;

@@ -349,26 +349,31 @@ export function MarketEarnModal({
             </div>
 
             <div className="trade-balance-row">
-              Available{" "}
-              {account.ready ? (
-                fundingMode === "zap" ? (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
-                    {units(pUsdcBalance)}{" "}
-                    <img
-                      src="/assets/usdc.png"
-                      alt="pUSDC"
-                      width={14}
-                      height={14}
-                      style={{ borderRadius: "50%", verticalAlign: "middle" }}
-                    />{" "}
-                    pUSDC
-                  </span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                <span>Available</span>
+                {account.ready ? (
+                  fundingMode === "zap" ? (
+                    <>
+                      <img
+                        src="/assets/usdc.png"
+                        alt="pUSDC"
+                        width={14}
+                        height={14}
+                        style={{ borderRadius: "50%", verticalAlign: "middle" }}
+                      />
+                      <span>
+                        {units(pUsdcBalance)} pUSDC
+                      </span>
+                    </>
+                  ) : (
+                    <span>
+                      {units(stockBalance)} {stockId}
+                    </span>
+                  )
                 ) : (
-                  `${units(stockBalance)} ${stockId}`
-                )
-              ) : (
-                "—"
-              )}
+                  <span>—</span>
+                )}
+              </span>
             </div>
 
             {/* Percentage shortcuts */}

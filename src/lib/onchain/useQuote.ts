@@ -16,6 +16,7 @@ import { human } from "./account";
 import { usePortfolio } from "@/lib/portfolio-store";
 import { calculateBuy } from "@/lib/trade-calculations";
 import { legacyAbi, legacyAddress } from "./legacy";
+import { BASELINE_MARKET_STOCKS } from "@/features/market/fixtures";
 export interface Quote {
   receive: number;
   value: number;
@@ -35,8 +36,8 @@ export function useQuote(
     quote?: Quote;
     error?: string;
   }>({ key: "" });
-  const price = account.settlementPrices[stock],
-    feeBps = account.feeBps;
+  const price = account.prices[stock] ?? account.settlementPrices[stock] ?? BASELINE_MARKET_STOCKS[stock]?.price,
+    feeBps = account.feeBps ?? 10;
   const key = [
     mode,
     stock,

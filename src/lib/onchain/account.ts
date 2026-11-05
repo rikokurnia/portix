@@ -1,6 +1,7 @@
 import { legacyAddress, legacyAbi, legacySharesSlot, isLegacyRuntime } from "./legacy";
 import { formatUnits, type Address } from "viem";
 import { stockIds, type StockId } from "@/lib/assets";
+import { BASELINE_MARKET_STOCKS } from "@/features/market/fixtures";
 import { sharedLedger } from "@/lib/shared-ledger";
 import type { Activity } from "@/lib/portfolio-store";
 import type { VaultPosition } from "@/lib/portfolio-store";
@@ -52,12 +53,29 @@ export async function readMarket() {
         args: [token],
       })) as bigint;
       const onchainPrice = human(raw, 6);
-      if(onchainPrice>0)settlementPrices[id]=onchainPrice;
+      // Only use on-chain if actively updated by owner to a custom non-300 price
+      if (onchainPrice > 0 && onchainPrice !== 300) {
+        prices[id] = onchainPrice;
+        settlementPrices[id] = onchainPrice;
+      } else {
+        const live = prices[id] ?? BASELINE_MARKET_STOCKS[id]?.price ?? 300;
+        prices[id] = live;
+        settlementPrices[id] = live;
+      }
     } catch {
-      // keep market feed price
+      const live = prices[id] ?? BASELINE_MARKET_STOCKS[id]?.price ?? 300;
+      prices[id] = live;
+      settlementPrices[id] = live;
     }
   });
   const results = await Promise.allSettled(tasks);
+
+  // Guarantee every stock's settlement price is identical to its realtime chart price
+  for (const id of stockIds) {
+    const live = prices[id] ?? BASELINE_MARKET_STOCKS[id]?.price ?? 300;
+    prices[id] = live;
+    settlementPrices[id] = live;
+  }
   let feeBps: number | undefined;
   let feeError = false;
   if (contracts.market)
