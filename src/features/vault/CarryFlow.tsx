@@ -1,11 +1,24 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { Check, CheckCircle2, Circle, Loader2, XCircle } from "lucide-react";
+import dynamic from "next/dynamic";
+import { CheckCircle2, XCircle } from "lucide-react";
 import { BrandIcon } from "@/components/shared/BrandIcon";
 import { TransactionLink } from "@/components/shared/TransactionLink";
 import { usePortfolio } from "@/lib/portfolio-store";
 import { stocks } from "@/lib/assets";
 import { getVaultProcessState, type VaultProcess } from "./process-state";
+
+const FlowDiagram = dynamic(
+  () => import("./FlowDiagram").then((module) => module.FlowDiagram),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="vault-route-loading" role="status">
+        Preparing your carry route…
+      </div>
+    ),
+  },
+);
 
 export function CarryFlow({
   process,
@@ -17,7 +30,12 @@ export function CarryFlow({
   const account = usePortfolio();
   const ref = useRef<HTMLElement>(null);
   useEffect(() => {
-    ref.current?.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+    ref.current?.scrollIntoView({
+      block: "nearest",
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+    });
   }, []);
   if (account.address?.toLowerCase() !== process.owner.toLowerCase())
     return null;
@@ -25,8 +43,6 @@ export function CarryFlow({
     process,
     account.activity,
   );
-  const terminal = phase === "confirmed" || phase === "failed";
-  const active = phase === "signing" ? 0 : phase === "confirming" ? 1 : 2;
   return (
     <section
       ref={ref}
@@ -62,36 +78,13 @@ export function CarryFlow({
           View history
         </button>
       </div>
-      <ol className="vault-process-steps" aria-label="Transaction stages">
-        {["Wallet signature", "Network confirmation", "Complete"].map(
-          (label, index) => (
-            <li
-              key={label}
-              className={
-                index < active || phase === "confirmed"
-                  ? "complete"
-                  : index === active
-                    ? "current"
-                    : ""
-              }
-              aria-current={index === active && !terminal ? "step" : undefined}
-            >
-              <span>
-                {phase === "failed" && index === active ? (
-                  <XCircle size={19} />
-                ) : index < active || phase === "confirmed" ? (
-                  <Check size={18} />
-                ) : index === active ? (
-                  <Loader2 size={18} className="process-spinner" />
-                ) : (
-                  <Circle size={18} />
-                )}
-              </span>
-              {label}
-            </li>
-          ),
-        )}
-      </ol>
+      <FlowDiagram
+        vaultId={process.vaultId}
+        stockId={process.stockId}
+        phase={phase}
+        type={process.type}
+        message={account.pending}
+      />
       <div className="vault-process-result" role="status" aria-live="polite">
         {phase === "confirmed" ? (
           <>
@@ -103,14 +96,7 @@ export function CarryFlow({
             <XCircle size={18} />
             <span>{error || "Transaction failed."}</span>
           </>
-        ) : (
-          <span>
-            {account.pending ||
-              (phase === "confirming"
-                ? "Waiting for network confirmation…"
-                : "Continue in your wallet…")}
-          </span>
-        )}
+        ) : null}
       </div>
       {hash && (
         <div className="vault-process-proof">

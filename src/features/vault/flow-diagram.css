@@ -1,0 +1,353 @@
+.flow-experience {
+  margin: 26px -4px 18px;
+}
+.flow-experience-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 8px;
+}
+.flow-direction {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #c6b5dc;
+}
+.flow-experience-heading h4 {
+  margin: 7px 0 0;
+  font-size: 21px;
+  font-weight: 550;
+  letter-spacing: -0.035em;
+}
+.route-fit {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid #be8af526;
+  color: #c6a3ef;
+  transition: background 0.2s;
+}
+.route-fit:hover {
+  background: #be8af516;
+}
+.route-canvas {
+  position: relative;
+  height: 400px;
+  margin: 10px 0 0;
+  border-radius: 18px;
+  background: radial-gradient(ellipse at 49% 50%, #8854be13, transparent 55%);
+}
+.route-canvas-mobile {
+  height: 790px;
+}
+.route-canvas .react-flow__node {
+  border: 0;
+  background: none;
+}
+.route-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 8px 5px;
+  text-align: center;
+  color: #f2ebfb;
+  border: 1px solid transparent;
+  border-radius: 22px;
+  cursor: pointer;
+  background: linear-gradient(150deg, #363045b0, #211c2eeb);
+  box-shadow:
+    inset 0 1px #ffffff07,
+    0 12px 26px #0e071c1a;
+  transition:
+    border-color 0.25s,
+    box-shadow 0.25s,
+    transform 0.25s;
+}
+.route-card:hover,
+.route-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--route-color);
+  outline: none;
+  box-shadow: 0 10px 32px
+    color-mix(in srgb, var(--route-color) 12%, transparent);
+}
+.route-card.is-inspected {
+  border-color: color-mix(in srgb, var(--route-color) 65%, transparent);
+}
+.route-card:not(.is-active) {
+  opacity: 0.56;
+}
+.route-card strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 13px;
+  letter-spacing: -0.03em;
+}
+.route-card small {
+  display: block;
+  font-size: 10px;
+  color: #baadcb;
+  margin-top: 5px;
+}
+.route-logo-well {
+  width: 58px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+.route-logo-well img {
+  object-fit: contain;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(
+    0 0 12px color-mix(in srgb, var(--route-color) 17%, transparent)
+  );
+}
+.route-card .react-flow__handle {
+  height: 4px;
+  width: 4px;
+  min-height: 4px;
+  min-width: 4px;
+  opacity: 0.6;
+  background: var(--route-color);
+  border: none;
+  pointer-events: none;
+}
+.route-card-hub {
+  background: radial-gradient(ellipse at center, #a16af929, #211b30 76%);
+  border-color: #b38ae84a;
+  box-shadow:
+    0 0 60px #8d58d916,
+    inset 0 0 35px #8d58d90c;
+  border-radius: 30px;
+}
+.route-card-hub .route-logo-well {
+  width: 112px;
+  height: 108px;
+}
+.route-card-hub strong {
+  font-size: 20px;
+  margin-top: 1px;
+}
+.route-card-hub small {
+  margin-top: 4px;
+}
+.hub-evm {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 12px;
+  border: 1px solid #bd90f059;
+  border-radius: 5px;
+  padding: 3px 5px;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  color: #e6d2ff;
+  background: #392853;
+}
+.hub-orbit {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px dashed #c89aff44;
+  pointer-events: none;
+}
+.orbit-inner {
+  inset: 10px;
+  border-style: solid;
+  border-left-color: #d7b6ff8a;
+  border-right-color: transparent;
+  opacity: 0.65;
+}
+.hub-capabilities {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 10px;
+  font-size: 9px;
+  color: #b9a3d2;
+}
+.hub-satellite {
+  position: absolute;
+  z-index: 3;
+  width: 5px;
+  height: 5px;
+  background: #d6b4ff;
+  border-radius: 2px;
+  box-shadow: 0 0 12px #d6b4ff88;
+}
+.satellite-one {
+  top: 6px;
+  left: 24px;
+}
+.satellite-two {
+  right: 3px;
+  bottom: 24px;
+  background: #7ce9dc;
+}
+.phase-signing .orbit-outer,
+.phase-confirming .orbit-outer {
+  animation: hub-orbit 15s linear infinite;
+}
+.phase-signing .orbit-inner,
+.phase-confirming .orbit-inner {
+  animation: hub-orbit 8s linear infinite reverse;
+}
+.phase-confirming .route-card.is-active .route-logo-well img {
+  animation: route-breathe 3.5s ease-in-out infinite;
+}
+.phase-confirmed .route-card {
+  border-color: #7ce3bf55;
+}
+.phase-failed .route-card {
+  opacity: 0.5;
+}
+.route-inspector {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 630px;
+  margin: 2px auto 20px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid #be8af51c;
+  background: #be8af505;
+}
+.route-inspector img {
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.route-inspector strong {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 550;
+}
+.route-inspector p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #bfb0ce;
+}
+.route-live-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 8px 0;
+  border-top: 1px solid #be8af520;
+}
+.route-state-icon {
+  color: #eabd65;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #eabd650b;
+  border: 1px solid #eabd6520;
+}
+.route-state-icon.is-complete {
+  color: #72ddb8;
+  background: #72ddb80b;
+  border-color: #72ddb820;
+}
+.route-live-state strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 550;
+}
+.route-live-state small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #bfb0ce;
+}
+.route-wave {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  margin-left: auto;
+  padding-right: 12px;
+}
+.route-wave i {
+  width: 3px;
+  height: 7px;
+  background: #c696ff;
+  border-radius: 3px;
+  animation: route-wave 1.2s ease-in-out infinite;
+}
+.route-canvas .react-flow__attribution {
+  background: transparent;
+  font-size: 8px;
+  opacity: 0.55;
+}
+.route-canvas .react-flow__attribution a {
+  color: #c5aedf;
+}
+@keyframes hub-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes route-breathe {
+  50% {
+    transform: translateY(-3px);
+    filter: drop-shadow(
+      0 0 17px color-mix(in srgb, var(--route-color) 35%, transparent)
+    );
+  }
+}
+@keyframes route-wave {
+  50% {
+    height: 24px;
+    opacity: 0.6;
+  }
+}
+@media (max-width: 620px) {
+  .flow-experience-heading h4 {
+    font-size: 18px;
+  }
+  .flow-direction {
+    font-size: 9px;
+  }
+  .route-inspector {
+    margin-top: 10px;
+  }
+  .route-canvas-mobile {
+    height: 780px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-experience *,
+  .flow-experience *::before,
+  .flow-experience *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .route-card:hover {
+    transform: none;
+  }
+}
+
+.route-card {
+  pointer-events: auto;
+}
+.vault-route-loading {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}

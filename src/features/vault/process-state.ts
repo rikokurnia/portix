@@ -1,6 +1,12 @@
 import type { ActionResult, Activity } from "@/lib/portfolio-store";
 import type { StockId, VaultId } from "@/lib/assets";
 
+export type VaultProcessPhase =
+  | "signing"
+  | "confirming"
+  | "confirmed"
+  | "failed";
+
 export interface VaultProcess {
   id: string;
   owner: string;
@@ -26,7 +32,7 @@ export function getVaultProcessState(
       a.type === process.type,
   );
   const hash = process.result?.ok ? process.result.hash : transaction?.hash;
-  const phase =
+  const phase: VaultProcessPhase =
     process.result?.ok || transaction?.status === "Completed"
       ? "confirmed"
       : process.result?.ok === false || transaction?.status === "Failed"
