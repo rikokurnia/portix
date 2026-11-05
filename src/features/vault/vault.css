@@ -962,3 +962,11 @@
 @media (prefers-reduced-motion: reduce) { .process-spinner { animation: none; } }
 
 .pool-volume{display:flex;align-items:baseline;gap:6px;margin-top:12px}.pool-volume>span{margin-bottom:0}.vault-denomination{display:inline-flex;align-items:center;gap:6px}.vault-token-detail{display:block;font-size:12px;color:var(--muted);margin-top:7px}.vault-unit-note{font-size:11px;color:var(--muted);line-height:1.5;margin-top:9px}
+
+.vault-order{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.vault-order .amount-input{min-width:0;max-width:100%}
+.vault-order .amount-input input{flex:1 1 0;width:0;min-width:0}
+.vault-order .amount-input .vault-denomination{flex:0 0 auto;white-space:nowrap}
+.vault-order .vault-denomination img{flex-shrink:0;object-fit:contain}
+.vault-order .receipt strong{min-width:0;max-width:100%}
+.vault-order .receipt .vault-receipt-text{min-width:0;overflow-wrap:anywhere}

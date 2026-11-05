@@ -70,6 +70,7 @@ export function VaultForm({
   const usdLimit=rawAmountUsd(parseUnits(rawLimit,18),mode,marketPrice,rawShares,rawCollateral);
   const n=Number(amount);
   const {configured,quote,error:quoteError}=useQuote(mode,selectedStockId,rawInput,vaultId);
+  const confirmedPayout=hash?account.activity.find(a=>a.hash===hash)?.usdcAmount:undefined;
   const valid =
     !!account.address &&
     account.ready &&
@@ -253,21 +254,9 @@ export function VaultForm({
         <span>Estimated receive</span>
         <strong className="vault-denomination">
           <img src={deposit ? assets[vaultId] : stocks[selectedStockId].logo} alt="" width={26} height={26}/>
-          {quote ? units(quote.receive) : "—"} {deposit ? vaultId : selectedStockId}
+          <span className="vault-receipt-text">{quote ? units(quote.receive) : "—"} {deposit ? vaultId : selectedStockId}</span>
         </strong>
-        {!deposit && quote && (
-          <small className="positive" style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
-            + {units(quote.yield)} testnet bonus{" "}
-            <img
-              src="/assets/usdc.png"
-              alt="pUSDC"
-              width={14}
-              height={14}
-              style={{ borderRadius: "50%", verticalAlign: "middle" }}
-            />{" "}
-            pUSDC
-          </small>
-        )}
+
       </div>
       <dl className="carry-summary">
         <div>
@@ -333,6 +322,7 @@ export function VaultForm({
           <CheckCircle2 size={18} />
           <div>
             <p>{deposit ? "Deposit" : "Withdrawal"} confirmed</p>
+            {!deposit&&confirmedPayout!==undefined&&<small className="vault-denomination"><img src="/assets/usdc.png" alt="" width={14} height={14}/>{units(confirmedPayout)} pUSDC received</small>}
             <TransactionLink hash={hash} />
           </div>
         </div>
