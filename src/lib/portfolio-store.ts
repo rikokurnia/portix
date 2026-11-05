@@ -10,6 +10,8 @@ export interface VaultPosition {
   shares: number;
   rawShares: string;
   earnedYield: number;
+  withdrawalBonus?:number;
+  rawCollateral?:string;
   ltv: number;
   healthy: boolean;
 }
@@ -21,6 +23,11 @@ export type ActivityType =
   | "Faucet"
   | "Approve";
 export interface Activity {
+  usdcAmount?:number;
+  rawAmount?:string;
+  sharesMinted?:string;
+  stockReturned?:string;
+  settlementPrice?:number;
   transport?: "substrate";
   fromBlock?:number;
   blockHash?:Hash;
@@ -45,6 +52,7 @@ export interface PortfolioState {
   stockBalances: Record<StockId, number>;
   rawStockBalances: Record<StockId, string>;
   prices: Partial<Record<StockId, number>>;
+  settlementPrices: Partial<Record<StockId, number>>;
   feeBps?: number;
   positions: VaultPosition[];
   activity: Activity[];
@@ -65,7 +73,7 @@ export const initialState: PortfolioState = {
   rawStockBalances: Object.fromEntries(
     stockIds.map((id) => [id, "0"]),
   ) as Record<StockId, string>,
-  prices: {},
+  prices: {}, settlementPrices: {},
   positions: [],
   activity: [],
   ready: false,
@@ -122,6 +130,7 @@ export function setPortfolioAccount(owner?: Address) {
   updatePortfolio({
     ...initialState,
     prices: state.prices,
+    settlementPrices:state.settlementPrices,
     feeBps: state.feeBps,
     address: owner,
     activity,
@@ -231,3 +240,5 @@ export function usePortfolio() {
 
 // Explicit legacy demo commands never claim independent equity accounting.
 export const runLegacyCommand = (command: PortfolioCommand) => run({...command, legacy: true});
+
+export function publishBenchmarkPrice(id:StockId,price:number){if(Number.isFinite(price)&&price>0&&state.prices[id]!==price)updatePortfolio({prices:{...state.prices,[id]:price}});}

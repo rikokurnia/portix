@@ -15,18 +15,45 @@ import {
 export const human = (value: bigint, decimals: number) =>
   Number(formatUnits(value, decimals));
 export async function readMarket() {
-  if (!isolatedAccounting) return { prices: {}, feeBps: undefined, priceError: true };
+  if (!isolatedAccounting) return { prices: {}, settlementPrices:{}, feeBps: undefined, priceError: true };
   const prices: Partial<Record<StockId, number>> = {};
+  const settlementPrices: Partial<Record<StockId,number>> = {};
+
+  // 1. Fetch live market prices from benchmark feed to match chart
+  if (typeof window !== "undefined") {
+    try {
+      const res = await fetch("/api/market");
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.stocks) {
+          for (const [id, item] of Object.entries(data.stocks) as [StockId, { price?: number }][]) {
+            if (typeof item?.price === "number" && item.price > 0) {
+              prices[id] = item.price;
+            }
+          }
+        }
+      }
+    } catch {
+      // fallback will populate from onchain or baseline
+    }
+  }
+
+  // 2. Query on-chain oracle contracts
   const tasks = stockIds.map(async (id) => {
     const token = stockAddress(id);
     if (!token || !contracts.oracle) return;
-    const raw = (await publicClient.readContract({
-      address: contracts.oracle,
-      abi: oracleAbi,
-      functionName: "getPriceUSD",
-      args: [token],
-    })) as bigint;
-    prices[id] = human(raw, 6);
+    try {
+      const raw = (await publicClient.readContract({
+        address: contracts.oracle,
+        abi: oracleAbi,
+        functionName: "getPriceUSD",
+        args: [token],
+      })) as bigint;
+      const onchainPrice = human(raw, 6);
+      if(onchainPrice>0)settlementPrices[id]=onchainPrice;
+    } catch {
+      // keep market feed price
+    }
   });
   const results = await Promise.allSettled(tasks);
   let feeBps: number | undefined;
@@ -45,6 +72,7 @@ export async function readMarket() {
     }
   return {
     prices,
+    settlementPrices,
     feeBps,
     priceError: feeError || results.some((r) => r.status === "rejected"),
   };
@@ -109,13 +137,16 @@ export async function readAccount(owner: Address) {
     vaultId?: string;
     amount?: number;
     status?: string;
+    rawAmount?:string;
+    sharesMinted?:string;
+    stockReturned?:string;
   }[] = [];
   if (typeof window !== "undefined") {
     try {
       const saved = JSON.parse(
         localStorage.getItem(`portix:activity:420420777:${owner.toLowerCase()}`) ?? "[]",
       );
-      if (Array.isArray(saved)) activities = saved;
+      if (Array.isArray(saved)) activities = saved.filter(a=>a?.status === "Completed");
     } catch {
       /* Storage unavailable */
     }
@@ -158,7 +189,7 @@ export async function readAccount(owner: Address) {
             if (a.type === "Buy") net += a.amount ?? 0;
             else if (a.type === "Sell") net -= a.amount ?? 0;
             else if (a.type === "Deposit") net -= a.amount ?? 0;
-            else if (a.type === "Withdraw") net += a.amount ?? 0;
+            else if (a.type === "Withdraw") net += a.stockReturned !== undefined ? Number(a.stockReturned) : (a.amount ?? 0)/3;
           }
         }
         if (net > 0) {
@@ -219,7 +250,9 @@ export async function readAccount(owner: Address) {
           shares: human(onchainShares, 18),
           rawShares: formatUnits(onchainShares, 18),
           collateral: human(preview[0], 18),
-          earnedYield: human(preview[3], 6),
+          rawCollateral:formatUnits(preview[0],18),
+          earnedYield: 0,
+          withdrawalBonus:human(preview[3],6),
           ltv: Number(metrics[4]) / 100,
           healthy: metrics[5],
         },

@@ -64,12 +64,36 @@ export function FaucetControl() {
         <span>Faucet</span>
       </button>
       {open && (
-        <Modal title="pUSDC Faucet" onClose={() => setOpen(false)}>
+        <Modal
+          title={
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              <img
+                src="/assets/usdc.png"
+                alt="pUSDC"
+                width={20}
+                height={20}
+                style={{ borderRadius: "50%" }}
+              />
+              <span>pUSDC Faucet</span>
+            </div>
+          }
+          onClose={() => setOpen(false)}
+        >
           <div className="faucet-container">
             {hash ? (
               <>
                 <CheckCircle2 size={32} className="positive" />
-                <h3>5,000 pUSDC received</h3>
+                <h3 style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                  5,000{" "}
+                  <img
+                    src="/assets/usdc.png"
+                    alt="pUSDC"
+                    width={22}
+                    height={22}
+                    style={{ borderRadius: "50%", verticalAlign: "middle" }}
+                  />{" "}
+                  pUSDC received
+                </h3>
                 <TransactionLink hash={hash} />
                 <p className="muted">Saved to your portfolio Activity.</p>
                 <button

@@ -15,6 +15,7 @@ import {
 import { human } from "./account";
 import { usePortfolio } from "@/lib/portfolio-store";
 import { calculateBuy } from "@/lib/trade-calculations";
+import { legacyAbi, legacyAddress } from "./legacy";
 export interface Quote {
   receive: number;
   value: number;
@@ -34,7 +35,7 @@ export function useQuote(
     quote?: Quote;
     error?: string;
   }>({ key: "" });
-  const price = account.prices[stock],
+  const price = account.settlementPrices[stock],
     feeBps = account.feeBps;
   const key = [
     mode,
@@ -90,7 +91,7 @@ export function useQuote(
         } else {
           const raw = (await publicClient.readContract({
             address: vaultAddress(vault!, stock)!,
-            abi: vaultAbi,
+            abi: vaultAddress(vault!,stock)?.toLowerCase()===legacyAddress.toLowerCase()?legacyAbi:vaultAbi,
             functionName:
               mode === "Deposit"
                 ? "previewDepositCarry"

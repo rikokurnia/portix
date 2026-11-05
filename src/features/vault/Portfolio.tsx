@@ -20,37 +20,37 @@ function getHistoryActionDetails(a: Activity) {
   switch (a.type) {
     case "Buy":
       return {
-        title: `Buy Stock (${a.stockId})`,
+        title: "Buy Stock",
         category: "Stock Market",
         badge: "action-badge-buy",
       };
     case "Sell":
       return {
-        title: `Sell Stock (${a.stockId})`,
+        title: "Sell Stock",
         category: "Stock Market",
         badge: "action-badge-sell",
       };
     case "Deposit":
       return {
-        title: `Vault Deposit (${a.vaultId ?? "pxPrime"})`,
+        title: "Vault Deposit",
         category: "Carry Vault",
         badge: "action-badge-deposit",
       };
     case "Withdraw":
       return {
-        title: `Vault Withdraw (${a.vaultId ?? "pxPrime"})`,
+        title: "Vault Withdraw",
         category: "Carry Vault",
         badge: "action-badge-withdraw",
       };
     case "Faucet":
       return {
-        title: "Portaldot Faucet",
+        title: "Faucet Claim",
         category: "Testnet Funding",
         badge: "action-badge-faucet",
       };
     case "Approve":
       return {
-        title: `Token Approval (${a.stockId})`,
+        title: "Token Approval",
         category: "Authorization",
         badge: "action-badge-approve",
       };
@@ -145,7 +145,17 @@ export function Portfolio({
           </strong>
         </div>
         <div>
-          <span>Available pUSDC</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+            Available{" "}
+            <img
+              src="/assets/usdc.png"
+              alt="pUSDC"
+              width={14}
+              height={14}
+              style={{ borderRadius: "50%", verticalAlign: "middle" }}
+            />{" "}
+            pUSDC
+          </span>
           <div className="portfolio-pusdc-row">
             <strong>{ready ? units(pUSDC) : "—"}</strong>
             <img
@@ -335,14 +345,35 @@ export function Portfolio({
                       </div>
                     </td>
                     <td>
-                      <b>{units(a.amount)}</b>{" "}
-                      <span>
-                        {a.legacy
-                          ? a.stockId === "pUSDC"
-                            ? "pUSDC"
-                            : "demo stock"
-                          : a.stockId}
-                      </span>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                        {a.stockId === "pUSDC" ? (
+                          <img
+                            src="/assets/usdc.png"
+                            alt="pUSDC"
+                            width={18}
+                            height={18}
+                            style={{ borderRadius: "50%" }}
+                          />
+                        ) : (
+                          stocks[a.stockId as StockId]?.logo && (
+                            <img
+                              src={stocks[a.stockId as StockId].logo}
+                              alt={a.stockId}
+                              width={18}
+                              height={18}
+                              style={{ borderRadius: "50%" }}
+                            />
+                          )
+                        )}
+                        <b>{units(a.amount)}</b>{" "}
+                        <span>
+                          {a.legacy
+                            ? a.stockId === "pUSDC"
+                              ? "pUSDC"
+                              : "demo stock"
+                            : a.stockId}
+                        </span>
+                      </div>
                     </td>
                     <td>
                       <div className="table-proof-cell">

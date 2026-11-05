@@ -249,8 +249,16 @@ export function VaultForm({
           {deposit ? vaultId : selectedStockId}
         </strong>
         {!deposit && quote && (
-          <small className="positive">
-            + {units(quote.yield)} earned pUSDC
+          <small className="positive" style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+            + {units(quote.yield)} earned{" "}
+            <img
+              src="/assets/usdc.png"
+              alt="pUSDC"
+              width={14}
+              height={14}
+              style={{ borderRadius: "50%", verticalAlign: "middle" }}
+            />{" "}
+            pUSDC
           </small>
         )}
       </div>
@@ -261,7 +269,23 @@ export function VaultForm({
         </div>
         <div>
           <dt>{deposit ? "Borrow allocation" : "Debt released"}</dt>
-          <dd>{quote ? `${units(quote.borrow)} pUSDC` : "—"}</dd>
+          <dd>
+            {quote ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                {units(quote.borrow)}{" "}
+                <img
+                  src="/assets/usdc.png"
+                  alt="pUSDC"
+                  width={14}
+                  height={14}
+                  style={{ borderRadius: "50%", verticalAlign: "middle" }}
+                />{" "}
+                pUSDC
+              </span>
+            ) : (
+              "—"
+            )}
+          </dd>
         </div>
         <div>
           <dt>Network</dt>

@@ -1030,3 +1030,236 @@
   border-color: #8f60cc;
   background: rgba(143, 96, 204, 0.18);
 }
+
+/* ==========================================================================
+   Market Earn Modal (1-Click Zap to Carry Vault)
+   ========================================================================== */
+.earn-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 18px;
+  color: #faf7ff;
+}
+
+.earn-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.earn-vault-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.earn-vault-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 520px) {
+  .earn-vault-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.earn-vault-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(22, 18, 36, 0.7);
+  border: 1px solid rgba(190, 138, 245, 0.2);
+  border-radius: 12px;
+  color: #faf7ff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+
+.earn-vault-card:hover {
+  background: rgba(43, 31, 74, 0.6);
+  border-color: rgba(190, 138, 245, 0.5);
+}
+
+.earn-vault-card.selected {
+  background: rgba(58, 38, 102, 0.55);
+  border-color: #be8af5;
+  box-shadow: 0 0 16px rgba(190, 138, 245, 0.25);
+}
+
+.earn-vault-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.earn-vault-card-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.earn-vault-card-brand strong {
+  font-size: 15px;
+  color: #ffffff;
+}
+
+.earn-vault-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.earn-vault-card-desc {
+  font-size: 11px;
+  color: #cbb6eb;
+  line-height: 1.35;
+}
+
+.earn-vault-card-apy {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.earn-vault-card-apy span {
+  font-size: 11px;
+  color: #9582b5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.earn-vault-card-apy strong {
+  font-size: 16px;
+  color: #5eead4;
+  font-weight: 700;
+}
+
+/* Funding toggle pills */
+.earn-funding-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: rgba(14, 11, 24, 0.7);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid rgba(190, 138, 245, 0.15);
+}
+
+.earn-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #cbb6eb;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.earn-toggle-btn:hover {
+  color: #faf7ff;
+}
+
+.earn-toggle-btn.active {
+  background: rgba(143, 96, 204, 0.35);
+  color: #faf7ff;
+  border: 1px solid rgba(190, 138, 245, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.earn-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Review Box with 2-step Zap Flow */
+.earn-review-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.earn-flow-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(18, 14, 30, 0.6);
+  border-radius: 8px;
+  border: 1px dashed rgba(190, 138, 245, 0.25);
+  font-size: 11px;
+  color: #cbb6eb;
+}
+
+.earn-flow-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.earn-step-num {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #8f60cc;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* Earn modal success */
+.earn-modal-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 16px 8px;
+  gap: 12px;
+}
+
+.earn-modal-success h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #faf7ff;
+  margin: 0;
+}
+
+.earn-success-subtitle {
+  font-size: 14px;
+  color: #cbb6eb;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 380px;
+}
+
+.earn-modal-success-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.earn-modal-success-actions .button {
+  flex: 1;
+}
+

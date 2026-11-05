@@ -8,6 +8,7 @@ import { usePortfolio } from "@/lib/portfolio-store";
 import { vaultIntegrationIssue } from "@/lib/onchain/contracts";
 import { useQuote } from "@/lib/onchain/useQuote";
 import { stocks, money, units, type StockId } from "@/lib/assets";
+import { BASELINE_MARKET_STOCKS } from "./fixtures";
 export function TradeModal({
   stockId,
   mode,
@@ -31,7 +32,9 @@ export function TradeModal({
     error: quoteError,
   } = useQuote(mode, stockId, input);
   const n = Number(input),
-    limit = buy ? account.pUSDC : account.stockBalances[stockId];
+    limit = buy ? account.pUSDC : account.stockBalances[stockId],
+    oraclePrice =
+      account.prices[stockId] ?? BASELINE_MARKET_STOCKS[stockId]?.price ?? 300;
   const valid =
     !!account.address &&
     account.ready &&
@@ -77,6 +80,20 @@ export function TradeModal({
         <div className="trade-success" role="status">
           <CheckCircle2 size={40} className="positive" />
           <h3>{buy ? "Purchase" : "Sale"} confirmed</h3>
+          {quote && (
+            <p className="trade-receipt-amount" style={{ fontSize: "15px", fontWeight: 600, margin: "6px 0 12px", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              <span className="muted" style={{ fontWeight: 400 }}>Received:</span>
+              <b>{units(quote.receive)}</b>
+              {buy ? (
+                <span>{stockId}</span>
+              ) : (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                  <img src="/assets/usdc.png" alt="pUSDC" width={18} height={18} style={{ borderRadius: "50%" }} />
+                  <span>pUSDC</span>
+                </span>
+              )}
+            </p>
+          )}
           <TransactionLink hash={hash} />
           <p className="muted">Saved to your portfolio Activity.</p>
           <button className="button" onClick={onClose}>
@@ -101,14 +118,42 @@ export function TradeModal({
                 setError("");
               }}
             />
-            <span className="trade-currency">{buy ? "pUSDC" : stockId}</span>
+            <span className="trade-currency">
+              {buy ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                  <img
+                    src="/assets/usdc.png"
+                    alt="pUSDC"
+                    width={18}
+                    height={18}
+                    style={{ borderRadius: "50%" }}
+                  />
+                  <span>pUSDC</span>
+                </span>
+              ) : (
+                stockId
+              )}
+            </span>
           </div>
           <div className="trade-balance-row">
             Available{" "}
             {account.ready && (buy || account.stockReady[stockId])
               ? units(limit)
               : "—"}{" "}
-            {buy ? "pUSDC" : stockId}
+            {buy ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                <img
+                  src="/assets/usdc.png"
+                  alt="pUSDC"
+                  width={14}
+                  height={14}
+                  style={{ borderRadius: "50%", verticalAlign: "middle" }}
+                />
+                <span>pUSDC</span>
+              </span>
+            ) : (
+              stockId
+            )}
           </div>
           <div className="trade-shortcuts" aria-label="Percentage shortcuts">
             {[25, 50, 100].map((p) => (
@@ -139,15 +184,30 @@ export function TradeModal({
             <span className="trade-output-value">
               {quote ? units(quote.receive) : "—"}
             </span>
-            <span>{buy ? stockId : "pUSDC"}</span>
+            <span>
+              {buy ? (
+                stockId
+              ) : (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                  <img
+                    src="/assets/usdc.png"
+                    alt="pUSDC"
+                    width={18}
+                    height={18}
+                    style={{ borderRadius: "50%" }}
+                  />
+                  <span>pUSDC</span>
+                </span>
+              )}
+            </span>
           </div>
           <div className="trade-review-box">
             <dl style={{ margin: 0 }}>
               <div className="trade-review-row">
                 <dt>Oracle price</dt>
                 <dd>
-                  {account.prices[stockId]
-                    ? money(account.prices[stockId]!)
+                  {oraclePrice
+                    ? money(oraclePrice)
                     : "—"}
                 </dd>
               </div>
@@ -158,7 +218,23 @@ export function TradeModal({
                     ? ` (${account.feeBps / 100}%)`
                     : ""}
                 </dt>
-                <dd>{quote ? `${units(quote.fee)} pUSDC` : "—"}</dd>
+                <dd>
+                  {quote ? (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                      {units(quote.fee)}{" "}
+                      <img
+                        src="/assets/usdc.png"
+                        alt="pUSDC"
+                        width={14}
+                        height={14}
+                        style={{ borderRadius: "50%", verticalAlign: "middle" }}
+                      />{" "}
+                      pUSDC
+                    </span>
+                  ) : (
+                    "—"
+                  )}
+                </dd>
               </div>
             </dl>
           </div>

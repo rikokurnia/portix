@@ -3,11 +3,12 @@
 import { isolatedAccounting } from "@/lib/onchain/contracts";
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import { MarketStockList } from "./MarketStockList";
 import { BuyModal } from "./BuyModal";
 import { SellModal } from "./SellModal";
+import { MarketEarnModal } from "./MarketEarnModal";
 import type { MarketStockId } from "./types";
+import type { VaultId } from "@/lib/assets";
 import "./market.css";
 
 // Dynamically load MarketChart to guarantee clean client-side canvas mounting without SSR issues
@@ -30,7 +31,7 @@ export function Market() {
   const [selectedStockId, setSelectedStockId] = useState<MarketStockId>("AAPL");
   const [isBuyOpen, setIsBuyOpen] = useState(false);
   const [isSellOpen, setIsSellOpen] = useState(false);
-  const router = useRouter();
+  const [earnVault, setEarnVault] = useState<VaultId | null>(null);
 
   return (
     <main className="market-page">
@@ -53,7 +54,7 @@ export function Market() {
           stockId={selectedStockId}
           onBuy={() => setIsBuyOpen(true)}
           onSell={() => setIsSellOpen(true)}
-          onEarn={(vaultId) => router.push(`/vault/${vaultId ?? "pxPrime"}?stock=${selectedStockId}`)}
+          onEarn={(vaultId) => setEarnVault(vaultId ?? "pxBoost")}
         />
       </div>
 
@@ -70,6 +71,15 @@ export function Market() {
         <SellModal
           stockId={selectedStockId}
           onClose={() => setIsSellOpen(false)}
+        />
+      )}
+
+      {/* Earn Modal: 1-Click Zap & Auto-Deploy to Carry Vault */}
+      {earnVault && (
+        <MarketEarnModal
+          stockId={selectedStockId}
+          initialVaultId={earnVault}
+          onClose={() => setEarnVault(null)}
         />
       )}
     </main>

@@ -24,16 +24,24 @@ export function VaultHistory({ vaultId }: { vaultId: VaultId }) {
             <li key={a.hash}>
               <div className="vault-history-main">
                 <div className="vault-history-asset">
-                  {a.stockId !== "pUSDC" && stocks[a.stockId as StockId] && (
+                  {a.stockId === "pUSDC" ? (
+                    <img
+                      src="/assets/usdc.png"
+                      width={28}
+                      height={28}
+                      alt="pUSDC"
+                      style={{ borderRadius: "50%" }}
+                    />
+                  ) : stocks[a.stockId as StockId] ? (
                     <img
                       src={stocks[a.stockId as StockId].logo}
                       width={28}
                       height={28}
                       alt=""
                     />
-                  )}
+                  ) : null}
                   <div>
-                    <strong>{`Vault Deposit (${vaultId})`}</strong>
+                    <strong>Vault Deposit</strong>
                     <small>
                       {units(a.amount)} {a.stockId}
                     </small>
