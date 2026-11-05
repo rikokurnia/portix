@@ -100,7 +100,7 @@ export function StrategyCard({
         <div>
           <span>Benchmark TVL</span>
           <b>{summary ? formatBenchmarkTVL(summary.tvl) : "—"}</b>
-          <PoolVolume vaultId={vaultId} benchmarkTVL={summary?.tvl}/>
+          <PoolVolume vaultId={vaultId}/>
         </div>
         <div>
           <span>Initial LTV</span>
