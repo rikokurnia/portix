@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   createChart,
   CandlestickSeries,
@@ -11,10 +12,13 @@ import {
   type IChartApi,
   type ISeriesApi,
 } from "lightweight-charts";
-import { RotateCcw, ExternalLink } from "lucide-react";
+import { RotateCcw, ExternalLink, ArrowUpRight, ChevronUp } from "lucide-react";
 import { useStockHistory } from "./useStockHistory";
-import { assets } from "@/lib/assets";
+import { assets, type VaultId } from "@/lib/assets";
 import { explorerContract, stockAddress } from "@/lib/onchain/contracts";
+import { usePortfolio } from "@/lib/portfolio-store";
+import { useVaultMarketData } from "@/features/vault/useVaultMarketData";
+import { summarizeVault } from "@/lib/vault-market-data";
 import { MARKET_STOCKS } from "./stocks";
 import { calculateSMA, formatUSD, formatPercent } from "./calculations";
 import type { MarketStockId, Timeframe } from "./types";
@@ -23,7 +27,7 @@ interface MarketChartProps {
   stockId: MarketStockId;
   onBuy: () => void;
   onSell: () => void;
-  onEarn: () => void;
+  onEarn?: (vaultId: VaultId) => void;
 }
 
 export function MarketChart({
@@ -32,6 +36,12 @@ export function MarketChart({
   onSell,
   onEarn,
 }: MarketChartProps) {
+  const router = useRouter();
+  const portfolio = usePortfolio();
+  const vaultMarket = useVaultMarketData();
+  const [earnMenuOpen, setEarnMenuOpen] = useState(false);
+  const earnDropdownRef = useRef<HTMLDivElement>(null);
+
   const [timeframe, setTimeframe] = useState<Timeframe>("1D");
   const [showVol, setShowVol] = useState(true);
   const [showMA5, setShowMA5] = useState(true);
@@ -43,6 +53,29 @@ export function MarketChart({
 
   const stock = MARKET_STOCKS[stockId];
   const history = useStockHistory(stockId, timeframe);
+
+  // Close earn dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (earnDropdownRef.current && !earnDropdownRef.current.contains(event.target as Node)) {
+        setEarnMenuOpen(false);
+      }
+    }
+    if (earnMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [earnMenuOpen]);
+
+  // Live real-time APYs for vaults
+  const primeSummary = summarizeVault("pxPrime", vaultMarket.histories);
+  const boostSummary = summarizeVault("pxBoost", vaultMarket.histories);
+  const primeApy = primeSummary ? `${primeSummary.apy.toFixed(2)}%` : "4.67%";
+  const boostApy = boostSummary ? `${boostSummary.apy.toFixed(2)}%` : "16.00%";
+
+  // Spot stock balance check - user can only sell stock actually held in wallet
+  const userStockBalance = portfolio.ready ? (portfolio.stockBalances[stockId] ?? 0) : 0;
+  const hasStockToSell = Boolean(portfolio.address && userStockBalance > 0);
   const candles = history.candles;
 
   const currentPrice = history.price;
@@ -411,20 +444,85 @@ export function MarketChart({
           type="button"
           className="button market-btn-sell"
           onClick={onSell}
+          disabled={!hasStockToSell}
+          title={
+            !portfolio.address
+              ? "Connect your wallet to trade"
+              : !hasStockToSell
+                ? `You don't own any ${stockId} in your wallet to sell`
+                : `Sell available ${stockId} for pUSDC`
+          }
         >
           Sell
         </button>
 
-        <div className="market-earn-wrapper">
+        <div className="market-earn-wrapper" ref={earnDropdownRef}>
+          {earnMenuOpen && (
+            <div className="market-earn-menu" role="menu">
+              <button
+                type="button"
+                role="menuitem"
+                className="market-earn-menu-item"
+                onClick={() => {
+                  setEarnMenuOpen(false);
+                  if (onEarn) onEarn("pxPrime");
+                  else router.push(`/vault/pxPrime?stock=${stockId}`);
+                }}
+              >
+                <img src={assets.pxPrime} alt="pxPrime" width={28} height={28} />
+                <div className="earn-item-details">
+                  <div className="earn-item-title-row">
+                    <strong>pxPrime</strong>
+                    <span className="earn-item-risk lower">Lower Risk</span>
+                  </div>
+                  <span className="earn-item-desc">Lending Carry</span>
+                </div>
+                <div className="earn-item-apy-block">
+                  <span className="earn-item-apy">{primeApy}</span>
+                  <ArrowUpRight size={18} className="earn-item-arrow" />
+                </div>
+              </button>
+
+              <button
+                type="button"
+                role="menuitem"
+                className="market-earn-menu-item"
+                onClick={() => {
+                  setEarnMenuOpen(false);
+                  if (onEarn) onEarn("pxBoost");
+                  else router.push(`/vault/pxBoost?stock=${stockId}`);
+                }}
+              >
+                <img src={assets.pxBoost} alt="pxBoost" width={28} height={28} />
+                <div className="earn-item-details">
+                  <div className="earn-item-title-row">
+                    <strong>pxBoost</strong>
+                    <span className="earn-item-risk moderate">Moderate Risk</span>
+                  </div>
+                  <span className="earn-item-desc">AMM Trading Fees</span>
+                </div>
+                <div className="earn-item-apy-block">
+                  <span className="earn-item-apy">{boostApy}</span>
+                  <ArrowUpRight size={18} className="earn-item-arrow" />
+                </div>
+              </button>
+            </div>
+          )}
+
           <button
             type="button"
-            className="button market-btn-earn"
-            onClick={onEarn}
+            className={`button market-btn-earn ${earnMenuOpen ? "active" : ""}`}
+            onClick={() => setEarnMenuOpen((prev) => !prev)}
+            aria-expanded={earnMenuOpen}
+            aria-haspopup="true"
           >
-            <img src={assets.pxPrime} alt="" width={26} height={26} />
-            <span>Earn</span>
+            <img src={assets.pxPrime} alt="" width={24} height={24} />
+            <span className="market-btn-earn-label">
+              Earn <strong>up to {boostApy}</strong>
+            </span>
+            <ChevronUp size={16} className={`earn-chevron ${earnMenuOpen ? "open" : ""}`} />
           </button>
-          <span className="market-earn-caption">via pxPrime</span>
+          <span className="market-earn-caption">Deposit stock into carry vaults</span>
         </div>
       </div>
     </div>

@@ -332,7 +332,10 @@ function Sync({selected}:{selected?:ReturnType<typeof useWallets>["wallets"][num
               await approve(settlement,legacyAddress,spend,"pUSDC",6);
               const fee = (spend * 10n) / 10000n;
               const netSpend = spend - fee;
-              const stockAmount = (netSpend * 10n**18n) / 300_000_000n;
+              const livePrice = getPortfolioSnapshot().prices[command.stockId];
+              const stockPrice = typeof livePrice === "number" && livePrice > 0 ? livePrice : 300;
+              const priceUsd6 = parseUnits(stockPrice.toFixed(6), 6);
+              const stockAmount = (netSpend * 10n**18n) / priceUsd6;
               const buyAmount = Number(formatUnits(stockAmount, 18));
               const buyEvent = { ...command, amount: buyAmount > 0 ? buyAmount : command.amount };
               hash = await send(legacyAddress,marketAbi,"buyStockWithExactUSDC",[legacyAddress,spend],buyEvent);

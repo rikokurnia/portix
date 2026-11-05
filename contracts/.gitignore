@@ -1,0 +1,13 @@
+# Credentials and private keys - NEVER commit
+.env*
+!.env.example
+*.key
+*.pem
+*.keystore
+
+# Foundry build outputs and caches
+out/
+cache/
+broadcast/
+artifacts-for-integration/
+lib/

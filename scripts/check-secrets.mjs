@@ -25,7 +25,7 @@ const tracked = execFileSync("git", ["ls-files", "-z"])
 const forbidden = tracked.filter(
   (file) =>
     (/(^|\/)\.env($|\.)/.test(file) && !/\.example$/.test(file)) ||
-    /^contracts\//.test(file) ||
+    /(^|\/)contracts\/(?:out|cache|broadcast|artifacts-for-integration)\//.test(file) ||
     /\.(?:pem|key|keystore)$/.test(file),
 );
 const files = [

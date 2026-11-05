@@ -828,6 +828,39 @@
   box-shadow: 0 0 10px rgba(39, 117, 202, 0.45);
 }
 
+/* Spread Share Grid */
+.spread-share-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+.spread-share-card {
+  background: #171228;
+  border: 1px solid rgba(139, 101, 158, 0.3);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.spread-share-card span {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.spread-share-card strong {
+  font-size: 24px;
+  font-weight: 700;
+  color: #38ef7d;
+}
+.spread-share-card small {
+  font-size: 11px;
+  color: #b3a7d4;
+  line-height: 1.4;
+}
+
 /* History Badges & Proof */
 .history-action-cell {
   display: flex;

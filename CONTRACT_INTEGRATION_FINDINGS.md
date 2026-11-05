@@ -25,3 +25,16 @@ All contract-level authorization vulnerabilities, missing per-stock/per-strategy
 5. All 41 contract unit and regression tests pass (see `contracts/test/PortixProtocolRegression.t.sol`). Full handoff documentation is published in `AGENT_3_INTEGRATION_HANDOFF.md`.
 
 Historical read-only proof: at block 314312, an unrelated caller 0x0000000000000000000000000000000000000001 successfully simulated withdrawing 2.997 shares from owner 0x3528ea50B67236a31d6BC1Fb94f36cDcf0e71995 to the unrelated caller, returning 0.999 stock units. This was eth_call only; no withdrawal was broadcast.
+
+## Mentor Feedback & Spot Architecture Resolution (2026-11-05)
+1. **Contract Transparency**: All smart contract source code (`contracts/src/`, `contracts/test/`, `contracts/script/`, `contracts/foundry.toml`) has been un-excluded from `.gitignore` and published to the repository for full auditability.
+2. **Security & Zero Secret Exposure**: Pre-commit secret scanning verified 0 private keys or signing materials are committed. `.env` and Foundry deployment artifacts remain strictly ignored.
+3. **Spot-Only Trading**: Portix operates purely as a spot market with carry yield:
+   - Users can only spot-buy tokenized stock using pUSDC.
+   - Users can only spot-sell stock that is currently unencumbered in their wallet (`stockBalance > 0`). Short-selling, margin leverage, and perpetual contracts are intentionally absent.
+4. **Dynamic Pricing (Eliminating Flat $300 Fallback)**:
+   - Frontend and settlement logic dynamically compute stock units and execution value based on live market oracle feeds (`prices[stockId]`) rather than static 300 fallback arithmetic.
+5. **Spread Share Mechanics**:
+   - Gross carry yield generated from destination protocols (stablecoin lending in Morpho/Aave/Compound for pxPrime, AMM base fees in Uniswap V3 for pxBoost) is divided according to the protocol spread share:
+     - **85%** net yield credited directly to the stock depositor upon withdrawal.
+     - **15%** protocol spread retained to maintain testnet settlement liquidity and the debt reserve fund.

@@ -23,8 +23,14 @@ keystore/
 keystores/
 secrets/
 
-# Smart contracts are intentionally excluded from this frontend release.
-/contracts/
+# Smart contracts build output and private credentials
+contracts/.env*
+!contracts/.env.example
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+contracts/artifacts-for-integration/
+contracts/lib/
 
 # Local agent and browser metadata
 .gstack/

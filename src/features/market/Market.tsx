@@ -53,7 +53,7 @@ export function Market() {
           stockId={selectedStockId}
           onBuy={() => setIsBuyOpen(true)}
           onSell={() => setIsSellOpen(true)}
-          onEarn={() => router.push(`/vault/pxPrime?stock=${selectedStockId}`)}
+          onEarn={(vaultId) => router.push(`/vault/${vaultId ?? "pxPrime"}?stock=${selectedStockId}`)}
         />
       </div>
 

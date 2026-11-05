@@ -167,6 +167,24 @@ export function VaultAbout({
           route; bridge execution and destination adapters are not connected.
         </p>
       </section>
+      <section className="about-spread">
+        <h3>Carry yield spread share</h3>
+        <p>
+          Yield harvested from destination venues is shared between depositors and the protocol:
+        </p>
+        <div className="spread-share-grid">
+          <div className="spread-share-card">
+            <span>Depositor Net Share</span>
+            <strong>85%</strong>
+            <small>Directly credited to stock holders upon vault withdrawal</small>
+          </div>
+          <div className="spread-share-card">
+            <span>Protocol Spread</span>
+            <strong>15%</strong>
+            <small>Maintains settlement liquidity and protocol debt reserve</small>
+          </div>
+        </div>
+      </section>
       <section>
         <h3>PORTIX contracts on Portaldot</h3>
         <p>
