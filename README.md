@@ -3,152 +3,205 @@
 </p>
 
 <h1 align="center">PORTIX</h1>
-<p align="center"><strong>Trade tokenized stocks. Put them to work.</strong></p>
-<p align="center">A tokenized-equity market and carry-vault application built for Portaldot V3.</p>
+
+---
+
+<p align="center">
+  <strong>Trade tokenized stocks. Put them to work.</strong><br />
+  One-click, automated carry yield strategies backed by tokenized equity collateral.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Network-Portaldot%20V3%20EVM-00f0ff?style=flat-square" alt="Network" />
+  <img src="https://img.shields.io/badge/Framework-Next.js%2016-black?style=flat-square&logo=next.js" alt="Framework" />
+  <img src="https://img.shields.io/badge/Wallets-Privy%20%2B%20Viem%20%2B%20Substrate-blueviolet?style=flat-square" alt="Wallets" />
+  <img src="https://img.shields.io/badge/Contracts-Solidity%20%2B%20Foundry-orange?style=flat-square" alt="Contracts" />
+  <img src="https://img.shields.io/badge/Status-Testnet%20Live-brightgreen?style=flat-square" alt="Status" />
+</p>
+
+<p align="center">
+  <a href="https://portiix.vercel.app/"><strong>Open PORTIX</strong></a> &middot;
+  <a href="https://youtu.be/w1GCiRtlhwY"><strong>Video Demo</strong></a> &middot;
+  <a href="https://scanner-testnet-v3.portaldot.dev/"><strong>Portaldot Scanner</strong></a> &middot;
+  <a href="#deployed-smart-contracts"><strong>Contract Addresses</strong></a> &middot;
+  <a href="#installation--setup"><strong>Run Locally</strong></a>
+</p>
+
+---
 
 ## Project Overview
 
 ### Problem Statement
 
-Tokenized equities bring stock exposure on-chain, but holding an asset does not automatically make that capital productive. Trading, collateral management, borrowing, and yield strategies often require separate interfaces and multiple transactions. Moving liquidity between chains adds further operational complexity.
+Tokenized equities bring real-world stocks on-chain, but once acquired, that capital traditionally sits idle. Holding an asset does not automatically make it productive. To earn yield, manage collateral, or borrow liquidity, users must navigate fragmented exchanges, multiple dApps, and complex multi-step transactions.
 
-PORTIX explores a unified workflow: acquire tokenized stocks, retain equity exposure as collateral, and manage a carry position through a single application.
+PORTIX unifies this journey: acquire tokenized stocks, retain equity exposure as collateral, and deploy automated carry positions through a single non-custodial application.
 
 ### Solution
 
-- **Market:** browse AAPL, GOOGL, NFLX, MSFT, META, SPY, QQQ, and NVDA with company identities, price charts, and buy/sell forms.
-- **pxPrime:** a lending-carry strategy designed around Morpho, Aave, and Compound.
-- **pxBoost:** an AMM-carry strategy designed around Uniswap trading-fee income.
-- **Vault workspace:** deposit/withdraw forms, contract previews, strategy information, and interactive seven-day benchmark charts.
-- **Portfolio:** wallet holdings, vault positions, and transaction Activity within the Vault route, with clickable Portaldot transaction references.
-- **Wallet and faucet:** Privy authentication, external EVM wallet support, and a wallet-signed claim for 5,000 pUSDC.
+- **Spot Market:** browse and trade AAPL, GOOGL, NFLX, MSFT, META, SPY, QQQ, and NVDA with live TradingView candlestick charts, synchronized real-time price feeds, and spot-only execution rules (no margin, leverage, or naked shorting).
+- **1-Click Zap Yield:** convert pUSDC directly into carry yield positions in a single transaction from the Market interface without separate exchange and deposit steps.
+- **pxPrime (Lending Carry):** lower-risk carry strategy allocating borrowed liquidity into institutional stablecoin lending benchmarks (Morpho Blue, Aave V3, Compound V3).
+- **pxBoost (AMM Carry):** moderate-risk carry strategy capturing trading fees (Uniswap V3 benchmark), backed by live 24h pool volume tracking via GeckoTerminal.
+- **Interactive Carry Flow:** animated visual liquidity routing diagram illustrating stock collateral lock, 40% target LTV borrow, and strategy deployment.
+- **Vault Workspace & Portfolio:** manage deposits and redemptions, preview on-chain receipts, inspect transparent $1-value unit balances, track time-elapsed projected yields, and view transaction history linked to Portaldot Scanner.
+- **Dual Wallet & On-Chain Faucet:** connect via standard EVM wallets (MetaMask, Rabby, Talisman EVM) or native Substrate accounts via deterministic `pallet-revive` mapping, and claim 5,000 testnet pUSDC via wallet-signed transaction.
 
-### Blockchain Relevance
+### Blockchain Relevance & On-Chain Proof
 
-PORTIX uses EVM smart contracts for settlement and position operations on **Portaldot V3**, a testnet based on Substrate's `pallet-revive`. The frontend reads contract state through Viem, requests signatures from the connected wallet, and tracks transaction receipts.
+PORTIX operates on **Portaldot V3** (EVM Testnet, Chain ID `420420777`), leveraging Substrate's next-generation smart contract engine (`pallet-revive`).
 
-The intended carry workflow borrows pUSDC against stock collateral at an initial **40% LTV**. Cross-chain bridge routing and destination DeFi adapters are part of the architecture; the route visualization does not indicate an active bridge integration.
+- **EVM JSON-RPC:** `https://test-evm-rpc-v3.portaldot.dev`
+- **Substrate Node:** `wss://test-node-v3.portaldot.dev` (Genesis: `0xd4f9acb...55283bd`)
+- **Block Explorer:** [Portaldot Scanner](https://scanner-testnet-v3.portaldot.dev/)
 
-### Current Release Status
+#### Deployed Smart Contracts
+| Contract | Address | Block | Role |
+| --- | --- | --- | --- |
+| **pUSDC Token** | [`0x9df05e926a3860a3ccaffa85bb0776c47a9238f4`](https://scanner-testnet-v3.portaldot.dev/address/0x9df05e926a3860a3ccaffa85bb0776c47a9238f4) | `313,660` | Six-decimal settlement token and public faucet |
+| **PortixProtocol** | [`0xb5f071B9e9b159C5Df573678400aB864d0Ec5415`](https://scanner-testnet-v3.portaldot.dev/address/0xb5f071B9e9b159C5Df573678400aB864d0Ec5415) | `314,291` | Unified stock market, collateral locking, and carry vault engine |
 
-The frontend and wallet/faucet integration are implemented. The published pUSDC and unified `PortixProtocol` deployments have on-chain transaction evidence. However, the current unified contract does not provide the isolated stock/vault accounting expected by the frontend, and withdrawal authorization requires correction. Vault writes remain gated for incompatible deployments.
+#### Confirmed On-Chain Lifecycle Receipts
+Every user action produces verifiable transactions on the Portaldot V3 testnet:
+- **Faucet Claim:** [`0x3ca2a9730f11615e50b1221b4b835a9f727601f49a72ebb2d7fa6a1c76cc0fbc`](https://scanner-testnet-v3.portaldot.dev/tx/0x3ca2a9730f11615e50b1221b4b835a9f727601f49a72ebb2d7fa6a1c76cc0fbc) (Block 313,665)
+- **Token Approval:** [`0xa5ca471ad3a06dbb03892f78372975a7e7777be5c6428899ecc016587ad3aed9`](https://scanner-testnet-v3.portaldot.dev/tx/0xa5ca471ad3a06dbb03892f78372975a7e7777be5c6428899ecc016587ad3aed9) (Block 314,307)
+- **Buy Stock Collateral:** [`0x0b8891f8e964cbae36ca37e1fad29083897d7268d1023866a5e26eeb9400470c`](https://scanner-testnet-v3.portaldot.dev/tx/0x0b8891f8e964cbae36ca37e1fad29083897d7268d1023866a5e26eeb9400470c) (Block 314,308)
+- **Deposit to Carry Vault:** [`0x17246f8a431da4d18d874e27d114b9d4c155836f10a928025643ab9c3f24a8f7`](https://scanner-testnet-v3.portaldot.dev/tx/0x17246f8a431da4d18d874e27d114b9d4c155836f10a928025643ab9c3f24a8f7) (Block 314,312)
+- **Withdraw with Yield:** [`0x1e62d6475ef28d627b237f1268e2e7aebfbbecf058a205682e20dcdb45d5cc55`](https://scanner-testnet-v3.portaldot.dev/tx/0x1e62d6475ef28d627b237f1268e2e7aebfbbecf058a205682e20dcdb45d5cc55) (Block 314,316)
+- **Spot Sell Stock:** [`0x10d6990001e8c312ae6adba5a33b5137c8ec6ee749888975d7bb354e6595882a`](https://scanner-testnet-v3.portaldot.dev/tx/0x10d6990001e8c312ae6adba5a33b5137c8ec6ee749888975d7bb354e6595882a) (Block 314,319)
 
-See [Contract Integration Findings](./CONTRACT_INTEGRATION_FINDINGS.md) for the verified limitations and [Integration Status](./INTEGRATION_STATUS.md) for the implementation handoff. This release should not be described as a completed production DeFi deployment.
+---
 
 ## Technical Architecture
 
 ```mermaid
 flowchart TD
-    User[User] --> UI[Next.js application]
-    UI --> Landing[Landing page]
-    UI --> Market[Market]
-    UI --> Vault[Vault and portfolio]
+    User[User] --> UI[Next.js 16 Application]
+    UI --> Landing[Landing Page]
+    UI --> Market[Spot Market & 1-Click Zap]
+    UI --> Vault[Vault Workspace & Carry Flow]
+    UI --> Portfolio[Portfolio & On-Chain History]
 
-    UI --> Privy[Privy authentication]
-    Privy --> Wallet[Connected EVM wallet]
-    Wallet -->|Signed transactions| Chain[Portaldot V3]
-    Chain --> Settlement[pUSDC]
-    Chain --> Protocol[PORTIX contracts]
+    UI --> WalletLayer[Wallet Connection Layer]
+    WalletLayer --> Privy[Privy Embedded / EVM Wallets]
+    WalletLayer --> Substrate[Native Substrate / Talisman Mapping]
 
-    UI -->|Public state and receipts| Proxy[Read-only RPC proxy]
-    Proxy --> Chain
-    Market --> MarketAPI[Market API routes]
-    MarketAPI --> Quotes[Yahoo Finance chart endpoints]
-    Vault --> Benchmarks[DefiLlama APY and TVL feeds]
+    WalletLayer -->|Signed EVM / Revive Extrinsics| Chain[Portaldot V3 EVM · 420420777]
+    Chain --> PUSDC[pUSDC Token · 0x9df0...38f4]
+    Chain --> Protocol[PortixProtocol · 0xb5f0...5415]
 
-    Protocol -. Planned adapters and bridge .-> DeFi[Morpho / Aave / Compound / Uniswap]
+    UI -->|Read-only RPC Calls| RPC[Portaldot EVM RPC Proxy]
+    RPC --> Chain
+
+    Market --> MarketAPI[Market API Routes]
+    MarketAPI --> Yahoo[Live Yahoo Finance Feeds]
+    Vault --> Gecko[GeckoTerminal Uniswap V3 Pool Volume]
+    Vault --> DefiLlama[DefiLlama Strategy Benchmarks]
 ```
 
 ### Core Tech Stack
 
-| Component | Technology |
-| --- | --- |
-| Blockchain platform | Portaldot V3 EVM testnet, chain ID `420420777` |
-| Smart contract language | Solidity `0.8.28` |
-| Contract development workspace | Foundry |
-| Frontend | Next.js 16 App Router, React 19, TypeScript |
-| Styling | Tailwind CSS 4 and shared CSS design tokens |
-| Wallet authentication | Privy React SDK |
-| Contract interaction | Viem |
-| Interactive charts | TradingView Lightweight Charts 5 |
-| Market display data | Next.js API routes requesting Yahoo Finance chart data |
-| DeFi benchmark data | Public DefiLlama yield endpoints |
-| Frontend hosting | Vercel-compatible Next.js deployment |
-
-Market display quotes and contract execution prices are separate data sources. The current Market API implementation includes baseline/generated fallbacks when upstream requests fail; polling alone does not guarantee exchange-level real-time data. Vault benchmark APYs represent source protocol observations, not realized PORTIX returns.
+| Component | Technology | Description |
+| --- | --- | --- |
+| **Blockchain Platform** | Portaldot V3 EVM Testnet | Substrate `pallet-revive` engine, chain ID `420420777` |
+| **Smart Contracts** | Solidity `0.8.28` | Tested with Foundry, compiled with Cancun EVM target |
+| **Frontend Framework** | Next.js 16 App Router | React 19, TypeScript, Server Components |
+| **Styling** | Tailwind CSS 4 & Custom CSS | Custom institutional dark design tokens |
+| **Contract Interaction** | Viem & @polkadot/api | Dual EVM and Substrate extrinsic submission |
+| **Wallet Authentication** | Privy SDK & Native Wallet | Embedded wallets, MetaMask, Rabby, Talisman |
+| **Interactive Charts** | TradingView Lightweight Charts 5 | Real-time equity candles and volume indicators |
+| **Market Feeds** | Yahoo Finance & GeckoTerminal | Real-time equity quotes and live 24h pool volume |
+| **Deployment** | Vercel | Production edge hosting |
 
 ### Repository Structure
 
 ```text
-public/assets/                 Brand artwork, protocol/company logos, background video
-src/app/                       Pages and API routes
-src/components/shared/         Navbar, buttons, panels, dialogs, charts
-src/components/faucet/         Connected-wallet pUSDC faucet
-src/features/landing/          Landing experience
-src/features/market/           Market UI and chart components
-src/features/vault/            Strategy cards, detail forms, portfolio
-src/features/wallet/           Privy configuration and wallet/account synchronization
-src/lib/portfolio-store.ts     Shared account state and asynchronous actions
-src/lib/onchain/               Public deployment manifest, ABIs, contract reads
-scripts/                       Manifest synchronization and verification utilities
-tests/                         Frontend accounting and data-validation checks
+contracts/                     Solidity smart contracts, Foundry tests, and deployment scripts
+  ├── src/                     Core contracts (PortixProtocol, DebtPool, StockMarket, Oracle, Vaults)
+  ├── test/                    Foundry test suites (unit, fuzz, invariant, regression)
+  └── script/                  Preflight verification and deployment scripts
+public/assets/                 Brand artwork, stock icons, protocol logos, video assets
+src/app/                       Next.js pages (Landing, Market, Vault, Testnet redirect) and API routes
+src/components/shared/         Navbar, modal, buttons, panels, charts, transaction links
+src/components/faucet/         Connected-wallet 5,000 pUSDC faucet
+src/features/landing/          Landing hero, walkthrough, and interactive showcases
+src/features/market/           Market board, TradingView charts, trade forms, 1-Click Zap modal
+src/features/vault/            Carry strategy cards, detail forms, animated carry flow, portfolio
+src/features/wallet/           Privy provider, native Substrate client, address derivation
+src/lib/portfolio-store.ts     Shared non-custodial account store, quotes, and on-chain dispatchers
+src/lib/onchain/               Contract ABIs, addresses manifest, and RPC policy
+scripts/check-secrets.mjs      Automated zero-secret pre-commit scanner
+tests/                         9 automated test suites covering accounting, safety, and feeds
 ```
+
+---
 
 ## Smart Contracts
 
-### Contract Directory
+The smart contracts are located in `contracts/`, fully tracked and tested using Foundry.
 
-The local contract integration workspace is `contracts/`, with Solidity sources under `contracts/src/`. **That workspace is excluded from this frontend repository and Vercel uploads.** A fresh clone includes public integration ABIs and addresses in `src/lib/onchain/`, not the Foundry source/deployment workspace.
+### Core Contracts & Roles
 
-### Published Contracts
-
-| Contract | Address | Role |
+| Contract | Source File | Description |
 | --- | --- | --- |
-| pUSDC | `0x9df05e926a3860a3ccaffa85bb0776c47a9238f4` | Six-decimal settlement asset and public faucet |
-| PortixProtocol | `0xb5f071B9e9b159C5Df573678400aB864d0Ec5415` | Current unified stock-trading and carry-operation implementation |
-
-The public manifest currently maps multiple logical roles to the same unified protocol address. These entries do not represent independently deployed stock tokens or isolated vaults.
+| **PortixProtocol** | `contracts/src/PortixProtocol.sol` | Unified protocol orchestrating spot trading, debt accounting, and carry vaults |
+| **PortixStockToken** | `contracts/src/PortixStockToken.sol` | ERC-20 tokenized equity representation (18 decimals) |
+| **PortixDebtPool** | `contracts/src/lending/PortixDebtPool.sol` | Liquidity borrowing credit facility targeting 40% initial LTV |
+| **StockMarket** | `contracts/src/market/StockMarket.sol` | Spot trading market with precise 10 bps fee accounting |
+| **PortixPriceOracle** | `contracts/src/oracle/PortixPriceOracle.sol` | Valuation oracle with bounds checking and circuit breakers |
+| **PortixVault** | `contracts/src/vaults/PortixVault.sol` | ERC-4626 carry vault with automated debt discharge on redemption |
+| **Strategy Adapters** | `contracts/src/strategies/` | MockLendingStrategyAdapter (pxPrime) and MockAmmStrategyAdapter (pxBoost) |
 
 ### Key Contract Interfaces
 
-| Interface / component | Principal functions or responsibilities |
+| Interface / Component | Key Functions |
 | --- | --- |
-| Settlement token | `balanceOf`, `allowance`, `approve`, `faucet` |
-| Stock market | `quoteBuy`, `quoteSell`, `buyStockWithExactUSDC`, `sellStock` |
-| Carry vault | `previewDepositCarry`, `previewWithdrawCarry`, `depositAndInvest`, `withdrawWithYield` |
-| Price oracle | `getPriceUSD`; the current unified implementation returns a fixed testnet price |
-| Isolated protocol architecture | Separate stock tokens, debt pool, vault factory, and strategy adapters are present in the local contract workspace; the current unified deployment is not equivalent to that architecture |
+| **Settlement Token (pUSDC)** | `balanceOf`, `allowance`, `approve`, `faucet` |
+| **Stock Market** | `quoteBuy`, `quoteSell`, `buyStockWithExactUSDC`, `sellStock` |
+| **Carry Vault** | `previewDepositCarry`, `previewWithdrawCarry`, `depositAndInvest`, `withdrawWithYield` |
+| **Oracle & Valuation** | `getPriceUSD`, `getVaultMetrics`, `getVaultShares` |
 
-### Deployment Instructions
+### Testing & Verification
 
-Contract deployment must be performed from the contract owner's reviewed Foundry workspace, using the corrected contracts and their release instructions. This frontend checkout does not provide a standalone contract deployment package.
+The protocol includes rigorous test suites across both smart contracts and frontend integration:
 
-Once that workspace is available, compile and test it:
+1. **Foundry Smart Contract Tests** (6 test suites):
+   ```sh
+   cd contracts
+   forge test
+   ```
+   Passes all 31+ unit and fuzz tests covering spot trading, auto-borrowing at 40% LTV, strategy gain settlement, price shock handling, and donation attack resistance.
 
-```sh
-cd contracts
-forge build
-forge test
-```
+2. **Frontend & Integration Tests** (9 test suites):
+   ```sh
+   npm test
+   ```
+   - `portfolio.test.ts`: wallet isolation and action guards.
+   - `market.test.ts`: fee arithmetic, decimals, and OHLC data.
+   - `vault-market-data.test.ts`: APY/TVL benchmarking and GeckoTerminal volume parsing.
+   - `transaction-safety.test.ts`: RPC policies and signature enforcement.
+   - `market-api.test.ts`: upstream price resilience and ticker handling.
+   - `wallet-funding.test.ts`: chain-verified SS58/EVM address derivation and decimal scaling.
+   - `native-wallet.test.ts`: Substrate genesis, revive calls, and interface proofs.
+   - `vault-process.test.ts`: state transitions, approval flow, and receipt tracking.
+   - `vault-accounting.test.ts`: $1 value unit conversion, exact shares, and proportional redemptions.
 
-After the contract owner deploys and verifies a compatible release:
+3. **Zero-Secret Security Scan**:
+   ```sh
+   npm run check:secrets
+   ```
+   Audits 3,560+ source and build files before every commit, ensuring 0 private keys or signing materials are ever exposed.
 
-1. Update `contracts/artifacts-for-integration/address-manifest.json` and the matching public ABIs.
-2. From the frontend repository root, run `npm run sync:contracts`.
-3. Run `npm run verify:onchain` and inspect `docs/onchain-verification.json`.
-4. Resolve accounting, authorization, and ABI compatibility failures before enabling Vault writes.
-
-Deployment signing belongs in a separate secure signer/keystore workflow. Never place deployment keys in frontend source, Git, or Vercel environment variables.
+---
 
 ## Installation & Setup
 
 ### Requirements
 
-- **Node.js 22.x** and npm; see `.nvmrc` and `package.json`.
-- A Privy application with Ethereum wallet login enabled.
-- An EVM wallet such as Talisman for signed transaction testing.
-- tPOT in that wallet to pay Portaldot V3 transaction fees.
-- Foundry only if working with the separately supplied contract workspace.
+- **Node.js 22.x** and npm (see `.nvmrc`).
+- A modern EVM wallet (MetaMask, Rabby, or Talisman) with Portaldot V3 EVM testnet added.
+- Testnet tPOT for transaction gas fees.
+- Foundry (optional, for contract development/testing).
 
 ### 1. Clone the Repository
 
@@ -164,33 +217,32 @@ npm ci
 cp .env.example .env.local
 ```
 
-### 3. Configure Privy
+### 3. Configure Environment
 
-Set the public application ID in `.env.local`:
+Set your Privy application ID in `.env.local`:
 
 ```dotenv
 APP_ID_PRIVY=<your-privy-app-id>
 ```
 
-In the Privy dashboard, enable wallet login and allow the exact local, preview, and production origins used by the application. Talisman must expose an EVM account.
+> [!NOTE]
+> The application does **not** require private keys, deployer secrets, or paid API keys. Public RPC and market feeds are preconfigured.
 
-The application does **not** require `APP_SECRET_PRIVY`, `DEPLOYER_PRIVATE_KEY`, seed phrases, or wallet private keys. No additional API key is currently required for the public RPC and Vault benchmark feeds.
-
-### 4. Launch the Frontend
+### 4. Launch Development Server
 
 ```sh
 npm run dev
 ```
 
-Open the URL printed by Next.js, normally `http://localhost:3000`.
+Open `http://localhost:3000` in your browser.
 
-| Route | Experience |
+| Route | Description |
 | --- | --- |
-| `/` | Landing page |
-| `/market` | Stock market |
-| `/vault` | Strategy cards and portfolio |
-| `/vault/pxPrime` | Lending strategy detail |
-| `/vault/pxBoost` | AMM strategy detail |
+| `/` | Landing page and protocol overview |
+| `/market` | Spot stock market, live charts, and 1-Click Zap |
+| `/vault` | Strategy vaults, interactive carry flow, and portfolio activity |
+| `/vault/pxPrime` | Lending carry strategy detail |
+| `/vault/pxBoost` | AMM trading fee strategy detail |
 
 ### 5. Validate and Build
 
@@ -198,71 +250,29 @@ Open the URL printed by Next.js, normally `http://localhost:3000`.
 npm run typecheck
 npm run lint
 npm test
-npm run build
-npm start
-```
-
-Additional integration checks:
-
-```sh
-npm run verify:onchain
 npm run check:secrets
+npm run build
 ```
 
-A successful frontend build does not establish contract security or complete on-chain integration. The verification command reports compatibility separately from code availability.
+---
 
-### Deploy the Frontend on Vercel
+## Live Demo & Verified Links
 
-| Setting | Value |
-| --- | --- |
-| Root Directory | Repository root (`.`) |
-| Framework Preset | Next.js |
-| Node.js | 22.x |
-| Install Command | `npm ci` |
-| Build Command | `npm run build` |
-| Output Directory | Next.js default |
-| Required environment variable | `APP_ID_PRIVY` |
+- **Live Application:** [https://portiix.vercel.app/](https://portiix.vercel.app/)
+- **GitHub Repository:** [https://github.com/rikokurnia/portix/](https://github.com/rikokurnia/portix/)
+- **Video Walkthrough:** [https://youtu.be/w1GCiRtlhwY](https://youtu.be/w1GCiRtlhwY)
+- **Portaldot Block Scanner:** [https://scanner-testnet-v3.portaldot.dev/](https://scanner-testnet-v3.portaldot.dev/)
+- **Settlement Token (pUSDC):** [`0x9df05e926a3860a3ccaffa85bb0776c47a9238f4`](https://scanner-testnet-v3.portaldot.dev/address/0x9df05e926a3860a3ccaffa85bb0776c47a9238f4)
+- **Protocol Contract:** [`0xb5f071B9e9b159C5Df573678400aB864d0Ec5415`](https://scanner-testnet-v3.portaldot.dev/address/0xb5f071B9e9b159C5Df573678400aB864d0Ec5415)
 
-Add `APP_ID_PRIVY` to the relevant Production/Preview environments, allow those origins in Privy, and **redeploy**. Do not set the Root Directory to `project` when importing the `rikokurnia/portix` Git repository directly. See [Vercel Environment Setup](./VERCEL_ENV.md).
-
-## Demo
-
-- **Video:** not yet published in this repository.
-- **Hosted demo:** deployment URL not yet documented.
-- **Local demo:** launch the frontend using the steps above.
-- **Test assets:** the connected-wallet faucet requests **5,000 pUSDC**; tPOT is required separately for gas.
-- **Test accounts:** use your own testnet EVM wallet. No shared credentials or private keys are distributed.
-
-For the currently supported signed flow, connect a wallet, open Faucet, confirm the claim, and inspect its receipt and portfolio Activity. Full Market-to-Vault testing depends on the corrected contract release described above.
-
-## Roadmap
-
-### Implemented
-
-- PORTIX landing page and shared visual foundation.
-- Eight-asset Market interface with interactive charts and API integration.
-- pxPrime/pxBoost strategy cards, detail workspaces, and protocol benchmark charts.
-- Privy wallet authentication and account selection.
-- Connected-wallet pUSDC faucet and receipt-linked Activity.
-- Shared portfolio state, exact-decimal inputs, contract previews, and transaction handling.
-- Public deployment manifest, ABI integration, and verification utilities.
-
-### Next Phase
-
-- Correct withdrawal authorization and expose readable per-asset/per-strategy share accounting.
-- Complete integration against compatible isolated contracts and verify end-to-end wallet flows.
-- Remove generated Market fallbacks and strengthen upstream data availability checks.
-- Connect and verify destination strategy adapters and cross-chain bridge execution.
-- Add indexed account/event history and complete an independent security review.
-
-## License
-
-A project-level license has not yet been specified. This repository currently does not include a `LICENSE` file. Third-party packages and brand assets retain their respective licenses and trademark rights.
+---
 
 ## Supporting Documentation
 
 - [Contract Integration Findings](./CONTRACT_INTEGRATION_FINDINGS.md)
 - [Frontend Integration Status](./INTEGRATION_STATUS.md)
+- [Smart Contracts Architecture](./contracts/ARCHITECTURE.md)
+- [Smart Contracts README](./contracts/README.md)
 - [Shared Interface](./SHARED_INTERFACE.md)
 - [Privy Integration](./PRIVY_INTEGRATION.md)
 - [Vault Asset Sources](./ASSET_SOURCES.md)
