@@ -1145,45 +1145,6 @@
   font-weight: 700;
 }
 
-/* Funding toggle pills */
-.earn-funding-toggle {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  background: rgba(14, 11, 24, 0.7);
-  padding: 4px;
-  border-radius: 10px;
-  border: 1px solid rgba(190, 138, 245, 0.15);
-}
-
-.earn-toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 10px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  color: #cbb6eb;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.earn-toggle-btn:hover {
-  color: #faf7ff;
-}
-
-.earn-toggle-btn.active {
-  background: rgba(143, 96, 204, 0.35);
-  color: #faf7ff;
-  border: 1px solid rgba(190, 138, 245, 0.3);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-}
-
 .earn-input-section {
   display: flex;
   flex-direction: column;
