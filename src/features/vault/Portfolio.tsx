@@ -167,7 +167,7 @@ export function Portfolio({
             pUSDC
           </span>
           <div className="portfolio-pusdc-row">
-            <strong>{ready ? units(pUSDC) : "—"}</strong>
+            <strong>{ready ? Math.trunc(pUSDC).toLocaleString("en-US") : "—"}</strong>
             <img
               src="/assets/usdc.png"
               alt="pUSDC"
