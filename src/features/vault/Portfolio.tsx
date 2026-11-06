@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { parseUnits } from "viem";
+import { price6, vaultValueUnits } from "@/lib/vault-amounts";
 import { ArrowRight, Check } from "lucide-react";
 import { TransactionLink } from "@/components/shared/TransactionLink";
 import { Panel } from "@/components/shared/Panel";
@@ -94,6 +96,7 @@ export function Portfolio({
   const [now,setNow]=useState(0);
   useEffect(()=>{const id=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(id);},[]);
   const projection=(p:typeof positions[number])=>projectedYield(p,activity,summarizeVault(p.vaultId,market.histories)?.apy,settlementPrices[p.stockId],now);
+  const displayUnits = (p: typeof positions[number]) => vaultValueUnits(parseUnits(p.rawCollateral ?? String(p.collateral), 18), price6(prices[p.stockId]));
   const historyItems = activity;
   const earned = positions.reduce((sum, p) => sum + (projection(p)??0), 0),
     value =
@@ -197,7 +200,7 @@ export function Portfolio({
             <thead>
               <tr>
                 <th>Vault</th>
-                <th>Collateral / shares</th>
+                <th>Collateral / value units</th>
                 <th>Value</th>
                 <th title="Time-based estimate using the latest benchmark APY on 40% borrowed allocation; not a claimable balance.">Projected yield</th>
                 <th>Health</th>
@@ -224,7 +227,7 @@ export function Portfolio({
                       <div>
                         {units(p.collateral)} {p.stockId}
                         <small>
-                          {units(p.shares)} {p.vaultId}
+                          {displayUnits(p) !== undefined ? units(Number(displayUnits(p))) : "—"} {p.vaultId} value units
                         </small>
                       </div>
                     </div>

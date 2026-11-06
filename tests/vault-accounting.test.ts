@@ -1,8 +1,8 @@
 import {readFileSync} from "node:fs";
 import {legacyAbi} from "../src/lib/onchain/legacy";
 import {strict as assert} from 'node:assert';
-import {parseUnits,encodeEventTopics,encodeAbiParameters,parseAbi,decodeFunctionResult,type Hash,type Hex} from 'viem';
-import {price6,usdToStock,usdToShares,rawAmountUsd} from '../src/lib/vault-amounts';
+import {parseUnits,formatUnits,encodeEventTopics,encodeAbiParameters,parseAbi,decodeFunctionResult,type Hash,type Hex} from 'viem';
+import {price6,usdToStock,usdToShares,rawAmountUsd,vaultValueUnits} from '../src/lib/vault-amounts';
 import {sharedLedger} from '../src/lib/shared-ledger';
 import {projectedYield} from '../src/lib/yield-projection';
 import {confirmedAmounts} from '../src/lib/onchain/activity-amounts';
@@ -40,3 +40,20 @@ console.log('PASS: USD/token conversions, exact shares, confirmed balance transf
 const encodedPreview=encodeAbiParameters([{type:'uint256'},{type:'uint256'},{type:'uint256'},{type:'uint256'}],[raw('0.5'),60000000n,150000000n,7200000n]);
 assert.throws(()=>decodeFunctionResult({abi:JSON.parse(readFileSync('src/lib/onchain/PortixVault.abi.json','utf8')),functionName:'previewWithdrawCarry',data:encodedPreview}));
 assert.equal(decodeFunctionResult({abi:legacyAbi,functionName:'previewWithdrawCarry',data:encodedPreview})[0],raw('0.5'),'Deployed four-value withdrawal preview must decode');
+
+// Dollar-denominated display must round-trip through actual raw contract receipts.
+const qqqPrice=price6(647.05);
+const qqqStock=usdToStock('632.935952',qqqPrice);
+const rawReceipts=qqqStock*3n;
+assert.equal(vaultValueUnits(qqqStock,qqqPrice),'632.935952');
+assert.notEqual(Number(formatUnits(rawReceipts,18)),Number(vaultValueUnits(qqqStock,qqqPrice)), 'Value units must not be mistaken for raw tokens');
+const available=rawAmountUsd(rawReceipts,'Withdraw',qqqPrice,rawReceipts,qqqStock);
+const redeem=usdToShares(available,rawReceipts,qqqStock,qqqPrice);
+assert.equal(redeem,rawReceipts,'Full displayed withdrawal converts to all real receipts');
+const halfReceipts=usdToShares('316.467975',rawReceipts,qqqStock,qqqPrice);
+assert.ok(halfReceipts>0n&&halfReceipts<rawReceipts,'Partial withdrawal stays within actual receipt balance');
+assert.ok(Number(vaultValueUnits(halfReceipts/3n,qqqPrice))<=316.467976,'Returned stock matches requested dollars to six decimals');
+assert.ok(Number(vaultValueUnits(qqqStock,price6(650)))>632.935952,'Display uses changing live collateral value');
+assert.equal(vaultValueUnits(qqqStock,0n),undefined,'Missing feed never invents value units');
+assert.equal(vaultValueUnits(0n,qqqPrice),'0');
+console.log('PASS: $1 vault value units, screenshot amount, full/partial raw-share redemption and live price changes.');

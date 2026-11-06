@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { price6,usdToStock,usdToShares,rawAmountUsd } from "@/lib/vault-amounts";
+import { price6,usdToStock,usdToShares,rawAmountUsd,vaultValueUnits } from "@/lib/vault-amounts";
 import { formatUnits, parseUnits } from "viem";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/shared/Button";
@@ -72,6 +72,8 @@ export function VaultForm({
   const usdLimit=rawAmountUsd(parseUnits(rawLimit,18),mode,marketPrice,rawShares,rawCollateral);
   const n=Number(amount);
   const {configured,quote,error:quoteError}=useQuote(mode,selectedStockId,rawInput,vaultId);
+  const depositValueUnits = quote ? vaultValueUnits(rawUnits, marketPrice) : undefined;
+  const withdrawalValueUnits = rawShares > 0n ? vaultValueUnits(rawUnits * rawCollateral / rawShares, marketPrice) : undefined;
   const collateralValue = quote && valuationPrice ? (deposit ? Number(rawInput) : quote.receive) * valuationPrice : undefined;
   const confirmedPayout=hash?account.activity.find(a=>a.hash===hash)?.usdcAmount:undefined;
   const valid =
@@ -217,7 +219,7 @@ export function VaultForm({
         <span className="vault-denomination"><img src="/assets/usdc.png" alt="" width={20} height={20}/>pUSDC</span>
       </div>
       <div className="balance-line" id="vault-balance">
-        <span>{rawInput ? `${units(Number(rawInput))} ${deposit?selectedStockId:vaultId}` : "Value of your stock"}</span>
+        <span>{rawInput ? deposit ? `${units(Number(rawInput))} ${selectedStockId}` : withdrawalValueUnits !== undefined ? `${units(Number(withdrawalValueUnits))} ${vaultId} value units` : "—" : "Value of your stock"}</span>
         <span>
           Available{" "}
           {account.ready &&
@@ -254,10 +256,10 @@ export function VaultForm({
           </p>
         )}
       <div className="receipt">
-        <span>Estimated receive</span>
+        <span title={deposit ? "One value unit equals $1 of collateral at the live stock price. This denomination differs from the contract receipt units." : undefined}>Estimated receive{deposit ? " · value units" : ""}</span>
         <strong className="vault-denomination">
           <img src={deposit ? assets[vaultId] : stocks[selectedStockId].logo} alt="" width={26} height={26}/>
-          <span className="vault-receipt-text">{quote ? units(quote.receive) : "—"} {deposit ? vaultId : selectedStockId}</span>
+          <span className="vault-receipt-text">{quote ? deposit ? depositValueUnits !== undefined ? units(Number(depositValueUnits)) : "—" : units(quote.receive) : "—"} {deposit ? vaultId : selectedStockId}</span>
         </strong>
 
       </div>
